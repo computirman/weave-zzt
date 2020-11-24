@@ -1,5 +1,14 @@
 $- - - - -
-$The Reconstruction of ZZT
+$ZZT 3.2 version Superhot
 $- - - - -
+
+This version of ZZT does not move
+unless you move.
+
+If you need the game to move forward
+while the player pauses, you can hold
+down the P key and the player will
+pause in place while the action
+continues.
 
 !-license;License information

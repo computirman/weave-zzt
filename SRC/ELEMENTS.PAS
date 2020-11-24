@@ -31,7 +31,6 @@ interface
 	uses GameVars;
 	procedure ElementMove(oldX, oldY, newX, newY: integer);
 	procedure ElementPushablePush(x, y: integer; deltaX, deltaY: integer);
-	procedure ElementWeave(x, y: integer; deltaX, deltaY: integer);
 	procedure DrawPlayerSurroundings(x, y: integer; bombPhase: integer);
 	procedure GamePromptEndPlay;
 	procedure ResetMessageNotShownFlags;
@@ -58,24 +57,6 @@ procedure ElementDefaultTouch(x, y: integer; sourceStatId: integer; var deltaX, 
 procedure ElementDefaultDraw(x, y: integer; var ch: byte);
 	begin
 		ch := Ord('?');
-	end;
-
-procedure ElementMessageTimerTick(statId: integer);
-	begin
-		with Board.Stats[statId] do begin
-			case X of
-				0: begin
-					VideoWriteText((60 - Length(Board.Info.Message)) div 2, 24, 9 + (P2 mod 7), ' '+Board.Info.Message+' ');
-					P2 := P2 - 1;
-					if P2 <= 0 then begin
-						RemoveStat(statId);
-						CurrentStatTicked := CurrentStatTicked - 1;
-						BoardDrawBorder;
-						Board.Info.Message := '';
-					end;
-				end;
-			end;
-		end;
 	end;
 
 procedure ElementDamagingTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
@@ -563,7 +544,7 @@ procedure ElementBombTick(statId: integer);
 				BoardDrawTile(X, Y);
 
 				if P1 = 1 then begin
-					SoundQueue(2, SoundParse('2222'));
+					SoundQueue(1, #96#1#80#1#64#1#48#1#32#1#16#1);
 					DrawPlayerSurroundings(X, Y, 1);
 				end else if P1 = 0 then begin
 					oldX := X;
@@ -586,8 +567,8 @@ procedure ElementBombTouch(x, y: integer; sourceStatId: integer; var deltaX, del
 			if P1 = 0 then begin
 				P1 := 9;
 				BoardDrawTile(X, Y);
-				DisplayMessage(200, 'Bomb activated!');
-				SoundQueue(4, #48#1#53#1#80#1);
+				DisplayMessage(20, 'Bomb activated!');
+				SoundQueue(4, #48#1#53#1#64#1#69#1#80#1);
 			end else begin
 				ElementPushablePush(X, Y, deltaX, deltaY);
 			end;
@@ -638,7 +619,7 @@ procedure ElementTransporterMove(x, y, deltaX, deltaY: integer);
 				until finishSearch;
 				if newX <> -1 then begin
 					ElementMove(X - deltaX, Y - deltaY, newX, newY);
-					SoundQueue(3, #48#1#82#1);
+					SoundQueue(3, #48#1#66#1#52#1#70#1#56#1#74#1#64#1#82#1);
 				end;
 			end;
 		end;
@@ -717,7 +698,7 @@ procedure ElementEnergizerTouch(x, y: integer; sourceStatId: integer; var deltaX
 		GameUpdateSidebar;
 
 		if MessageEnergizerNotShown then begin
-			DisplayMessage(200, 'Energizer - You are invincible');
+			DisplayMessage(20, 'Energizer - You are invincible');
 			MessageEnergizerNotShown := false;
 		end;
 
@@ -918,47 +899,6 @@ procedure ElementPushablePush(x, y: integer; deltaX, deltaY: integer);
 		end;
 	end;
 
-procedure ElementWeave(x, y: integer; deltaX, deltaY: integer);
-	var
-		statDestroy: boolean;
-		statId: integer;
-	begin
-		statDestroy := false;
-		with Board.Tiles[x][y] do begin
-			if Board.Tiles[x + deltaX][y + deltaY].Element = E_PLAYER then begin
-				if Board.Tiles[x + ( deltaX * 2 )][y + ( deltaY * 2 )].Element = E_BOARD_EDGE then
-					statDestroy := true;
-				if Board.Tiles[x + ( deltaX * 2 )][y + ( deltaY * 2 )].Element = E_SOLID then
-					statDestroy := true;
-				if Board.Tiles[x + ( deltaX * 2 )][y + ( deltaY * 2 )].Element = E_OBJECT then
-					statDestroy := true;
-			end;
-			if Board.Tiles[x + deltaX][y + deltaY].Element = E_BOARD_EDGE then
-				statDestroy := true;
-			if Board.Tiles[x + deltaX][y + deltaY].Element = E_SOLID then
-				statDestroy := true;
-			if Board.Tiles[x + deltaX][y + deltaY].Element = E_OBJECT then
-				statDestroy := true;
-			statId := GetStatIdAt(x, y);
-			if statDestroy = true then begin
-				if statId > 0 then
-					RemoveStat(statId);
-			end else begin
-				ElementWeave(x + deltaX, y + deltaY, deltaX, deltaY);
-				statId := GetStatIdAt(x, y);
-				Board.Tiles[x + deltaX][y + deltaY] := Board.Tiles[x][y];
-				Board.Tiles[x][y].Element := E_EMPTY;
-				Board.Tiles[x][y].Color := $0F;
-				if statId >= 0 then begin
-					Board.Stats[statId].X := x + deltaX;
-					Board.Stats[statId].Y := y + deltaY;
-				end;
-				BoardDrawTile(x, y);
-				BoardDrawTile(x + deltaX, y + deltaY);
-			end;
-		end;
-	end;
-
 procedure ElementDuplicatorDraw(x, y: integer; var ch: byte);
 	begin
 		with Board.Stats[GetStatIdAt(x, y)] do
@@ -1035,6 +975,9 @@ procedure ElementDuplicatorTick(statId: integer);
 							BoardDrawTile(X - StepX, Y - StepY);
 						end;
 
+						SoundQueue(3, #48#2#50#2#52#2#53#2#55#2);
+					end else begin
+						SoundQueue(3, #24#1#22#1);
 					end;
 				end;
 
@@ -1069,7 +1012,7 @@ procedure ElementScrollTouch(x, y: integer; sourceStatId: integer; var deltaX, d
 			textWindow.Selectable := false;
 			textWindow.LinePos := 1;
 
-			SoundQueue(2, SoundParse('c-c+e-e'));
+			SoundQueue(2, SoundParse('c-c+d-d+e-e+f-f+g-g'));
 
 			DataPos := 0;
 			OopExecute(statId, DataPos, 'Scroll');
@@ -1085,14 +1028,14 @@ procedure ElementKeyTouch(x, y: integer; sourceStatId: integer; var deltaX, delt
 		key := Board.Tiles[x][y].Color mod 8;
 
 		if World.Info.Keys[key] then begin
-			DisplayMessage(200, 'You already have a '+ColorNames[key]+' key!');
-			SoundQueue(2, #48#1#32#1);
+			DisplayMessage(20, 'You already have a '+ColorNames[key]+' key!');
+			SoundQueue(2, #48#2#32#2);
 		end else begin
 			World.Info.Keys[key] := true;
 			Board.Tiles[x][y].Element := E_EMPTY;
 			GameUpdateSidebar;
-			DisplayMessage(200, 'You now have the '+ColorNames[key]+' key.');
-			SoundQueue(2, #64#1#68#1#71#1#80#1);
+			DisplayMessage(20, 'You now have the '+ColorNames[key]+' key.');
+			SoundQueue(2, #64#1#68#1#71#1#64#1#68#1#71#1#64#1#68#1#71#1#80#2);
 		end;
 	end;
 
@@ -1102,8 +1045,12 @@ procedure ElementAmmoTouch(x, y: integer; sourceStatId: integer; var deltaX, del
 
 		Board.Tiles[x][y].Element := E_EMPTY;
 		GameUpdateSidebar;
-		SoundQueue(2, #48#1#50#1);
+		SoundQueue(2, #48#1#49#1#50#1);
 
+		if MessageAmmoNotShown then begin
+			MessageAmmoNotShown := false;
+			DisplayMessage(20, 'Ammunition - 5 shots per container.');
+		end;
 	end;
 
 procedure ElementGemTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
@@ -1114,8 +1061,12 @@ procedure ElementGemTouch(x, y: integer; sourceStatId: integer; var deltaX, delt
 
 		Board.Tiles[x][y].Element := E_EMPTY;
 		GameUpdateSidebar;
-		SoundQueue(2, SoundParse('fa#'));
+		SoundQueue(2, #64#1#55#1#52#1#48#1);
 
+		if MessageGemNotShown then begin
+			MessageGemNotShown := false;
+			DisplayMessage(20, 'Gems give you Health!');
+		end;
 	end;
 
 procedure ElementPassageTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
@@ -1138,10 +1089,10 @@ procedure ElementDoorTouch(x, y: integer; sourceStatId: integer; var deltaX, del
 			World.Info.Keys[key] := false;
 			GameUpdateSidebar;
 
-			DisplayMessage(200, 'The '+ColorNames[key]+' door is now open.');
-			SoundQueue(3, #48#1#55#1#59#1#64#1);
+			DisplayMessage(20, 'The '+ColorNames[key]+' door is now open.');
+			SoundQueue(3, #48#1#55#1#59#1#48#1#55#1#59#1#64#4);
 		end else begin
-			DisplayMessage(200, 'The '+ColorNames[key]+' door is locked!');
+			DisplayMessage(20, 'The '+ColorNames[key]+' door is locked!');
 			SoundQueue(3, #23#1#16#1);
 		end;
 	end;
@@ -1149,7 +1100,7 @@ procedure ElementDoorTouch(x, y: integer; sourceStatId: integer; var deltaX, del
 procedure ElementPushableTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
 	begin
 		ElementPushablePush(x, y, deltaX, deltaY);
-		SoundQueue(2, SoundParse('0'));
+		SoundQueue(2, #21#1);
 	end;
 
 procedure ElementPusherDraw(x, y: integer; var ch: byte);
@@ -1183,7 +1134,7 @@ procedure ElementPusherTick(statId: integer);
 		with Board.Stats[statId] do begin
 			if ElementDefs[Board.Tiles[X + StepX][Y + StepY].Element].Walkable then begin
 				MoveStat(statId, X + StepX, Y + StepY);
-				SoundQueue(2, SoundParse('9'));
+				SoundQueue(2, #21#1);
 
 				if Board.Tiles[X - (StepX * 2)][Y - (StepY * 2)].Element = E_PUSHER then begin
 					i := GetStatIdAt(X - (StepX * 2), Y - (StepY * 2));
@@ -1202,7 +1153,12 @@ procedure ElementTorchTouch(x, y: integer; sourceStatId: integer; var deltaX, de
 		BoardDrawTile(x, y);
 		GameUpdateSidebar;
 
-		SoundQueue(3, SoundParse('6x0x0'));
+		if MessageTorchNotShown then begin
+			DisplayMessage(20, 'Torch - used for lighting in the underground.');
+		end;
+		MessageTorchNotShown := false;
+
+		SoundQueue(3, #48#1#57#1#52#2);
 	end;
 
 procedure ElementInvisibleTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
@@ -1211,8 +1167,8 @@ procedure ElementInvisibleTouch(x, y: integer; sourceStatId: integer; var deltaX
 			Element := E_NORMAL;
 			BoardDrawTile(x, y);
 
-			SoundQueue(2, SoundParse('654'));
-			DisplayMessage(100, 'You are blocked by an invisible wall.');
+			SoundQueue(3, #18#1#16#1);
+			DisplayMessage(10, 'You are blocked by an invisible wall.');
 		end;
 	end;
 
@@ -1221,8 +1177,20 @@ procedure ElementForestTouch(x, y: integer; sourceStatId: integer; var deltaX, d
 		Board.Tiles[x][y].Element := E_EMPTY;
 		BoardDrawTile(x, y);
 
-		SoundQueue(3, SoundParse('96'));
+		SoundQueue(3, #57#1);
 
+		if MessageForestNotShown then begin
+			DisplayMessage(20, 'A path is cleared through the forest.');
+		end;
+		MessageForestNotShown := false;
+	end;
+
+procedure ElementFakeTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
+	begin
+		if MessageFakeNotShown then begin
+			DisplayMessage(15, 'A fake wall - secret passage!');
+		end;
+		MessageFakeNotShown := false;
 	end;
 
 procedure ElementBoardEdgeTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
@@ -1273,6 +1241,8 @@ procedure ElementBoardEdgeTouch(x, y: integer; sourceStatId: integer; var deltaX
 
 procedure ElementWaterTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
 	begin
+		SoundQueue(3, #64#1#80#1);
+		DisplayMessage(10, 'Your way is blocked by water.');
 	end;
 
 procedure DrawPlayerSurroundings(x, y: integer; bombPhase: integer);
@@ -1326,18 +1296,11 @@ procedure GamePromptEndPlay;
 
 procedure ElementPlayerTick(statId: integer);
 	var
-		unk1, unk2: integer;
-		NextBoard: integer;
+		GameMove: boolean;		
 		i: integer;
 		bulletCount: integer;
 	begin
-		if Board.Stats[0].P3 > 0 then begin
-			NextBoard := Board.Stats[0].P3;
-			Board.Stats[0].P3 := 0;
-			BoardChange(NextBoard);
-			TransitionDrawToBoard;
-			BoardEnter;
-		end;
+		GameMove := false;
 		with Board.Stats[statId] do begin
 			if World.Info.EnergizerTicks > 0 then begin
 				if ElementDefs[E_PLAYER].Character = #2 then
@@ -1351,11 +1314,8 @@ procedure ElementPlayerTick(statId: integer);
 					Board.Tiles[X][Y].Color := (((CurrentTick mod 7) + 1) * 16) + $0F;
 
 				BoardDrawTile(X, Y);
-			end else if (Board.Tiles[X][Y].Color <> World.Info.PlayerColor) or (ElementDefs[E_PLAYER].Character <> #2) then begin
-				if World.Info.PlayerColor = $00 then begin
-					World.Info.PlayerColor := $1F;
-				end;
-				Board.Tiles[X][Y].Color := World.Info.PlayerColor;
+			end else if (Board.Tiles[X][Y].Color <> $1F) or (ElementDefs[E_PLAYER].Character <> #2) then begin
+				Board.Tiles[X][Y].Color := $1F;
 				ElementDefs[E_PLAYER].Character := #2;
 				BoardDrawTile(X, Y);
 			end;
@@ -1366,12 +1326,13 @@ procedure ElementPlayerTick(statId: integer);
 				InputShiftPressed := false;
 
 				if GetStatIdAt(0,0) = -1 then
-					DisplayMessage(32000, ' Game over  -  Press ESCAPE');
+					DisplayMessage(250, ' Game over  -  Press ESCAPE');
 
 				TickTimeDuration := 0;
 				SoundBlockQueueing := true;
 			end;
 			if InputShiftPressed or (InputKeyPressed = ' ') then begin
+				GameMove := true;
 				if InputShiftPressed and ((InputDeltaX <> 0) or (InputDeltaY <> 0)) then begin
 					PlayerDirX := InputDeltaX;
 					PlayerDirY := InputDeltaY;
@@ -1380,9 +1341,11 @@ procedure ElementPlayerTick(statId: integer);
 				if (PlayerDirX <> 0) or (PlayerDirY <> 0) then begin
 					if Board.Info.MaxShots = 0 then begin
 						if MessageNoShootingNotShown then
+							DisplayMessage(20, 'Can'#39't shoot in this place!');
 						MessageNoShootingNotShown := false;
 					end else if World.Info.Ammo = 0 then begin
 						if MessageOutOfAmmoNotShown then
+							DisplayMessage(20, 'You don'#39't have any ammo!');
 						MessageOutOfAmmoNotShown := false;
 					end else begin
 						bulletCount := 0;
@@ -1397,7 +1360,7 @@ procedure ElementPlayerTick(statId: integer);
 								World.Info.Ammo := World.Info.Ammo - 1;
 								GameUpdateSidebar;
 
-								SoundQueue(2, SoundParse('469'));
+								SoundQueue(2, #64#1#48#1#32#1);
 
 								InputDeltaX := 0;
 								InputDeltaY := 0;
@@ -1406,6 +1369,7 @@ procedure ElementPlayerTick(statId: integer);
 					end;
 				end;
 			end else if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
+				GameMove := true;
 				PlayerDirX := InputDeltaX;
 				PlayerDirY := InputDeltaY;
 
@@ -1427,6 +1391,7 @@ procedure ElementPlayerTick(statId: integer);
 
 			case UpCase(InputKeyPressed) of
 				'T': begin
+					GameMove := true;
 					if World.Info.TorchTicks <= 0 then begin
 						if World.Info.Torches > 0 then begin
 							if Board.Info.IsDark then begin
@@ -1437,11 +1402,13 @@ procedure ElementPlayerTick(statId: integer);
 								GameUpdateSidebar;
 							end else begin
 								if MessageRoomNotDarkNotShown then begin
+									DisplayMessage(20, 'Don'#39't need torch - room is not dark!');
 									MessageRoomNotDarkNotShown := false;
 								end;
 							end;
 						end else begin
 							if MessageOutOfTorchesNotShown then begin
+								DisplayMessage(20, 'You don'#39't have any torches!');
 								MessageOutOfTorchesNotShown := false;
 							end;
 						end;
@@ -1454,8 +1421,7 @@ procedure ElementPlayerTick(statId: integer);
 					GameWorldSave('Save game:', SavedGameFileName, '.SAV');
 				end;
 				'P': begin
-					if World.Info.Health > 0 then
-						GamePaused := true;
+					GameMove := true;
 				end;
 				'B': begin
 					SoundEnabled := not SoundEnabled;
@@ -1476,10 +1442,11 @@ procedure ElementPlayerTick(statId: integer);
 			end;
 
 			if World.Info.TorchTicks > 0 then begin
-				World.Info.TorchTicks := World.Info.TorchTicks - 1;
+				if GameMove then
+					World.Info.TorchTicks := World.Info.TorchTicks - 1;
 				if World.Info.TorchTicks <= 0 then begin
 					DrawPlayerSurroundings(X, Y, 0);
-					SoundQueue(3, SoundParse('000x0xx0'));
+					SoundQueue(3, #48#1#32#1#16#1);
 				end;
 
 				if (World.Info.TorchTicks mod 40) = 0 then
@@ -1487,43 +1454,57 @@ procedure ElementPlayerTick(statId: integer);
 			end;
 
 			if World.Info.EnergizerTicks > 0 then begin
-				World.Info.EnergizerTicks := World.Info.EnergizerTicks - 1;
+				if GameMove then
+					World.Info.EnergizerTicks := World.Info.EnergizerTicks - 1;
 
 				if World.Info.EnergizerTicks = 10 then
 					SoundQueue(9, #32#3#26#3#23#3#22#3#21#3#19#3#16#3)
 				else if World.Info.EnergizerTicks <= 0 then begin
-					Board.Tiles[X][Y].Color := World.Info.PlayerColor;
+					Board.Tiles[X][Y].Color := ElementDefs[E_PLAYER].Color;
 					BoardDrawTile(X, Y);
 				end;
 			end;
 
 			if (Board.Info.TimeLimitSec > 0) and (World.Info.Health > 0) then
-				if SoundHasTimeElapsed(World.Info.BoardTimeHsec, 100) then begin
+				if (GameMove) and (Board.Info.BoardTicks mod 10 = 0) then begin
 					World.Info.BoardTimeSec := World.Info.BoardTimeSec + 1;
-
 					if (Board.Info.TimeLimitSec - 10) = World.Info.BoardTimeSec then begin
-						DisplayMessage(200, 'Running out of time!');
+						DisplayMessage(20, 'Running out of time!');
 						SoundQueue(3, #64#6#69#6#64#6#53#6#64#6#69#6#64#10);
 					end else if World.Info.BoardTimeSec > Board.Info.TimeLimitSec then begin
 						DamageStat(0);
 					end;
-
 					GameUpdateSidebar;
 				end;
+
+			if P3 > 0 then begin
+				if GameMove then
+					P3 := P3 - 1;
+				if P3 > 1 then begin
+					VideoWriteText((60 - Length(Board.Info.Message)) div 2, 24, 9 + (P3 mod 7), ' '+Board.Info.Message+' ');
+				end else begin
+					BoardDrawBorder;
+					Board.Info.Message := '';
+				end;
+			end;
+
 		end;
+
+		if GameMove then begin
+			Board.Info.BoardTicks := Board.Info.BoardTicks + 1;
+			if (Board.Info.BoardTicks > 420) then
+				Board.Info.BoardTicks := 1;
+		end else begin
+			CurrentStatTicked := Board.StatCount + 1;
+		end;
+
 	end;
 
 procedure ElementMonitorTick(statId: integer);
-	var
-		NextBoard: integer;
 	begin
-		if Board.Stats[0].P3 > 0 then begin
-			NextBoard := Board.Stats[0].P3;
-			Board.Stats[0].P3 := 0;
-			BoardChange(NextBoard);
-			TransitionDrawToBoard;
-			BoardEnter;
-		end;
+		Board.Info.BoardTicks := Board.Info.BoardTicks + 1;
+		if (Board.Info.BoardTicks > 420) then
+			Board.Info.BoardTicks := 1;
 		if UpCase(InputKeyPressed) in [#27, 'A', 'E', 'H', 'N', 'P', 'Q', 'R', 'S', 'W', '|'] then
 			GamePlayExitRequested := true;
 	end;
@@ -1604,6 +1585,7 @@ procedure InitElementDefs;
 		ElementDefs[20].Name := 'Forest';
 
 		ElementDefs[4].Character := #2;
+		ElementDefs[4].Color := $1F;
 		ElementDefs[4].Destructible := true;
 		ElementDefs[4].Pushable := true;
 		ElementDefs[4].VisibleInDark := true;
@@ -1942,6 +1924,7 @@ procedure InitElementDefs;
 		ElementDefs[27].EditorCategory := CATEGORY_TERRAIN;
 		ElementDefs[27].PlaceableOnTop := true;
 		ElementDefs[27].Walkable := true;
+		ElementDefs[27].TouchProc := ElementFakeTouch;
 		ElementDefs[27].EditorShortcut := 'A';
 		ElementDefs[27].Name := 'Fake';
 
@@ -1962,8 +1945,6 @@ procedure InitElementDefs;
 		ElementDefs[36].Name := 'Object';
 		ElementDefs[36].Param1Name := 'Character?';
 		ElementDefs[36].ParamTextName := 'Edit Program';
-
-		ElementDefs[2].TickProc := ElementMessageTimerTick;
 
 		ElementDefs[1].TouchProc := ElementBoardEdgeTouch;
 

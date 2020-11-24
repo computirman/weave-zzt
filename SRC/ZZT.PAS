@@ -90,10 +90,10 @@ procedure GameConfigure;
 		TextColor(White);
 		TextColor(White);
 		Writeln;
-		Writeln('                              <=-  WeaveZZT  -=>');
+		Writeln('                                 <=-  ZZT  -=>');
 		TextColor(Yellow);
-		Writeln('                                  Version  1.2');
-		Writeln('                        Created by The Guild of Weavers');
+		Writeln('                             Version  3.2superhot');
+		Writeln('                            Created by Tim Sweeney');
 		GotoXY(1, 7);
 		TextColor(Blue);
 		Write('================================================================================');
@@ -103,7 +103,7 @@ procedure GameConfigure;
 		GotoXY(30, 7);
 		Write(' Game Configuration ');
 		GotoXY(1, 25);
-		Write(' You are a Weaver.  You may not know it yet, but you are.  Press ... to abort');
+		Write(' Copyright (c) 1991 Epic MegaGames                         Press ... to abort');
 		TextColor(Black);
 		TextBackground(LightGray);
 		GotoXY(66, 25);
@@ -124,15 +124,27 @@ procedure GameConfigure;
 	end;
 
 begin
-	WorldFileDescCount := 1;
-	WorldFileDescKeys[1] := 'WEAVEZZT';
-	WorldFileDescValues[1] := 'WEAVEZZT   The WeaveZZT Manifesto';
+	WorldFileDescCount := 7;
+	WorldFileDescKeys[1] := 'TOWN';
+	WorldFileDescValues[1] := 'TOWN       The Town of ZZT';
+	WorldFileDescKeys[2] := 'DEMO';
+	WorldFileDescValues[2] := 'DEMO       Demo of the ZZT World Editor';
+	WorldFileDescKeys[3] := 'CAVES';
+	WorldFileDescValues[3] := 'CAVES      The Caves of ZZT';
+	WorldFileDescKeys[4] := 'DUNGEONS';
+	WorldFileDescValues[4] := 'DUNGEONS   The Dungeons of ZZT';
+	WorldFileDescKeys[5] := 'CITY';
+	WorldFileDescValues[5] := 'CITY       Underground City of ZZT';
+	WorldFileDescKeys[6] := 'BEST';
+	WorldFileDescValues[6] := 'BEST       The Best of ZZT';
+	WorldFileDescKeys[7] := 'TOUR';
+	WorldFileDescValues[7] := 'TOUR       Guided Tour ZZT'#39's Other Worlds';
 
 	Randomize;
 	SetCBreak(false);
 	InitialTextAttr := TextAttr;
 
-	StartupWorldFileName := 'WEAVEZZT';
+	StartupWorldFileName := 'TOWN';
 	ResourceDataFileName := 'ZZT.DAT';
 	ResetConfig := false;
 	GameTitleExitRequested := false;
@@ -172,7 +184,7 @@ begin
 		GamePrintRegisterMessage;
 	end else begin
 		Writeln;
-		Writeln('  The Weavers thank you for playing WeaveZZT.');
+		Writeln('  Registered version -- Thank you for playing ZZT.');
 		Writeln;
 	end;
 

@@ -40,8 +40,8 @@ uses Sounds, TxtWind, Game, Elements;
 procedure OopError(statId: integer; message: string);
 	begin
 		with Board.Stats[statId] do begin
-			DisplayMessage(200, 'ERR: ' + message);
-			SoundQueue(5, #80#1);
+			DisplayMessage(20, 'ERR: ' + message);
+			SoundQueue(5, #80#10);
 			DataPos := -1;
 		end;
 	end;
@@ -131,54 +131,6 @@ function OopParseDirection(statId: integer; var position: integer; var dx, dy: i
 			end else if (OopWord = 'I') or (OopWord = 'IDLE') then begin
 				dx := 0;
 				dy := 0;
-			end else if (OopWord = 'NW') then begin
-				dx := -1;
-				dy := -1;
-			end else if (OopWord = 'NE') then begin
-				dx := 1;
-				dy := -1;
-			end else if (OopWord = 'SW') then begin
-				dx := -1;
-				dy := 1;
-			end else if (OopWord = 'SE') then begin
-				dx := 1;
-				dy := 1;
-			end else if (OopWord = 'WNW') then begin
-				dx := -2;
-				dy := -1;
-			end else if (OopWord = 'ENE') then begin
-				dx := 2;
-				dy := -1;
-			end else if (OopWord = 'WSW') then begin
-				dx := -2;
-				dy := 1;
-			end else if (OopWord = 'ESE') then begin
-				dx := 2;
-				dy := 1;
-			end else if (OopWord = 'NNW') then begin
-				dx := -1;
-				dy := -2;
-			end else if (OopWord = 'NNE') then begin
-				dx := 1;
-				dy := -2;
-			end else if (OopWord = 'SSW') then begin
-				dx := -1;
-				dy := 2;
-			end else if (OopWord = 'SSE') then begin
-				dx := 1;
-				dy := 2;
-			end else if (OopWord = 'N2') then begin
-				dx := 0;
-				dy := -2;
-			end else if (OopWord = 'E2') then begin
-				dx := 2;
-				dy := 0;
-			end else if (OopWord = 'W2') then begin
-				dx := -2;
-				dy := 0;
-			end else if (OopWord = 'S2') then begin
-				dx := 0;
-				dy := 2;
 			end else if (OopWord = 'SEEK') then begin
 				CalcDirectionSeek(X, Y, dx, dy);
 			end else if (OopWord = 'FLOW') then begin
@@ -411,80 +363,6 @@ function OopParseTile(var statId, position: integer; var tile: TTile): boolean;
 				goto ColorFound;
 			end;
 		end;
-		if OopWord = OopStringToWord('Wet') then begin
-			case Random(5) of
-				0,3: tile.Color := $01;
-				1,4: tile.Color := $31;
-			else tile.Color := $10 end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Bleeding') then begin
-			case Random(8) of
-				1,4: tile.Color := $04;
-				2,3: tile.Color := $4C;
-				5: tile.Color := $0C;
-			else tile.Color := $40 end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Watery') then begin
-			case Random(20) of
-				0,3: tile.Color := $01;
-				1,4: tile.Color := $31;
-				2: tile.Color := $71;
-				5: tile.Color := $10;
-			else tile.Color := $11 end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Burning') then begin
-			case Random(25) of
-				0,3,9: tile.Color := $0E;
-				1,4: tile.Color := $4C;
-				2: tile.Color := $08;
-				5: tile.Color := $68;
-				6,7,8: tile.Color := $0C;
-			else tile.Color := $4E end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Leafy') then begin
-			case Random(8) of
-				0,2,4,6: tile.Color := $20;
-				1,7,3: tile.Color := $2A;
-			else tile.Color := $02 end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Wooden') then begin
-			case Random(3) of
-				0: tile.Color := $76;
-				1: tile.Color := $68;
-			else tile.Color := $60 end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Rusty') then begin
-			case Random(3) of
-				1: tile.Color := $06;
-			else tile.Color := $08 end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Bblack') then begin
-			tile.Color := $80;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Drab') then begin
-			tile.Color := $08;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Bloody') then begin
-			tile.Color := $04;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end else if OopWord = OopStringToWord('Canvas') then begin
-			case Random(4) of
-				0: tile.Color := $76;
-				1: tile.Color := $77;
-			else tile.Color := $7F end;
-			OopReadWord(statId, position);
-			goto ColorFound;
-		end;
 	ColorFound:
 
 		for i := 0 to MAX_ELEMENT do begin
@@ -526,19 +404,11 @@ function FindTileOnBoard(var x, y: integer; tile: TTile): boolean;
 		end;
 	end;
 
-function FindTileAtLocation(x, y: integer; var tile: TTile): boolean;
-	begin
-		FindTileAtLocation := false;
-		if Board.Tiles[x][y].Element = tile.Element then
-			if ((tile.Color = 0) or (GetColorForTileMatch(Board.Tiles[x][y]) = tile.Color)) then 
-				FindTileAtLocation := true;
-	end;
-
 procedure OopPlaceTile(x, y: integer; var tile: TTile);
 	var
 		color: byte;
 	begin
-		if ( Board.Tiles[x][y].Element <> E_PLAYER ) or ( tile.Element = E_MONITOR ) then begin
+		if Board.Tiles[x][y].Element <> E_PLAYER then begin
 			color := tile.Color;
 			if ElementDefs[tile.Element].Color < COLOR_SPECIAL_MIN then
 				color := ElementDefs[tile.Element].Color
@@ -557,7 +427,7 @@ procedure OopPlaceTile(x, y: integer; var tile: TTile);
 				Board.Tiles[x][y].Color := color
 			else begin
 				BoardDamageTile(x, y);
-				if ( ElementDefs[tile.Element].Cycle >= 0 ) and ( tile.Element <> E_MONITOR ) then begin
+				if ElementDefs[tile.Element].Cycle >= 0 then begin
 					AddStat(x, y, tile.Element, color, ElementDefs[tile.Element].Cycle, StatTemplateDefault);
 				end else begin
 					Board.Tiles[x][y].Element := tile.Element;
@@ -588,11 +458,6 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 				OopCheckCondition := not ElementDefs[Board.Tiles[X + deltaX][Y + deltaY].Element].Walkable;
 			end else if OopWord = 'ENERGIZED' then begin
 				OopCheckCondition := World.Info.EnergizerTicks > 0;
-			end else if OopWord = 'DETECT' then begin
-				OopReadDirection(statId, position, deltaX, deltaY);
-				if not OopParseTile(statId, position, tile) then
-					OopError(statId, 'Bad object kind');
-				OopCheckCondition := FindTileAtLocation(X + deltaX, Y + deltaY, tile);
 			end else if OopWord = 'ANY' then begin
 				if not OopParseTile(statId, position, tile) then
 					OopError(statId, 'Bad object kind');
@@ -640,6 +505,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 			if ((Board.Stats[iStat].P2 = 0) or (ignoreLock)) or ((statId = iStat) and not ignoreSelfLock) then begin
 				if iStat = statId then
 					OopSend := true;
+
 				Board.Stats[iStat].DataPos := iDataPos;
 			end;
 		end;
@@ -769,66 +635,6 @@ procedure OopExecute(statId: integer; var position: integer; name: TString50);
 						end else if OopWord = 'CLEAR' then begin
 							OopReadWord(statId, position);
 							WorldClearFlag(OopWord);
-						end else if (OopWord = 'CUSTOM') or (OopWord = 'ZNAME') then begin
-							OopReadWord(statId, position);
-							World.Info.ZName[1] := OopWord;
-							GameUpdateSidebar;
-						end else if OopWord = 'WARP' then begin
-							OopReadValue(statId, position);
-							ix := OopValue;
-							OopReadValue(statId, position);
-							iy := OopValue;
-							MoveStat(0, ix, iy);
-							stopRunning := true;
-						end else if OopWord = 'JUMP' then begin
-							OopReadValue(statId, position);
-							ix := OopValue;
-							OopReadValue(statId, position);
-							iy := OopValue;
-							MoveStat(statId, ix, iy);
-							stopRunning := true;
-						end else if OopWord = 'BOARD' then begin
-							stopRunning := true;
-							OopReadValue(statId, position);
-							Board.Stats[0].P3 := OopValue;
-						end else if OopWord = 'PAUSE' then begin
-							GamePaused := true;
-							stopRunning := true;
-						end else if OopWord = 'DUPLICATE' then begin
-							OopReadDirection(statId, position, deltaX, deltaY);
-							if Board.Tiles[X + deltaX][Y + deltaY].Element <> E_EMPTY then
-								ElementPushablePush(X + deltaX, Y + deltaY, deltaX, deltaY);
-							if Board.Tiles[X + deltaX][Y + deltaY].Element = E_EMPTY then begin
-								if Board.StatCount < (MAX_STAT - 2) then begin
-									AddStat(X + deltaX, Y + deltaY,
-										Board.Tiles[X][Y].Element,
-										Board.Tiles[X][Y].Color,
-										Board.Stats[statId].Cycle, Board.Stats[statId]);
-									BoardDrawTile(X + deltaX, Y + deltaY);
-								end;
-							end;
-						end else if OopWord = 'WEAVE' then begin
-							OopReadDirection(statId, position, deltaX, deltaY);
-							ElementWeave(X + deltaX, Y + deltaY, deltaX, deltaY);
-						end else if OopWord = 'PLAYERCOLOR' then begin
-							OopReadValue(statId, position);
-							ix := OopValue;
-							OopReadValue(statId, position);
-							iy := OopValue;
-							if (( ix > -1 ) and ( ix < 16 )) then begin
-								if (( iy > -1 ) and ( iy < 16 )) then begin
-									World.Info.PlayerColor := ((ix * 16) + iy) + $00;
-								end;
-							end;
-						end else if (OopWord = 'PUSH') or (OopWord = 'FETCH') then begin
-							OopReadValue(statId, position);
-							if ( OopValue > 0 ) and ( OopValue < 8 ) then begin
-								if OopWord = 'FETCH' then begin
-									Board.Info.Register[OopValue] := World.Info.Register[OopValue];
-								end else begin
-									World.Info.Register[OopValue] := Board.Info.Register[OopValue];
-								end;
-							end;
 						end else if OopWord = 'IF' then begin
 							OopReadWord(statId, position);
 							if OopCheckCondition(statId, position) then
@@ -836,7 +642,7 @@ procedure OopExecute(statId: integer; var position: integer; name: TString50);
 						end else if OopWord = 'SHOOT' then begin
 							OopReadDirection(statId, position, deltaX, deltaY);
 							if BoardShoot(E_BULLET, X, Y, deltaX, deltaY, SHOT_SOURCE_ENEMY) then
-								SoundQueue(2, SoundParse('05'));
+								SoundQueue(2, #48#1#38#1);
 							stopRunning := true;
 						end else if OopWord = 'THROWSTAR' then begin
 							OopReadDirection(statId, position, deltaX, deltaY);
@@ -862,24 +668,9 @@ procedure OopExecute(statId: integer; var position: integer; name: TString50);
 								counterPtr := @World.Info.Score
 							else if OopWord = 'TIME' then
 								counterPtr := @World.Info.BoardTimeSec
-							else if (OopWord = 'CUSTOM') or (OopWord = 'Z') then
-								counterPtr := @World.Info.CustomZ
-							else if OopWord = 'LOCAL' then
-								counterPtr := @Board.Info.Local
-							else if ( OopWord = 'REGISTER' ) or ( OopWord = 'GLOBAL' ) then begin
-								OopReadValue(statId, position);
-								if ( OopValue > 0 ) and ( OopValue < 8 ) then begin
-									if OopWord = 'REGISTER' then begin
-										counterPtr := @Board.Info.Register[OopValue];
-									end else begin
-										counterPtr := @World.Info.Register[OopValue];
-									end;
-								end else begin
-									counterPtr := nil;
-								end;
-							end else begin
+							else
 								counterPtr := nil;
-							end;
+
 							if counterPtr <> nil then begin
 								OopReadValue(statId, position);
 								if OopValue > 0 then begin
@@ -1054,7 +845,7 @@ procedure OopExecute(statId: integer; var position: integer; name: TString50);
 					if OopSend(statId, textWindow.Hyperlink, false) then
 						goto StartParsing;
 			end else if textWindow.LineCount = 1 then begin
-				DisplayMessage(200, textWindow.Lines[1]^);
+				DisplayMessage(20, textWindow.Lines[1]^);
 				TextWindowFree(textWindow);
 			end;
 

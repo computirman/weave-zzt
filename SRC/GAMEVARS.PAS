@@ -30,7 +30,7 @@ interface
 		MAX_STAT = 150;
 		MAX_ELEMENT = 53;
 		MAX_BOARD = 100;
-		MAX_FLAG = 18;
+		MAX_FLAG = 10;
 		BOARD_WIDTH = 60;
 		BOARD_HEIGHT = 25;
 		WORLD_FILE_HEADER_SIZE = 512;
@@ -103,8 +103,8 @@ interface
 			StartPlayerX: byte;
 			StartPlayerY: byte;
 			TimeLimitSec: integer;
-			Local: integer;
-			Register: array[1 .. 7] of integer;
+			BoardTicks: integer;
+			unk1: array[72 .. 85] of byte;
 		end;
 		TWorldInfo = record
 			Ammo: integer;
@@ -115,16 +115,14 @@ interface
 			Torches: integer;
 			TorchTicks: integer;
 			EnergizerTicks: integer;
-			CustomZ: integer;
+			unk1: integer;
 			Score: integer;
 			Name: string[20];
-			Flags: array[1 .. MAX_FLAG] of string[10];
-			ZName: array[1 .. 1] of string[10];
-			PlayerColor: byte;
+			Flags: array[1 .. MAX_FLAG] of string[20];
 			BoardTimeSec: integer;
 			BoardTimeHsec: integer;
 			IsSave: boolean;
-			Register: array[1 .. 7] of integer;
+			unkPad: array[0 .. 13] of byte;
 		end;
 		TEditorStatSetting = record
 			P1, P2, P3: byte;
@@ -220,7 +218,6 @@ interface
 	const
 		E_EMPTY = 0;
 		E_BOARD_EDGE = 1;
-		E_MESSAGE_TIMER = 2;
 		E_MONITOR = 3; { State - Title screen }
 		E_PLAYER = 4; { State - Playing }
 		E_AMMO = 5;
