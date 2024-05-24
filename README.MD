@@ -12,15 +12,15 @@ In the absence of any accompanying .CFG or .INI file, WEAVE3.EXE is designed to 
 
 ## Using
 
-With your own copy of Turbo Pascal 5.5, you can compile WEAVE3.EXE yourself using the BUILDW30.BAT file provided in the WEAVE_30 subdirectory. Just make sure the TPC.EXE and TURBO.TPL files are in the same directory as the BUILDW30.BAT file. (These are DOS executables you will need a DOS emulator to compile.)
+With your own copy of Turbo Pascal 5.5, you can compile WEAVE3.EXE yourself using the BUILDW33.BAT file provided in the WEAVE_33 subdirectory. Just make sure the TPC.EXE and TURBO.TPL files are in the same directory as the BUILDW33.BAT file. (These are DOS executables you will need a DOS emulator to compile.)
 
 ## Types of weaving
 
 There are two primary types of weaving, as noted above. These center around the .CFG and .INI files that can accompany a Weave game.
 
-For examples of .CFG weaving, look at the TEMPLATE.CFG example file in the WEAVE_30/SRC_W30 subdirectory.
+For examples of .CFG weaving, look at the TEMPLATE.CFG example file in the WEAVE_33/SRC_W33 subdirectory.
 
-For examples of .INI weaving, look at the TEMPLATE.INI file in the WEAVE_30/SRC_W30 subdirectory. Additionally, the inclusion of a .INI file unlocks new ZZT-OOP commands, some of which allow you to use other external files. For examples of those, have a look at the .OBJ files in that same subdirectory.
+For examples of .INI weaving, look at the TEMPLATE.INI file in the WEAVE_33/SRC_W33 subdirectory. Additionally, the inclusion of a .INI file unlocks new ZZT-OOP commands, some of which allow you to use other external files. For examples of those, have a look at the .OBJ files in that same subdirectory.
 ## File types in this project:
 
 There are a few different kinds of files found in this project:
@@ -55,7 +55,7 @@ There are a few different kinds of files found in this project:
 
 Below are listed the files in the various folders of the project.
 
-### WEAVE_30 directory
+### WEAVE_33 directory
 
 * TOOLS
     * UPX.EXE
