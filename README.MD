@@ -1,7 +1,7 @@
-# WeaveZZT 3.2
+# WeaveZZT 3.3
 
-With Weave 3, all previous recommendations for Weave have been addressed and the design specifications are frozen. It is the culmination of the Weave project.
-With Weave 3.2, we are experimenting with a couple possible final tweaks while spinning up work on a SuperZZT version of Weave.
+With Weave 3.3, all previous recommendations for Weave have been addressed and the design specifications are frozen. It is the culmination of the Weave project.
+We are experimenting with a couple possible final tweaks while spinning up work on a SuperZZT version of Weave.
 
 Designed with the full scope of the ZZTer audience in mind, this version hopes to supply the needs of anyone that wants to tweak something about ZZT. Weave 2 made use of several accessory files to allow ZZTers to enhance their game's experience without diving into the Pascal code. Weave 3 restricts this to just two, with the following goals:
 
@@ -73,7 +73,7 @@ Below are listed the files in the various folders of the project.
         * For editing ZZT files with Weave 3 considerations.
         * Modification of DrLancer-X's zedit2: https://github.com/DrLancer-X/zedit2
         * Source is included in the parent directory under zloom2-source.
-* SRC_W30
+* SRC_W33
     * ALL .PAS FILES (ELEMENTS.PAS, EXTMEM.PAS, etc.)
         * Forked from the ZZT Reconstruction and ClassicZoo.
         * Reconstruction: github.com/asiekierka/reconstruction-of-zzt
@@ -92,7 +92,7 @@ Below are listed the files in the various folders of the project.
         * A simple tutorial to get you started using Weave with Zeta. Included with the Weave 2 download.
     * howto1.png, howto2.png, howto3.png
         * Companion images to the above tutorial.
-* BUILDW30.BAT
+* BUILDW33.BAT
     * Used in DOS or DOSBox to build Weave from source.
 * LICENSE.TXT
     * MIT License, required by reconstruction-of-zzt.
