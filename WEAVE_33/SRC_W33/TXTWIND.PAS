@@ -23,14 +23,22 @@
 	SOFTWARE.
 }
 
+{$IFDEF FPC}
+{$PACKRECORDS 1}
+{$ENDIF}
+
 {$I-}
 {$V-}
 unit TxtWind;
 
 interface
-	uses Gamevars,Video;
+	uses Gamevars,ZVideo;
 	const
+{$IFDEF SDL2}
+		MAX_TEXT_WINDOW_LINES = 6144;
+{$ELSE}
 		MAX_TEXT_WINDOW_LINES = 1024;
+{$ENDIF}
 		TextWindowX = 5;
 		TextWindowY = 3;
 		TextWindowWidth = 50;
@@ -40,16 +48,21 @@ interface
 		TWS_VIEWING_FILE = $02;
 		TWS_IGNORE_HYPERLINKS = $04;
 	type
+{$IFDEF SDL2}
+		TExtensionString = string[12];
+{$ELSE}
 		TExtensionString = string[4];
+{$ENDIF}
 		TTextWindowLine = string[MAX_LINE_LENGTH];
+		PTTextWindowLine = ^TTextWindowLine;
 		TTextWindowState = record
 			Selectable: boolean;
 			LineCount: integer;
 			LinePos: integer;
-			Lines: array[1 .. MAX_TEXT_WINDOW_LINES] of ^TTextWindowLine;
+			Lines: array[1 .. MAX_TEXT_WINDOW_LINES] of PTTextWindowLine;
 			Hyperlink: string[20];
 			Title: TTextWindowLine;
-			ScreenCopy: array[1 .. 25] of string[160];
+			ScreenCopy: array[1 .. 25] of TScreenCopyLine;
 		end;
 	var
 		TextWindowStrInnerEmpty: TVideoLine;
@@ -68,13 +81,14 @@ interface
 	procedure TextWindowAppend(var state: TTextWindowState; line: TTextWindowLine);
 	procedure TextWindowFree(var state: TTextWindowState);
 	procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
+	procedure TextWindowSort(var state: TTextWindowState; fromIdx, toIdx: integer);
 	procedure TextWindowOpenFile(filename: TFilenameString; var state: TTextWindowState; editing, showError: boolean);
 	procedure TextWindowDisplayFile(filename: TFilenameString; title: TTextWindowLine);
 	procedure TextWindowInit;
 	procedure GameAboutScreen;
 
 implementation
-uses Crt, Sounds, Input, Keys, FileSel, Game;
+uses Crt, Sounds, TimerSys, ZInput, Keys, FileSel, FileSys, Game;
 
 procedure GameAboutScreen;
 	var
@@ -318,6 +332,9 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 			Hyperlink := '';
 			TextWindowDraw(state, false, viewingFile);
 			repeat
+{$IFDEF SDL2}
+				TimerSysIdle(IMUntilFrame);
+{$ENDIF}
 				InputUpdate;
 				newLinePos := LinePos;
 				if InputDeltaY <> 0 then begin
@@ -404,6 +421,66 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 		end;
 	end;
 
+procedure TextWindowSort(var state: TTextWindowState; fromIdx, toIdx: integer);
+	var
+		i, j: integer;
+		smallestIdx: integer;
+
+	procedure Swap(var a, b: PTTextWindowLine);
+		var
+			c: PTTextWindowLine;
+		begin
+			c := a;
+			a := b;
+			b := c;
+		end;
+
+	{ Returns the location of the pivot after separating. }
+	function Partition(var state: TTextWindowState; low: integer;
+		high: integer): integer;
+	var
+		pivot: PTTextWindowLine;
+		i, j: integer;
+	begin
+		{ Choose a random pivot. A cannae be bothered to do anything
+		  faster/more sophisticated. }
+		pivot := state.Lines[Random(high-low) + low];
+		i := low;
+		j := high;
+
+	    repeat
+			while state.Lines[i]^ < pivot^ do Inc(i);
+			while state.Lines[j]^ > pivot^ do Dec(j);
+
+			if i <= j then begin
+				Swap(state.Lines[i], state.Lines[j]);
+
+				Inc(i);
+				Dec(j);
+	    	end;
+		until i > j;
+
+		Partition := i;
+	end;
+
+	procedure Quicksort(var state: TTextWindowState; low: integer;
+		high: integer);
+	var
+		pivotPt: integer;
+	begin
+		if low < high then begin
+			pivotPt := partition(state, low, high);
+			Quicksort(state, low, pivotPt-1);
+			Quicksort(state, pivotPt, high);
+		end;
+	end;
+
+	begin
+		if fromIdx < 1 then fromIdx := 1;
+		if toIdx > state.LineCount then toIdx := state.LineCount;
+		Quicksort(state, fromIdx, toIdx);
+	end;
+
 procedure TextWindowOpenFile(filename: TFilenameString; var state: TTextWindowState; editing, showError: boolean);
 	var
 		tf: text;
@@ -422,7 +499,7 @@ procedure TextWindowOpenFile(filename: TFilenameString; var state: TTextWindowSt
 
 			TextWindowInitState(state);
 
-			Assign(tf, filename);
+			AssignFSysText(tf, filename);
 			Reset(tf);
 			while (IOResult = 0) and (not Eof(tf)) do begin
 				Inc(LineCount);

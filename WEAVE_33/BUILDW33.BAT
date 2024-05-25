@@ -17,7 +17,7 @@ cd..
 echo.
 echo [ Building ZZT.EXE ]
 echo.
-TPC /B /EBIN /GD /ISRC_W33 /USRC_W33 SRC_W33\ZZT.PAS
+TPC /B /EBIN /GD /ISRC_W33 /USRC_W33 /USRC_W33\DOS SRC_W33\ZZT.PAS
 if errorlevel 1 goto error
 echo.
 echo [ Compressing ZZT.EXE ]

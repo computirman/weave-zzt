@@ -44,24 +44,13 @@ interface
 	function ElemDefColor(elem: integer): byte;
 
 implementation
-uses Crt, Video, Sounds, Input, TxtWind, Oop, Game, ObjTrack;
+uses Crt, ZVideo, FileSel, FileSys, Sounds, ZInput, TxtWind,
+{$IFDEF SDL2}AudioSim,{$ENDIF} Oop, Game, ObjTrack;
 
 const
-	TransporterNSChars: string = '^~^-v_v-';
-	TransporterEWChars: string = '(<('#179')>)'#179;
-	StarAnimChars: string = #179'/'#196'\';
-
-function FileExists(name: TFilenameString): boolean;
-	var
-		f: file;
-	begin
-		Assign(f, name);
-		Reset(f);
-		if IOResult = 0 then begin
-			FileExists := true;
-			Close(f);
-		end else FileExists := false;
-	end;
+	TransporterNSChars: string[8] = '^~^-v_v-';
+	TransporterEWChars: string[8] = '(<('#179')>)'#179;
+	StarAnimChars: string[4] = #179'/'#196'\';
 
 function AsColor(fg, bg: integer): byte;
 	begin
@@ -707,12 +696,25 @@ procedure ElementTransporterTick(statId: integer);
 	end;
 
 procedure ElementTransporterDraw(x, y: integer; var ch: byte);
+	var
+		i: integer;
 	begin
 		with Board.Stats[GetStatIdAt(x, y)] do begin
-			if StepX = 0 then
-				ch := Ord(TransporterNSChars[StepY * 2 + 3 + (CurrentTick div Cycle) mod 4])
+			if Cycle = 0 then
+				i := 0
 			else
-				ch := Ord(TransporterEWChars[StepX * 2 + 3 + (CurrentTick div Cycle) mod 4]);
+				i := (CurrentTick div Cycle) and 3;
+
+			ch := 0;
+			if StepX = 0 then begin
+				i := StepY * 2 + 3 + i;
+				if (i >= 1) and (i <= 8) then
+					ch := Ord(TransporterNSChars[i]);
+			end else begin
+				i := StepX * 2 + 3 + i;
+				if (i >= 1) and (i <= 8) then
+					ch := Ord(TransporterEWChars[i]);
+			end;
 		end;
 	end;
 
@@ -1542,14 +1544,20 @@ procedure ElementTruePlayerTick;
 					X + InputDeltaX, Y + InputDeltaY, 0, InputDeltaX, InputDeltaY);
 				if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
 					if SoundEnabled and not SoundIsPlaying and not (XDat.Params[71] = 0) then
+{$IFDEF SDL2}
+						AudioSimPlayerStep := true;
+{$ELSE}
 						Sound(110);
+{$ENDIF}
 					if XDat.EDefs[Enum(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].Walkable then begin
+{$IFNDEF SDL2}
 						if SoundEnabled and not SoundIsPlaying then
 							NoSound;
+{$ENDIF}
 
 						MoveStat(0, X + InputDeltaX, Y + InputDeltaY);
 					end else if SoundEnabled and not SoundIsPlaying then begin
-						NoSound;
+						{$IFNDEF SDL2} NoSound; {$ENDIF}
 					end;
 				end;
 			end;
@@ -2463,7 +2471,7 @@ procedure InitElementsGame;
 		InitXDatEDefs;
 		if (World.Info.Name <> '') then begin
 			if not FileExists(World.Info.Name + '.CFG') then exit;
-			Assign(f, World.Info.Name + '.CFG');
+			AssignFSysText(f, World.Info.Name + '.CFG');
 			Reset(f);
 			if IOResult = 0 then begin
 				j := 0;

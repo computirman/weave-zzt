@@ -23,7 +23,7 @@
 	SOFTWARE.
 }
 
-unit Input;
+unit ZInput;
 
 interface
 	const
@@ -79,7 +79,7 @@ interface
 	procedure RepeatSpeed(speed: shortint);
 
 implementation
-uses Dos, Crt, Keys, Sounds;
+uses Dos, Crt, Keys, TimerSys;
 
 const
 	PORT_JOYSTICK = $0201;
@@ -134,7 +134,9 @@ procedure InputJoystickGetCoords(var x, y: integer);
 		x := 0;
 		y := 0;
 		startTicks := TimerTicks;
-		Port[PORT_JOYSTICK] := 0;
+		{ some adapters won't work unless the one-shot sent to 201h has all bits set }
+		{ https://github.com/tkchia/GW-BASIC/issues/4 }
+		Port[PORT_JOYSTICK] := $FF;
 		repeat
 			x := x + (Port[PORT_JOYSTICK] and 1);
 			y := y + (Port[PORT_JOYSTICK] and 2);
@@ -391,12 +393,16 @@ procedure InputUpdate;
 
 function InputInitMouse: boolean;
 	var
+		vec: pointer;
 		regs: Registers;
 	begin
-		regs.AX := 0;
-		Intr($33, regs);
-		InputInitMouse := (regs.AX = 0);
-		InputInitMouse := true;
+		InputInitMouse := false;
+		GetIntVec($33, vec);
+		if Seg(vec) <> $0000 then begin
+			regs.AX := 0;
+			Intr($33, regs);
+			InputInitMouse := (regs.AX = 0);
+		end;
 	end;
 
 procedure InputInitDevices;

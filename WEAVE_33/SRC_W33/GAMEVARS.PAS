@@ -23,6 +23,10 @@
 	SOFTWARE.
 }
 
+{$IFDEF FPC}
+{$PACKRECORDS 1}
+{$ENDIF}
+
 unit GameVars;
 
 interface
@@ -40,8 +44,13 @@ interface
 		BOARD_TILE_COUNT = BOARD_WIDTH * BOARD_HEIGHT;
 		WORLD_FILE_HEADER_SIZE = 512;
 		OOP_TOKEN_LENGTH = 20;
+{$IFDEF SDL2}
+		IO_BUFFER_DEFAULT_SIZE = 65535;
+		IO_BUFFER_MAXIMUM_SIZE = 65535;
+{$ELSE}
 		IO_BUFFER_DEFAULT_SIZE = 20000;
 		IO_BUFFER_MAXIMUM_SIZE = 65500;
+{$ENDIF}
 		IO_BUFFER_SIZE_INCREMENT = 500;
 		{.OBJ FILES}
 		LOAD_OBJ_LENGTH = 40960;
@@ -63,7 +72,11 @@ interface
 		TString50 = string[50];
 		TString20 = string[20];
 		TString8 = string[8];
+{$IFDEF SDL2}
+		TFilenameString = string;
+{$ELSE}
 		TFilenameString = string[128];
+{$ENDIF}
 		TCoord = record
 			X: integer;
 			Y: integer;
@@ -115,7 +128,11 @@ interface
 			DataPos: integer;
 			DataLen: integer;
 			ObjLocal: array[1 .. 4] of integer;
+{$IFDEF FPC}
+			Data: ^char;
+{$ELSE}
 			Data: ^string;
+{$ENDIF}
 		end;
 		TRleTile = record
 			Count: byte;
@@ -158,7 +175,11 @@ interface
 			Name: TString50;
 			Tiles: array[0 .. BOARD_WIDTH + 1] of array[0 .. BOARD_HEIGHT + 1] of TTile;
 			StatCount: integer;
+{$IFDEF SDL2}
+			Stats: array[-1 .. MAX_STAT + 1] of TStat;
+{$ELSE}
 			Stats: array[0 .. MAX_STAT + 1] of TStat;
+{$ENDIF}
 			Info: TBoardInfo;
 		end;
 		TWorld = record
@@ -191,6 +212,7 @@ interface
 			Ident: shortint;
 			Elmt: shortint;
 		end;
+		TBoardNames = array[0 .. MAX_BOARD] of TString50;
 	var
 		PlayerDirX: integer;
 		PlayerDirY: integer;
@@ -285,7 +307,7 @@ interface
 		Accessibility: array[1..8] of TString50;
 		XDat: TExtendedData;
 
-		BoardNames: array[0 .. MAX_BOARD] of TString50;
+		BoardNames: ^TBoardNames;
 		CustomSidebar: array[3..24] of TSidebar;
 	const
 		E_EMPTY = 0;
@@ -357,4 +379,22 @@ interface
 implementation
 
 begin
+{$IFDEF SDL2}
+	with Board.Stats[-1] do begin
+		X := 0;
+		Y := 1;
+		StepX := 256;
+		StepY := 256;
+		Cycle := 256;
+		P1 := 0;
+		P2 := 1;
+		P3 := 0;
+		Follower := 1;
+		Leader := 1;
+		Under.Element := E_BOARD_EDGE;
+		Under.Color := $00;
+		DataPos := 1;
+		DataLen := 1;
+	end;
+{$ENDIF}
 end.

@@ -1,0 +1,3 @@
+[submodule "WEAVE_33/SRC_W33/SDL2/HEADERS"]
+	path = WEAVE_33/SRC_W33/SDL2/HEADERS
+	url = https://github.com/PascalGameDevelopment/SDL2-for-Pascal

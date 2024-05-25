@@ -24,41 +24,61 @@
 }
 
 {$I-}
-unit Video;
+unit ZVideo;
 
 interface
 	type
 		TVideoLine = string[80];
 		TVideoWriteTextProc = procedure(x, y, color: byte; text: TVideoLine);
+		TScreenCopyLine = string[160];
+		TScreenCopyLine16 = array[0 .. 79] of word;
 		TCharsetData = array[0 .. 3583] of byte;
 		PTCharsetData = ^TCharsetData;
 	const
 		PORT_CGA_MODE = $03D8;
 		PORT_CGA_PALETTE = $03D9;
+		VIDEO_MODE_40X25 = 0;
+		VIDEO_MODE_80X25 = 1;
+		VIDEO_MODE_80X43 = 2;
+		VIDEO_MODE_80X50 = 3;
+		VIDEO_CHARSET_UNCHANGED = -1;
 	var
 		VideoWriteText: TVideoWriteTextProc;
+		VideoForceNoSnow: boolean;
+		VideoCurrentMode: integer;
 		VideoMonochrome: boolean;
+		VideoBlink: boolean;
 		VideoColumns: integer;
-		VideoBorderColor: integer;
+		VideoRows: integer;
+		VideoCharsetHeight: integer;
 		VideoTextSegment: word;
-		VideoTextPointer: pointer;
-		VideoCursorVisible: boolean;
 		VideoEGAInstalled: boolean;
+		VideoVGAInstalled: boolean;
 		VideoMDAInstalled: boolean;
-		VideoUseFastPath: boolean;
+		VideoLastMode: word;
 	function VideoConfigure(SkipToTitle: boolean): boolean;
-	procedure VideoInstall(columns, borderColor: integer);
+	function VideoInstall(mode: integer; charsetData: PTCharsetData; charsetHeight: integer;
+		borderColor: integer): boolean;
 	procedure VideoUninstall;
 	procedure VideoShowCursor;
 	procedure VideoHideCursor;
 	procedure VideoSetBorderColor(value: integer);
+	procedure VideoClear(bgColor: integer);
 	procedure VideoMove(x, y, chars: integer; data: pointer; toVideo: boolean);
+	procedure VideoInvert(x1, y1, x2, y2: integer);
+	procedure VideoScroll(x, y, width, height, dx, dy: integer);
 	procedure SetBlink(blinkValue: boolean);
-	procedure SetAccKeys;
 	function VideoSetCharset(data: PTCharsetData; height: integer): boolean;
+	procedure BlockPalette(c,r,g,b: byte);
 
 implementation
-uses Crt, Dos, AccKeys;
+uses Crt, Dos, AccKeys, Gamevars;
+var
+	InitialTextAttr: byte;
+const
+	ColorList: array[0..15] of byte = (
+		0,1,2,3,4,5,20,7,56,57,58,59,60,61,62,63
+	);
 
 procedure SetAccKeys;
 	var
@@ -119,6 +139,25 @@ function VideoSetCharset(data: PTCharsetData; height: integer): boolean;
 
 		VideoHideCursor;
 		VideoSetCharset := true;
+
+		if ((data = nil) or (height <= 0)) and Diffkeys then
+			SetAccKeys;
+	end;
+
+procedure BlockPalette(c,r,g,b: byte);
+	var
+		arr: array[0..2] of byte;
+		regs: Registers;
+	begin
+		arr[0] := r;
+		arr[1] := g;
+		arr[2] := b;
+		regs.ax := $1012;
+		regs.bx := ColorList[c];
+		regs.cx := 1;
+		regs.es := Seg(arr);        (* segment of table *)
+		regs.dx := Ofs(arr);        (* offset of the table *)
+		intr($10, regs);
 	end;
 
 function ColorToBW(color: byte): byte;
@@ -140,6 +179,8 @@ function ColorToBW(color: byte): byte;
 { VideoWriteText procs need to be F+, as they are pointers }
 {$F+}
 
+{$IFNDEF FPC}
+{ Turbo Pascal 5.x variant }
 procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
 	begin
 		inline(
@@ -208,6 +249,91 @@ procedure VideoWriteTextFast(x, y, color: byte; text: TVideoLine);
 		{ finish: }
 		);
 	end;
+{$ELSE}
+{ Free Pascal variant }
+procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
+	assembler;
+	label next_char;
+	label cga_snow;
+	label cga_snow2;
+	label write_char;
+	label finish;
+	asm
+		push es
+		mov ax, VideoTextSegment
+		mov es, ax
+		mov al, y
+		mul VideoColumns
+		xor cx, cx
+		mov cl, x
+		add ax, cx
+		shl ax, 1
+		mov di, ax
+		mov bh, color
+		mov dx, 03DAh
+		push ds
+		lds si, [text]
+		mov cl, [si]
+		and cl, cl
+		jz finish
+		cli
+	next_char:
+		inc si
+		mov bl, [si]
+	cga_snow:
+		in al, dx
+		test al, 8
+		jnz write_char
+		shr al, 1
+		jc cga_snow
+	cga_snow2:
+		in al, dx
+		shr al, 1
+		jnc cga_snow2
+	write_char:
+		mov ax, bx
+		stosw
+		loop next_char
+		sti
+	finish:
+		pop ds
+		pop es
+	end ['ax', 'bx', 'cx', 'dx', 'si', 'di'];
+
+procedure VideoWriteTextFast(x, y, color: byte; text: TVideoLine);
+	assembler;
+	label next_char;
+	label finish;
+	asm
+		push es
+		mov ax, VideoTextSegment
+		mov es, ax
+		mov al, y
+		mul VideoColumns
+		xor cx, cx
+		mov cl, x
+		add ax, cx
+		shl ax, 1
+		mov di, ax
+		mov ah, color
+		mov dx, 03DAh
+		push ds
+		lds si, [text]
+		mov cl, [si]
+		and cl, cl
+		jz finish
+		cli
+	next_char:
+		inc si
+		mov al, [si]
+		stosw
+		loop next_char
+		sti
+	finish:
+		pop ds
+		pop es
+	end ['ax', 'cx', 'dx', 'si', 'di'];
+{$ENDIF}
 
 procedure VideoWriteTextCGABW(x, y, color: byte; text: TVideoLine);
 	begin
@@ -254,35 +380,84 @@ function VideoConfigure(SkipToTitle: boolean): boolean;
 		VideoConfigure := charTyped <> #27;
 	end;
 
-procedure VideoInstall(columns, borderColor: integer);
+procedure VideoPreInstall;
 	var
 		regs: Registers;
 	begin
+		VideoMDAInstalled := LastMode = 7;
+		VideoVGAInstalled := false;
+
 		regs.AH := $12;
 		regs.BX := $FF10;
 		Intr($10, regs);
 		VideoEGAInstalled := regs.BH <> $FF;
-		VideoMDAInstalled := LastMode = 7;
-		VideoUseFastPath := VideoUseFastPath or VideoEGAInstalled or VideoMDAInstalled;
 
 		if VideoEGAInstalled then begin
-			regs.AX := $1201;
-			regs.BL := $30;
+			regs.AX := $1A00;
 			Intr($10, regs);
+			VideoVGAInstalled := regs.AL = $1A;
 		end;
 
-		if not VideoMonochrome then
-			TextBackground(borderColor);
+		SetCBreak(false);
+		InitialTextAttr := TextAttr;
+	end;
 
-		VideoColumns := columns;
+function VideoInstall(mode: integer; charsetData: PTCharsetData; charsetHeight: integer;
+	borderColor: integer): boolean;
+	var
+		regs: Registers;
+	label FinishVideoInstall;
+	begin
+		VideoInstall := false;
+		if (mode = VideoCurrentMode) and (charsetHeight = VIDEO_CHARSET_UNCHANGED) then
+			goto FinishVideoInstall;
+		if (mode >= VIDEO_MODE_80X43) and (not VideoEGAInstalled) then exit;
+		if (mode >= VIDEO_MODE_80X50) and (not VideoVGAInstalled) then exit;
+
+		VideoColumns := 80;
+		VideoRows := 25;
+		if mode = VIDEO_MODE_40X25 then
+			VideoColumns := 40
+		else if mode = VIDEO_MODE_80X43 then
+			VideoRows := 43
+		else if mode = VIDEO_MODE_80X50 then
+			VideoRows := 50;
+
+		VideoCurrentMode := -1;
+
+		if charsetHeight > 0 then begin
+			VideoCharsetHeight := charsetHeight;
+			if (VideoCharsetHeight > 8) and (VideoRows <> 25) then exit;
+		end else begin
+			if VideoVGAInstalled then begin
+				if VideoRows = 25 then
+					VideoCharsetHeight := 14
+				else
+					VideoCharsetHeight := 8;
+			end else if VideoEGAInstalled or VideoMDAInstalled then begin
+				VideoCharsetHeight := 14;
+			end else begin
+				VideoCharsetHeight := 8;
+			end;
+		end;
+
+		if VideoVGAInstalled then begin
+			if (mode = VIDEO_MODE_80X50) or (VideoCharsetHeight = 16) then begin
+				regs.AX := $1202;
+			end else if (mode = VIDEO_MODE_80X43) or (VideoCharsetHeight = 14) then begin
+				regs.AX := $1201;
+			end else begin
+				regs.AX := $1200;
+			end;
+			regs.BL := $30;
+			Intr($10, regs);
+
+			if (regs.AL <> $12) and (VideoRows <> 25) then exit;
+		end;
+
 		if VideoMonochrome then begin
-			if VideoUseFastPath then
-				VideoWriteText := VideoWriteTextFastBW
-			else
-				VideoWriteText := VideoWriteTextCGABW;
-
-			if (LastMode >= 0) and (LastMode <= 3) then begin
-				if columns = 80 then begin
+			if (VideoLastMode and $FFFC) = 0 {>= 0, <= 3} then begin
+				if VideoColumns = 80 then begin
 					TextMode(BW80);
 				end else begin
 					TextMode(BW40);
@@ -292,11 +467,6 @@ procedure VideoInstall(columns, borderColor: integer);
 				VideoColumns := 80;
 			end;
 		end else begin
-			if VideoUseFastPath then
-				VideoWriteText := VideoWriteTextFast
-			else
-				VideoWriteText := VideoWriteTextCGA;
-
 			if VideoColumns = 80 then begin
 				TextMode(CO80);
 			end else begin
@@ -306,11 +476,61 @@ procedure VideoInstall(columns, borderColor: integer);
 			TextBackground(borderColor);
 		end;
 
-		ClrScr;
+		if VideoEGAInstalled then begin
+			if charsetHeight <= 0 then begin
+				{ set default charset }
+				if VideoRows >= 43 then
+					regs.AX := $1112
+				else
+					regs.AX := $1111;
+				regs.BL := $00;
+				Intr($10, regs);
+			end;
 
-		if not VideoCursorVisible then
-			VideoHideCursor;
+			{ set palette }
+			{ regs.AX := $1002;
+			regs.BX := $0000;
+			regs.ES := Seg(VideoEGAPalette);
+			regs.DX := Ofs(VideoEGAPalette);
+			VideoEGAPalette[16] := VideoEGAPalette[borderColor];
+			Intr($10, regs); }
+		end;
+
+FinishVideoInstall:
+		if VideoMonochrome then begin
+			if VideoEGAInstalled or VideoMDAInstalled or VideoForceNoSnow then
+				VideoWriteText := VideoWriteTextFastBW
+			else
+				VideoWriteText := VideoWriteTextCGABW;
+		end else begin
+			if VideoEGAInstalled or VideoForceNoSnow then
+				VideoWriteText := VideoWriteTextFast
+			else
+				VideoWriteText := VideoWriteTextCGA;
+		end;
+
+		VideoClear(borderColor);
+
+		VideoHideCursor;
 		VideoSetBorderColor(borderColor);
+
+		if not VideoSetCharset(charsetData, charsetHeight) then exit;
+
+		if VideoVGAInstalled then begin
+			{ Set 8-dot-clock character mode.  }
+			Port[$3C4] := $01;
+			Port[$3C5] := (Port[$3C5]) or $01;
+			Port[$3C4] := $01;
+
+			if (VideoRows = 25) and (VideoCharsetHeight = 8) then begin
+				Port[$3D4] := $09;
+				Port[$3D5] := (Port[$3D5]) or $80;
+				Port[$3D4] := $09;
+			end;
+		end;
+
+		VideoCurrentMode := mode;
+		VideoInstall := true;
 	end;
 
 procedure VideoUninstall;
@@ -321,16 +541,21 @@ procedure VideoUninstall;
 			regs.AX := $1201;
 			regs.BL := $30;
 			Intr($10, regs);
+			regs.AX := $1111;
+			regs.BL := $00;
+			Intr($10, regs);
 		end;
 
 		TextBackground(0);
 		VideoColumns := 80;
-		if VideoMonochrome then
-			TextMode(BW80)
-		else
-			TextMode(CO80);
+		VideoRows := 25;
+		VideoCurrentMode := -1;
+		TextMode(VideoLastMode);
 		VideoSetBorderColor(0);
+
+		TextAttr := InitialTextAttr;
 		ClrScr;
+		VideoShowCursor;
 	end;
 
 procedure VideoSetCursorShape(value: integer);
@@ -345,47 +570,130 @@ procedure VideoSetCursorShape(value: integer);
 procedure VideoShowCursor;
 	begin
 		VideoSetCursorShape($0607);
-		VideoCursorVisible := true;
 	end;
 
 procedure VideoHideCursor;
 	begin
 		VideoSetCursorShape($2000);
-		VideoCursorVisible := false;
 	end;
 
 procedure VideoSetBorderColor(value: integer);
 	begin
 		Port[PORT_CGA_PALETTE] := value;
-		VideoBorderColor := value;
+	end;
+
+procedure VideoClear(bgColor: integer);
+	begin
+		if VideoMonochrome then bgColor := 0;
+		FillChar(Ptr(VideoTextSegment, $0000)^, VideoColumns * VideoRows * 2, bgColor * $11);
 	end;
 
 procedure VideoMove(x, y, chars: integer; data: pointer; toVideo: boolean);
 	var
-		offset: integer;
+		regs: Registers;
+		i, offset: integer;
 	begin
 		offset := (y * VideoColumns + x) * 2;
-		if not VideoUseFastPath then
-			VideoWriteTextCGA(0, 0, 0, '');
 		if toVideo then
 			Move(data^, Ptr(VideoTextSegment, offset)^, chars * 2)
 		else
 			Move(Ptr(VideoTextSegment, offset)^, data^, chars * 2);
 	end;
 
+procedure VideoInvert(x1, y1, x2, y2: integer);
+	var
+		ix, iy, offset: integer;
+	begin
+		if x2 < x1 then begin
+			ix := x1;
+			x1 := x2;
+			x2 := ix;
+		end;
+		if y2 < y1 then begin
+			ix := y1;
+			y1 := y2;
+			y2 := ix;
+		end;
+		for iy := y1 to y2 do begin
+			offset := (((iy * VideoColumns) + x1) shl 1) + 1;
+			for ix := x1 to x2 do begin
+				Mem[VideoTextSegment:offset] := Mem[VideoTextSegment:offset] xor $7F;
+				Inc(offset, 2);
+			end;
+		end;
+	end;
+
+procedure VideoScroll(x, y, width, height, dx, dy: integer);
+	var
+		iy: integer;
+		srcOfs, destOfs: integer;
+	begin
+		if dy = 0 then begin
+			if dx >= 0 then begin
+				{ move right }
+				srcOfs := (y * VideoColumns + x) * 2;
+				destOfs := srcOfs + (dx * 2);
+				for iy := 1 to height do begin
+ 					{ if (iy mod 2) = 1 then
+						VideoWriteTextCO80(0, 0, 0, ''); }
+					Move(Ptr(VideoTextSegment, srcOfs)^, Ptr(VideoTextSegment, destOfs)^, (width - dx) * 2);
+					srcOfs := srcOfs + (VideoColumns * 2);
+					destOfs := destOfs + (VideoColumns * 2);
+				end;
+			end else begin
+				{ move left }
+				destOfs := (y * VideoColumns + x) * 2;
+				srcOfs := destOfs - (dx * 2);
+				for iy := 1 to height do begin
+ 					{ if (iy mod 2) = 1 then
+						VideoWriteTextCO80(0, 0, 0, ''); }
+					Move(Ptr(VideoTextSegment, srcOfs)^, Ptr(VideoTextSegment, destOfs)^, (width + dx) * 2);
+					srcOfs := srcOfs + (VideoColumns * 2);
+					destOfs := destOfs + (VideoColumns * 2);
+				end;
+			end;
+		end else begin
+			if dy > 0 then begin
+				{ move down }
+				srcOfs := ((y + height - 2) * VideoColumns + x) * 2;
+				destOfs := VideoColumns * 2 + srcOfs;
+				for iy := 1 to (height - 1) do begin
+ 					{ if (iy mod 2) = 1 then
+						VideoWriteTextCO80(0, 0, 0, ''); }
+					Move(Ptr(VideoTextSegment, srcOfs)^, Ptr(VideoTextSegment, destOfs)^, width * 2);
+					srcOfs := srcOfs - (VideoColumns * 2);
+					destOfs := destOfs - (VideoColumns * 2);
+				end;
+			end else begin
+				{ move up }
+				destOfs := (y * VideoColumns + x) * 2;
+				srcOfs := VideoColumns * 2 + destOfs;
+				for iy := 1 to (height - 1) do begin
+ 					{ if (iy mod 2) = 1 then
+						VideoWriteTextCO80(0, 0, 0, ''); }
+					Move(Ptr(VideoTextSegment, srcOfs)^, Ptr(VideoTextSegment, destOfs)^, width * 2);
+					srcOfs := srcOfs + (VideoColumns * 2);
+					destOfs := destOfs + (VideoColumns * 2);
+				end;
+			end;
+		end;
+	end;
 
 begin
-	VideoBorderColor := 0;
 	VideoColumns := 80;
-	VideoWriteText := VideoWriteTextFastBW;
-	if LastMode = 7 then begin
+	VideoRows := 25;
+	VideoWriteText := VideoWriteTextCGA;
+	VideoLastMode := LastMode;
+	if VideoLastMode = 7 then begin
 		VideoTextSegment := $B000;
 		VideoMonochrome := true;
 	end else begin
 		VideoTextSegment := $B800;
 		VideoMonochrome := false;
 	end;
-	VideoTextPointer := Ptr(VideoTextSegment, $0000);
-	VideoCursorVisible := true;
-	VideoUseFastPath := false;
+	VideoForceNoSnow := false;
+	VideoBlink := true;
+	VideoCurrentMode := -1;
+
+	VideoPreInstall;
 end.

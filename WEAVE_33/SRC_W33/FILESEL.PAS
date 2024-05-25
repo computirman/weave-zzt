@@ -30,100 +30,249 @@ unit FileSel;
 interface
 	uses GameVars;
 	function FileExists(name: TFilenameString): boolean;
+	function FileReadAll(name: TFilenameString; var fdata: pointer; maxSize: word): word;
 	function FileSelect(title, extension: TString50; var cachedLinePos: integer): TFilenameString;
 	function FileIsMult: boolean;
 
+{$IFDEF FPC}
+{$IFNDEF MSDOS}
+{$DEFINE ADVFILES}
+{$ENDIF}
+{$ENDIF}
+
 implementation
-uses Dos, Game, TxtWind;
+uses
+{$IFDEF ADVFILES}
+StrUtils, SysUtils,
+{$ELSE}
+Dos,
+{$ENDIF}
+Game, ZInput, TxtWind, FileSys;
+
 const
 	PATH_PREVIEW_LENGTH = 24;
+	MAX_FILENAME_LENGTH = 16;
 
 function FileExists(name: TFilenameString): boolean;
 	var
 		f: file;
 	begin
-		Assign(f, name);
+		AssignFSys(f, name);
 		Reset(f);
 		if IOResult = 0 then begin
 			Close(f);
 			FileExists := true;
-		end else FileExists := false;
+		end else begin
+			FileExists := false;
+		end;
+	end;
+
+function FileReadAll(name: TFilenameString; var fdata: pointer; maxSize: word): word;
+	var
+		f: file;
+		fsize: longint;
+		bsize: word;
+	begin
+		bsize := 0;
+
+		AssignFSys(f, name);
+		Reset(f, 1);
+		if IOResult = 0 then begin
+			fsize := FileSize(f);
+			bsize := maxSize;
+			if (fsize < bsize) then bsize := fsize;
+			if bsize > 0 then begin
+				GetMem(fdata, bsize);
+				BlockRead(f, fdata^, bsize);
+			end;
+			Close(f);
+		end;
+
+		FileReadAll := bsize;
 	end;
 
 function FileSelect(title, extension: TString50; var cachedLinePos: integer): TFilenameString;
 	var
 		textWindow: TTextWindowState;
+{$IFDEF ADVFILES}
+		fileSearchRec: TRawbyteSearchRec;
+		multiExtension: boolean;
+		extensionTemp: TString50;
+{$ELSE}
 		fileSearchRec: SearchRec;
+{$ENDIF}
 		entryName: TFilenameString;
+		entryNameCropped: TFilenameString;
 		searching: boolean;
-		i: integer;
+		i, iSortStart: integer;
+		startLinePos: integer;
+{$IFNDEF NODIRS}
 		lastDirLinePos: integer;
-		curPath: TFilenameString;
 		startPath: TFilenameString;
+{$ENDIF}
+		curPath: TFilenameString;
 		previewPath: string[PATH_PREVIEW_LENGTH + 4];
 	begin
 		searching := true;
+{$IFDEF ADVFILES}
+		multiExtension := ANSIContainsText(extension, ';');
+{$ENDIF}
+{$IFNDEF NODIRS}
 		GetDir(0, startPath);
+{$ENDIF}
+		startLinePos := cachedLinePos;
+
+		TextWindowInitState(textWindow);
+		textWindow.Title := '';
+		TextWindowDrawOpen(textWindow);
 
 		while searching do begin
 			TextWindowInitState(textWindow);
+{$IFNDEF NODIRS}
 			GetDir(0, curPath);
-			if Length(curPath) > PATH_PREVIEW_LENGTH then
-				previewPath := '...' + Copy(curPath, Length(curPath) - PATH_PREVIEW_LENGTH + 1, PATH_PREVIEW_LENGTH)
+
+			i := PATH_PREVIEW_LENGTH;
+			if (42 - 4 - Length(title)) < i then
+				i := 42 - 4 - Length(title);
+			if Length(curPath) > i then
+				previewPath := '...' + Copy(curPath, Length(curPath) - i + 1, i)
 			else
 				previewPath := curPath;
 			textWindow.Title := title + ': ' + previewPath;
+{$ELSE}
+			textWindow.Title := title;
+{$ENDIF}
 			textWindow.Selectable := true;
 			textWIndow.Hyperlink := '';
+
+
+{$IFDEF ADVFILES}
+{$IFNDEF NODIRS}
+			{ .. }
+			if ExpandFileName(curPath) <> ExpandFileName(IncludeTrailingPathDelimiter(curPath) + '..') then
+				TextWindowAppend(textWindow, '!..;[..]');
+			iSortStart := textWindow.LineCount + 1;
+
+			{ Directories }
+			FindFirst('*', faDirectory, fileSearchRec);
+			repeat
+				if (fileSearchRec.Attr and faDirectory) <> 0 then begin
+					entryName := fileSearchRec.Name;
+					if Length(entryName) <= MAX_FILENAME_LENGTH then
+						if (Length(entryName) > 0) and (entryName <> '.') and (entryName <> '..') then begin
+							entryNameCropped := entryName;
+							if Length(entryNameCropped) > 32 then
+								entryNameCropped := Copy(entryNameCropped, 1, 29) + '...';
+							TextWindowAppend(textWindow, '!' + entryName + ';[' + entryNameCropped + ']');
+						end;
+				end;
+			until FindNext(fileSearchRec) <> 0;
+			FindClose(fileSearchRec);
+
+			lastDirLinePos := textWindow.LineCount;
+{$ENDIF}
+
+			{ Files }
+			FindFirst('*', faAnyFile, fileSearchRec);
+			repeat
+				if ((fileSearchRec.Attr and faDirectory) = 0) then begin
+					entryName := '';
+					if multiExtension then begin
+						i := 1;
+						repeat
+							extensionTemp := ExtractDelimited(i, extension, [';']);
+							if extensionTemp = '' then break;
+							if UpCase(Copy(fileSearchRec.Name,
+								Length(fileSearchRec.name) - Length(extensionTemp) + 1,
+								Length(extensionTemp))) = extensionTemp then begin
+								entryName := fileSearchRec.name;
+								break;
+							end;
+							Inc(i);
+						until 1 <> 1;
+					end else begin
+						if UpCase(Copy(fileSearchRec.Name,
+							Length(fileSearchRec.name) - Length(extension) + 1,
+							Length(extension))) = extension then begin
+							entryName := Copy(fileSearchRec.Name, 1, Length(fileSearchRec.name) - Length(extension));
+						end;
+					end;
+
+					if (Length(entryName) > 0) and (Length(entryName) <= MAX_FILENAME_LENGTH) then
+						TextWindowAppend(textWindow, entryName);
+				end;
+			until FindNext(fileSearchRec) <> 0;
+			FindClose(fileSearchRec);
+{$ELSE}
+{$IFNDEF NODIRS}
+			{ .. }
+			if Length(curPath) > 3 then
+				TextWindowAppend(textWindow, '!..;[..]');
+			iSortStart := textWindow.LineCount + 1;
 
 			{ Directories }
 			FindFirst('*', Directory, fileSearchRec);
 			while DosError = 0 do begin
 				if (fileSearchRec.Attr and Directory) <> 0 then begin
 					entryName := fileSearchRec.Name;
-					if (Length(entryName) > 0) and (entryName <> '.') then
-						if (Length(curPath) > 3) or (entryName <> '..') then
-							TextWindowAppend(textWindow, '!' + entryName + ';[' + entryName + ']');
+					if Length(entryName) <= MAX_FILENAME_LENGTH then
+						if (Length(entryName) > 0) and (entryName <> '.') and (entryName <> '..') then begin
+							entryNameCropped := entryName;
+							if Length(entryNameCropped) > 32 then
+								entryNameCropped := Copy(entryNameCropped, 1, 29) + '...';
+							TextWindowAppend(textWindow, '!' + entryName + ';[' + entryNameCropped + ']');
+						end;
 				end;
 				FindNext(fileSearchRec);
 			end;
+
 			lastDirLinePos := textWindow.LineCount;
+{$ENDIF}
 
 			{ Files }
 			FindFirst('*' + extension, AnyFile, fileSearchRec);
 			while DosError = 0 do begin
 				if (fileSearchRec.Attr and Directory) = 0 then begin
 					entryName := Copy(fileSearchRec.Name, 1, Length(fileSearchRec.name) - Length(extension));
-					TextWindowAppend(textWindow, entryName);
+
+					if Length(entryName) <= MAX_FILENAME_LENGTH then
+						TextWindowAppend(textWindow, entryName);
 				end;
 				FindNext(fileSearchRec);
 			end;
+{$ENDIF}
 
 			textWindow.LinePos := cachedLinePos;
 
+			TextWindowSort(textWindow, iSortStart, textWindow.LineCount);
 			TextWindowAppend(textWindow, 'Exit');
 
-			TextWindowDrawOpen(textWindow);
 			TextWindowSelect(textWindow, TWS_HYPERLINK_AS_SELECT);
-			TextWindowDrawClose(textWindow);
+			InputKeyPressed := #0;
 
 			if (textWindow.LinePos = textWindow.LineCount) or TextWindowRejected then begin
 				{ Exit }
 				FileSelect := '';
 				searching := false;
+				cachedLinePos := startLinePos;
+{$IFNDEF NODIRS}
 				ChDir(startPath);
 			end else if textWindow.LinePos <= lastDirLinePos then begin
 				{ Directory }
 				ChDir(textWindow.Hyperlink);
+				cachedLinePos := 1;
+{$ENDIF}
 			end else begin
 				{ File }
 				entryName := textWindow.Lines[textWindow.LinePos]^;
 				FileSelect := entryName;
 				searching := false;
 
+{$IFNDEF NODIRS}
 				if startPath <> curPath then
 					ResetCachedLinePos;
 				cachedLinePos := textWindow.LinePos;
+{$ENDIF}
 			end;
 
 			TextWindowFree(textWindow);
@@ -131,8 +280,33 @@ function FileSelect(title, extension: TString50; var cachedLinePos: integer): TF
 			{ Clear IOResult }
 			if IOResult <> 0 then begin end;
 		end;
+
+		TextWindowInitState(textWindow);
+		TextWindowDrawClose(textWindow);
+		TextWindowFree(textWindow);
 	end;
 
+{$IFDEF ADVFILES}
+function FileIsMult: boolean;
+	const
+		extension = '.ZZT';
+	var
+		i: integer;
+		fileSearchRec: TRawbyteSearchRec;
+	begin
+		i := 0;
+		FindFirst('*', faAnyFile, fileSearchRec);
+		repeat
+			if ((fileSearchRec.Attr and faDirectory) = 0) then begin
+				if UpCase(Copy(fileSearchRec.Name,
+					Length(fileSearchRec.name) - Length(extension) + 1,
+					Length(extension))) = extension then Inc(i);
+			end;
+		until FindNext(fileSearchRec) <> 0;
+		FindClose(fileSearchRec);
+		FileIsMult := i > 1;
+	end;
+{$ELSE}
 function FileIsMult: boolean;
 	var
 		fileSearchRec: SearchRec;
@@ -142,5 +316,6 @@ function FileIsMult: boolean;
 		if DosError = 0 then FindNext(fileSearchRec);
 		if DosError = 0 then FileIsMult := true;
 	end;
+{$ENDIF}
 
 end.
