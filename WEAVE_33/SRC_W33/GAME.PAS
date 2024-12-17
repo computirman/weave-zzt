@@ -1663,8 +1663,8 @@ procedure RemoveStat(statId: integer);
 		with Board.Stats[statId] do begin
 			FreeStatDataMem(statId);
 
-			if statId < CurrentStatTicked then
-				CurrentStatTicked := CurrentStatTicked - 1;
+			if statId <= CurrentStatTicked then
+				Dec(CurrentStatTicked);
 			TrackOnRemoveStat(statId);
 
 			Board.Tiles[X][Y] := Under;
