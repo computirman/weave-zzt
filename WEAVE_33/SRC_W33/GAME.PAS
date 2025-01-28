@@ -999,9 +999,10 @@ procedure BoardDrawTile(x, y: integer);
 		ch: byte;
 	begin
 		if (y < BOARD_HEIGHT)
+		if (y <> BOARD_HEIGHT + Board.Stats[0].StepY)
 			or (Board.Info.Message = '')
-			or (x <= (60 - Length(Board.Info.Message)) div 2)
-			or (x > (60 + Length(Board.Info.Message)) div 2)
+			or (x <= ((60 + Board.Stats[0].StepX) - Length(Board.Info.Message)) div 2)
+			or (x > ((60 + Board.Stats[0].StepX) + Length(Board.Info.Message)) div 2)
 		then begin
 			if (x < 1) or (x > BOARD_WIDTH) or (y < 1) or (y > BOARD_HEIGHT) then exit;
 			with Board.Tiles[x][y] do begin
@@ -1051,7 +1052,7 @@ procedure BoardDrawBottom;
 		s := Board.Info.Message;
 		Board.Info.Message := '';
 		for ix := 1 to BOARD_WIDTH do
-			BoardDrawTile(ix, BOARD_HEIGHT);
+			BoardDrawTile(ix, BOARD_HEIGHT + Board.Stats[0].StepY);
 		Board.Info.Message := s;
 	end;
 
@@ -1663,8 +1664,8 @@ procedure RemoveStat(statId: integer);
 		with Board.Stats[statId] do begin
 			FreeStatDataMem(statId);
 
-			if statId < CurrentStatTicked then
-				CurrentStatTicked := CurrentStatTicked - 1;
+			if statId <= CurrentStatTicked then
+				Dec(CurrentStatTicked);
 			TrackOnRemoveStat(statId);
 
 			Board.Tiles[X][Y] := Under;
@@ -2034,16 +2035,19 @@ procedure DisplayMessage(time: integer; message: string);
 	begin
 		if Length(message) <> 0 then begin
 			if message = '$' then begin
-				Board.Stats[0].P3 := 0;
-				BoardDrawRow(BOARD_HEIGHT);
-			end else begin
-				if Length(Board.Info.Message) > Length(message) then begin
-					Board.Info.Message := message;
-					BoardDrawRow(BOARD_HEIGHT);
-				end else
-					Board.Info.Message := message;
-				Board.Stats[0].P3 := time div (TickTimeDuration + 1);
-				VideoWriteText((60 - Length(Board.Info.Message)) div 2, 24, 9 + (Board.Stats[0].P3 mod 7), ' '+Board.Info.Message+' ');
+			with Board.Stats[0] do begin
+				if message = '$' then begin
+					P3 := 0;
+					BoardDrawRow(BOARD_HEIGHT + StepY);
+				end else begin
+					if Length(Board.Info.Message) > Length(message) then begin
+						Board.Info.Message := message;
+						BoardDrawRow(BOARD_HEIGHT + StepY);
+					end else
+						Board.Info.Message := message;
+					P3 := time div (TickTimeDuration + 1);
+					VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, 9 + (P3 mod 7), ' '+Board.Info.Message+' ');
+				end;
 			end;
 		end;
 	end;
@@ -2361,8 +2365,19 @@ procedure BoardEnter;
 	begin
 		FillChar(PathTmpBuf^, BOARD_TILE_COUNT, 0);
 
-		Board.Info.StartPlayerX := Board.Stats[0].X;
-		Board.Info.StartPlayerY := Board.Stats[0].Y;
+		with Board.Stats[0] do begin
+			Board.Info.StartPlayerX := X;
+			Board.Info.StartPlayerY := Y;
+			if not HasINI 
+				or (StepX < -25)
+				or (StepX > 25)
+				or (StepY < -24)
+				or (StepY > 0)
+			then begin
+				StepX := 0;
+				StepY := 0;
+			end;
+		end;
 
 		if (Board.Info.IsDark > 0) and MessageHintTorchNotShown then begin
 			DisplayMessage(200, XDat.Configs[46]); {"Board is dark - you need to light a torch!"}

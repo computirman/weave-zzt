@@ -1,3 +1,12 @@
+1/28/2025: Weave 3.3u
+​Not much has changed, but there are a couple interesting tidbits:
+(1) By changing the step values of MSGTXT, you can reposition the "ticker" where text is displayed on the screen. (make sure text isn't being displayed at the time or you'll leave a "ghost" of prior text) Acceptable values: StepX from -25 to 25, StepY from 0 to -24. ​To do this, you would #STEP MSGTXT <x> <y> or #PSET MSGTXT ORIGINX <x> or #PSET MSGTXT ORIGINY <y>.
+(2) Updated the weave demo world to include an index of all the commands and other changes you can use.
+(3) Bombs act more like bullets, moving with their stepX and stepY values and bouncing off ricochets.
+(4) Bombs now have a p3 value which is the number of ticks between time decreases, allowing bombs to have faster cycles without shorter fuses.
+(5) Updated WebWeave to Zeta 1.1.0.
+(6) Fixed a bullet death bug and a bug with changing element attributes on-the-fly.
+
 5/17/2024: Weave 3.3q
 * Updated the README and OOP-QR to include some changes.
 * Updated WEAVEDMO to include entries on PFIND and STARTGAME.

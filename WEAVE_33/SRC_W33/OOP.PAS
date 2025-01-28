@@ -384,7 +384,7 @@ function OopParseDirection(statId: integer; var position: integer; var dx, dy: i
 		SelUnder := false;
 		with Board.Stats[statId] do begin
 			OopParseDirection := true;
-			if OopWord = 'PLAYER' then begin
+			if (OopWord = 'PLAYER') or (OopWord = 'MSGTXT') then begin
 				dx := Board.Stats[0].X - X;
 				dy := Board.Stats[0].Y - Y;
 			end else if
@@ -536,6 +536,7 @@ procedure OopReadDirectionRel(statId: integer; var position: integer; var dx, dy
 function OopPget(statId: integer; var position: integer): integer;
 	var
 		deltaX, deltaY, bindStatId, shift: integer;
+		elemAttr: boolean;
 		counter: TCounter;
 		argTile: TTile;
 		filter: byte;
@@ -576,16 +577,31 @@ function OopPget(statId: integer; var position: integer): integer;
 				else
 					OopPget := Ord(XDat.EDefs[Enum(argTile.Element)].Character);
 				exit;
+			end else if (OopWord = 'WALKABLE')
+				or (OopWord = 'CANSHOOT') or (OopWord = 'PUSHABLE')
+				or (OopWord = 'CANPUT') or (OopWord = 'SEEDARK')	
+			then begin
+				case OopWord[4] of
+					'K': elemAttr := XDat.EDefs[Enum(argTile.Element)].Walkable;
+					'S': elemAttr := XDat.EDefs[Enum(argTile.Element)].CanShoot;
+					'H': elemAttr := XDat.EDefs[Enum(argTile.Element)].Pushable;
+					'P': elemAttr := XDat.EDefs[Enum(argTile.Element)].CanPut;
+					'D': elemAttr := XDat.EDefs[Enum(argTile.Element)].SeeDark;
+				end;
+				if elemAttr then
+					OopPget := 1
+				else
+					OopPget := 0;
 			end else if bindStatId > -1 then with Board.Stats[bindStatId] do begin
-				if OopWord = 'STEPX' then
+				if (OopWord = 'STEPX') or (OopWord = 'ORIGINX') then
 					OopPget := StepX
-				else if OopWord = 'STEPY' then
+				else if (OopWord = 'STEPY') or (OopWord = 'ORIGINY') then
 					OopPget := StepY
 				else if (OopWord = 'P1') or (OopWord = 'INTEL') or (OopWord = 'INTELLIGENCE') then
 					OopPget := P1
 				else if (OopWord = 'P2') or (OopWord = 'RATE') or (OopWord = 'SPEED') or (OopWord = 'LOCKED') then
 					OopPget := P2
-				else if (OopWord = 'P3') or (OopWord = 'DESTINATION') then
+				else if (OopWord = 'P3') or (OopWord = 'DURATION') or (OopWord = 'DESTINATION') then
 					OopPget := P3
 				else if OopWord = 'CYCLE' then
 					OopPget := Cycle
@@ -1000,6 +1016,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 		tile: TMatchTile;
 		code, ix, iy: integer;
 		isCounter: boolean;
+		elemAttr: char;
 		counter: TCounter;
 	begin
 		with Board.Stats[statId] do begin
@@ -1010,16 +1027,28 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 				OopCheckCondition := (X = Board.Stats[0].X) or (Y = Board.Stats[0].Y)
 			else if OopWord = 'CONTACT' then
 				OopCheckCondition := (Sqr(X - Board.Stats[0].X) + Sqr(Y - Board.Stats[0].Y)) = 1
-			else if OopWord = 'BLOCKED' then begin
+			else if (OopWord = 'BLOCKED')
+				or (OopWord = 'CANSHOOT') or (OopWord = 'PUSHABLE')
+				or (OopWord = 'CANPUT') or (OopWord = 'SEEDARK')				
+			then begin
+				elemAttr := OopWord[4];
 				OopReadDirection(statId, position, deltaX, deltaY);
 				if ((X + deltaX) > 0)
 					and ((X + deltaX) <= BOARD_WIDTH)
 					and ((Y + deltaY) > 0)
 					and ((Y + deltaY) <= BOARD_HEIGHT)
-				then
-					OopCheckCondition := not XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].Walkable
+				then begin
+					case elemAttr of
+						'C': OopCheckCondition := not XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].Walkable;
+						'S': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].CanShoot;
+						'H': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].Pushable;
+						'P': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].CanPut;
+						'D': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].SeeDark;
+					end;
+				end else if (OopWord = 'BLOCKED') then
+					OopCheckCondition := true
 				else
-					OopCheckCondition := true;
+					OopCheckCondition := false;
 			end else if OopWord = 'ANY' then begin
 				if not OopParseTile(statId, position, tile) then
 					OopError(statId,position, 'Bad object kind');
@@ -1089,9 +1118,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 						OopCheckCondition := (X = ix) and (Y = iy)
 					else
 						OopError(statId,position, 'Bad condition');
-				end else if OopWord = 'PGET' then
-					OopCheckCondition := OopPget(statId, position) > 0
-				else if OopWord = 'RUN' then
+				end else if OopWord = 'RUN' then
 					OopCheckCondition := OopRunFunc(statId, position) > 0
 				else if OopWord = 'RUNWITH' then begin
 					OopReadValue(statId, position);
@@ -1452,6 +1479,8 @@ procedure OopExecute(statId: integer; name: TString50);
 							else if CounterFromWord(counter, Index, OopWord) then begin
 								if counter.CType = TCConfig then begin
 									Inc(Stat^.DataPos);
+									if (OopChar <> #13) and (OopChar <> #0) then
+										Inc(Stat^.DataPos);
 									textLine := OopReadLineToEnd(Index, Stat^.DataPos);
 									if textLine <> '' then begin
 										XDat.Configs[counter.Value] := textLine;
@@ -1957,7 +1986,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								bindStatId := GetStatIdAt( Stat^.X + deltaX, Stat^.Y + deltaY );
 								if bindStatId > -1 then begin
 									OopReadWord(Index, Stat^.DataPos);
-									if OopWord = 'STEP' then begin
+									if (OopWord = 'STEP') or (OopWord = 'ORIGIN') then begin
 										textLine := OopNextWord(Index, Stat^.DataPos);
 										Inc(deltaX,Stat^.X);
 										Inc(deltaY,Stat^.Y);
@@ -1974,7 +2003,7 @@ procedure OopExecute(statId: integer; name: TString50);
 											Board.Stats[bindStatId].P1 := iy
 										else if (OopWord = 'P2') or (OopWord = 'RATE') or (OopWord = 'SPEED') then
 											Board.Stats[bindStatId].P2 := iy
-										else if OopWord = 'P3' then
+										else if (OopWord = 'P3') or (OopWord = 'DURATION') then
 											Board.Stats[bindStatId].P3 := iy
 										else if OopWord = 'CYCLE' then
 											Board.Stats[bindStatId].Cycle := iy										

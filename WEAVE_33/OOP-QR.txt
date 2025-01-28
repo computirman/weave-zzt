@@ -1,6 +1,6 @@
 WeaveZZT Extended ZZT-OOP Quick Reference
 v0.10
-For WeaveZZT v3.3q
+For WeaveZZT v3.3u
 
 === INDEX ===
 
@@ -231,6 +231,10 @@ EDGEN           -- The board link to the North.
 EDGES           -- The board link to the South.
 EDGEW           -- The board link to the West.
 EDGEE           -- The board link to the East.
+
+You can also #STEP MSGTEXT <x> <y> to shift the origin of the message "ticker" from (30, 25) to wherever you like on the screen. If you want to get the current origin, you can use:
+    #SET <counter> PGET MSGTXT ORIGINX
+    #SET <othercounter> PGET MSGTXT ORIGINY
 
 Notes:
  -#GIVE'n energizer time does not start the music. You'll still get the sound for when it's about to end, though.

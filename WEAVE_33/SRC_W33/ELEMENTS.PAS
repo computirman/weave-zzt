@@ -57,6 +57,73 @@ function AsColor(fg, bg: integer): byte;
 		AsColor := ((bg * 16) + fg) and $FF;
 	end;
 
+	var
+		firstTry: boolean;
+	label TryMove;
+	begin
+		with Board.Stats[statId] do begin
+			firstTry := true;
+
+			TryMove:
+				ix := X + StepX;
+				iy := Y + StepY;
+				if (ix <= 0) or (ix > BOARD_WIDTH) or (iy <= 0) or (iy > BOARD_HEIGHT) then begin
+					BulletMove := 0;
+					exit;
+				end;
+				iElem := Board.Tiles[ix][iy].Element;
+
+				if XDat.EDefs[Enum(iElem)].Walkable or (iElem = E_WATER) then begin
+					BulletMove := 3;
+					exit;
+				end;
+
+				if (iElem = E_RICOCHET) and firstTry then begin
+					StepX := -StepX;
+					StepY := -StepY;
+					SoundQueue(1, SoundParse(XDat.Configs[53])); {Ricochet sound}
+					firstTry := false;
+					goto TryMove;
+				end;
+
+				if (iElem = E_BREAKABLE)
+					or (XDat.EDefs[Enum(iElem)].CanShoot and ((iElem = E_PLAYER) or (P1 = 0)))
+				then begin
+					BulletMove := 1;
+					exit;
+				end;
+
+				if (Board.Tiles[X + StepY][Y + StepX].Element = E_RICOCHET) and firstTry then begin
+					ix := StepX;
+					StepX := -StepY;
+					StepY := -ix;
+					SoundQueue(1, SoundParse(XDat.Configs[53])); {Ricochet sound}
+					firstTry := false;
+					goto TryMove;
+					exit;
+				end;
+
+				if (Board.Tiles[X - StepY][Y - StepX].Element = E_RICOCHET) and firstTry then begin
+					ix := StepX;
+					StepX := StepY;
+					StepY := ix;
+					SoundQueue(1, SoundParse(XDat.Configs[53])); {Ricochet sound}
+					firstTry := false;
+					goto TryMove;
+					exit;
+				end;
+
+				if (iElem = E_OBJECT) or (iElem = E_SCROLL) then begin
+					if (P1 = XDat.Params[12]) or (P1 = SHOT_SOURCE_PLAYER) then begin {Friendly Fire}
+						BulletMove := 2;
+						exit;
+					end;
+				end;
+
+				BulletMove := 0;
+		end;
+	end;
+
 procedure ElemDefaultTick(statId: integer);
 	begin
 	end;
@@ -311,80 +378,31 @@ procedure ElementCentipedeSegmentTick(statId: integer);
 
 procedure ElementBulletTick(statId: integer);
 	var
-		ix, iy: integer;
-		iStat: integer;
 		iElem: byte;
-		firstTry: boolean;
-	label TryMove;
-	label BulletExpire;
+		ix, iy, iStat, outcome: integer;
 	begin
 		with Board.Stats[statId] do begin
 			if P2 < XDat.EDefs[E_BULLET].P1 then
-				goto BulletExpire
-			else
+				outcome := 0
+			else begin
 				Dec(P2, XDat.EDefs[E_BULLET].P1);
-			firstTry := true;
-
-		TryMove:
-			ix := X + StepX;
-			iy := Y + StepY;
-			if (ix <= 0) or (ix > BOARD_WIDTH) or (iy <= 0) or (iy > BOARD_HEIGHT) then goto BulletExpire;
-			iElem := Board.Tiles[ix][iy].Element;
-
-			if XDat.EDefs[Enum(iElem)].Walkable or (iElem = E_WATER) then begin
-				MoveStat(statId, ix, iy);
-				exit;
+				outcome := BulletMove(ix, iy, iElem, statId);
 			end;
 
-			if (iElem = E_RICOCHET) and firstTry then begin
-				StepX := -StepX;
-				StepY := -StepY;
-				SoundQueue(1, SoundParse(XDat.Configs[53])); {Ricochet sound}
-				firstTry := false;
-				goto TryMove;
-				exit;
-			end;
-
-			if (iElem = E_BREAKABLE)
-				or (XDat.EDefs[Enum(iElem)].CanShoot and ((iElem = E_PLAYER) or (P1 = 0))) then
-			begin
+			case outcome of
+			1: begin
 				if XDat.EDefs[Enum(iElem)].ScoreValue <> 0 then begin
 					Inc(World.Info.Score, XDat.EDefs[Enum(iElem)].ScoreValue);
 					GameUpdateSidebar;
 				end;
 				BoardAttack(statId, ix, iy);
-				exit;
 			end;
-
-			if (Board.Tiles[X + StepY][Y + StepX].Element = E_RICOCHET) and firstTry then begin
-				ix := StepX;
-				StepX := -StepY;
-				StepY := -ix;
-				SoundQueue(1, SoundParse(XDat.Configs[53])); {Ricochet sound}
-				firstTry := false;
-				goto TryMove;
-				exit;
+			2: begin
+				iStat := GetStatIdAt(ix, iy);
+				if OopSend(-iStat, 'SHOT', false) then begin end;
 			end;
-
-			if (Board.Tiles[X - StepY][Y - StepX].Element = E_RICOCHET) and firstTry then begin
-				ix := StepX;
-				StepX := StepY;
-				StepY := ix;
-				SoundQueue(1, SoundParse(XDat.Configs[53])); {Ricochet sound}
-				firstTry := false;
-				goto TryMove;
-				exit;
-			end;
-
-		BulletExpire:
-			if (iElem = E_OBJECT) or (iElem = E_SCROLL) then begin
-				if (P1 = XDat.Params[12]) or (P1 = SHOT_SOURCE_PLAYER) then begin {Friendly Fire}
-					iStat := GetStatIdAt(ix, iy);
-					if OopSend(-iStat, 'SHOT', false) then begin end;
-				end;
-			end;
-			RemoveStat(statId);
-			{ Dec(CurrentStatTicked); }
+			3: MoveStat(statid, ix, iy);
+			else RemoveStat(statId) end;
 		end;
 	end;
 
@@ -593,14 +611,31 @@ procedure ElementBombDraw(x, y: integer; var ch: byte);
 
 procedure ElementBombTick(statId: integer);
 	var
-		oldX, oldY: integer;
+		ix, iy, oldX, oldY: integer;
+		iElem: byte;
 	begin
 		with Board.Stats[statId] do begin
-			if P1 > 0 then begin
+			if (StepX <> 0) or (StepY <> 0) then begin
+				if BulletMove(ix, iy, iElem, statId) = 3 then
+					MoveStat(statid, ix, iy)
+				else begin
+					StepX := 0;
+					StepY := 0;
+					Cycle := (P3 + 1) * Cycle;
+					P3 := 0;
+					if P1 <> 1 then P1 := 2;
+				end;
+			end;
+
+			if ((P3 = 0) or (((CurrentTick div Cycle) mod (P3 + 1)) = 0))
+				and (P1 > 0)
+			then begin
 				P1 := P1 - 1;
 				BoardDrawTile(X, Y);
 
 				if P1 = 1 then begin
+					StepX := 0;
+					StepY := 0;
 					SoundQueue(1, SoundParse(XDat.Configs[5])); {Bomb explode sound}
 					DrawBombSurroundings(X, Y, 1);
 				end else if P1 = 0 then begin
@@ -1660,12 +1695,13 @@ procedure ElementTruePlayerTick;
 				else
 					i := 9 + (P3 - 1) mod 7;
 				VideoWriteText((60 - Length(Board.Info.Message)) div 2, 24, i,
+				VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i,
 					' '+Board.Info.Message+' ');
 				if GameMove then
 					Dec(P3);
 			end else if Board.Info.Message <> '' then begin
 				Board.Info.Message := '';
-				BoardDrawRow(BOARD_HEIGHT);
+				BoardDrawRow(BOARD_HEIGHT + StepY);
 			end;
 
 			if HearingImpaired then begin
@@ -1964,7 +2000,6 @@ procedure InitXDatEDefs;
 
 		XDat.EDefs[15].Character := ' ';
 		XDat.EDefs[15].Color := $0F;
-		XDat.EDefs[15].CanShoot := false;
 		XDat.EDefs[15].Cycle := 1;
 		XDat.EDefs[15].TickProc := ElementStarTick;
 		XDat.EDefs[15].TouchProc := ElementDamagingTouch;
@@ -2016,7 +2051,7 @@ procedure InitXDatEDefs;
 		XDat.EDefs[22].Name := 'NORMAL';
 
 		XDat.EDefs[23].Character := #177;
-		XDat.EDefs[23].CanShoot := false;
+		XDat.EDefs[23].CanShoot := true;
 		XDat.EDefs[23].Name := 'BREAKABLE';
 
 		XDat.EDefs[24].Character := #254;
@@ -2098,7 +2133,6 @@ procedure InitXDatEDefs;
 
 		XDat.EDefs[37].Character := '*';
 		XDat.EDefs[37].Cycle := 3;
-		XDat.EDefs[37].CanShoot := false;
 		XDat.EDefs[37].TickProc := ElementSlimeTick;
 		XDat.EDefs[37].TouchProc := ElementSlimeTouch;
 		XDat.EDefs[37].Name := 'SLIME';
@@ -2106,7 +2140,6 @@ procedure InitXDatEDefs;
 		XDat.EDefs[38].Character := '^';
 		XDat.EDefs[38].Color := $07;
 		XDat.EDefs[38].Cycle := 3;
-		XDat.EDefs[38].CanShoot := false;
 		XDat.EDefs[38].TickProc := ElementSharkTick;
 		XDat.EDefs[38].Name := 'SHARK';
 

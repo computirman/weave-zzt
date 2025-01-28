@@ -65,7 +65,7 @@ function ElementRead(var c: TCounter): integer;
 	begin
 		ElementRead := -32767;
 		for i := 4 to 12 do
-			if c.Entry[i] = '.' then j := i;
+			if (c.Entry[i] = '.') and (i <= Length(c.Entry)) then j := i;
 		for i := 1 to j - 1 do
 			t[i] := UpCase(c.Entry[i]);
 		t[0] := Chr(j - 1);
@@ -84,7 +84,7 @@ procedure ElementWrite(var c: TCounter; var uu: TScheduledUpdates);
 	begin
 		Str(c.Value, v);
 		for i := 4 to 12 do
-			if c.Entry[i] = '.' then j := i;
+			if (c.Entry[i] = '.') and (i <= Length(c.Entry)) then j := i;
 		for i := 1 to j - 1 do
 			t[i] := UpCase(c.Entry[i]);
 		t[0] := Chr(j - 1);
@@ -96,6 +96,7 @@ procedure ElementWrite(var c: TCounter; var uu: TScheduledUpdates);
 				ElementMod(i, u, v, -1);
 				uu.UpdateTheme := true;
 				uu.UpdateBoard := true;
+				exit;
 			end;
 	end;
 
