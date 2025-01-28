@@ -1478,7 +1478,6 @@ procedure OopExecute(statId: integer; name: TString50);
 								WorldSetFlag(OopWord)
 							else if CounterFromWord(counter, Index, OopWord) then begin
 								if counter.CType = TCConfig then begin
-									Inc(Stat^.DataPos);
 									if (OopChar <> #13) and (OopChar <> #0) then
 										Inc(Stat^.DataPos);
 									textLine := OopReadLineToEnd(Index, Stat^.DataPos);

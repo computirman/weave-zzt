@@ -998,7 +998,6 @@ procedure BoardDrawTile(x, y: integer);
 		e: integer;
 		ch: byte;
 	begin
-		if (y < BOARD_HEIGHT)
 		if (y <> BOARD_HEIGHT + Board.Stats[0].StepY)
 			or (Board.Info.Message = '')
 			or (x <= ((60 + Board.Stats[0].StepX) - Length(Board.Info.Message)) div 2)
@@ -2034,7 +2033,6 @@ procedure DisplayMessage(time: integer; message: string);
 		statId: integer;
 	begin
 		if Length(message) <> 0 then begin
-			if message = '$' then begin
 			with Board.Stats[0] do begin
 				if message = '$' then begin
 					P3 := 0;

@@ -57,6 +57,7 @@ function AsColor(fg, bg: integer): byte;
 		AsColor := ((bg * 16) + fg) and $FF;
 	end;
 
+function BulletMove(var ix, iy: integer; var iElem: byte; statId: integer): integer;
 	var
 		firstTry: boolean;
 	label TryMove;
@@ -1694,7 +1695,6 @@ procedure ElementTruePlayerTick;
 					i := 9 + ((P3 - 1) div 2) mod 7
 				else
 					i := 9 + (P3 - 1) mod 7;
-				VideoWriteText((60 - Length(Board.Info.Message)) div 2, 24, i,
 				VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i,
 					' '+Board.Info.Message+' ');
 				if GameMove then
