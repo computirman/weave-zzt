@@ -319,14 +319,21 @@ procedure TextWindowFree(var state: TTextWindowState);
 procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 	var
 		newLinePos: integer;
-		viewingFile: boolean;
+		viewingFile, strictShift: boolean;
 		iLine, iChar: integer;
-		pointerStr: string[20];
+		pointerStr, qStr: string[20];
+		c: char;
 	label LabelMatched;
 	label LabelNotMatched;
 	begin
 		viewingFile := (flags and TWS_VIEWING_FILE) <> 0;
-
+		if XDat.Params[73] > 0 then begin
+			c := #2;
+			qStr := ''
+		end else begin
+			c := ' ';
+			qStr := 'or SPACE '
+		end;
 		with state do begin
 			TextWindowRejected := false;
 			Hyperlink := '';
@@ -336,10 +343,14 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 				TimerSysIdle(IMUntilFrame);
 {$ENDIF}
 				InputUpdate;
+				if c = ' ' then
+					strictShift := InputShiftPressed
+				else
+					strictShift := false;
 				newLinePos := LinePos;
 				if InputDeltaY <> 0 then begin
 					Inc(newLinePos, InputDeltaY);
-				end else if InputShiftPressed or (InputKeyPressed = KEY_ENTER) or (InputKeyPressed = ' ') then begin
+				end else if strictShift or (InputKeyPressed = KEY_ENTER) or (InputKeyPressed = c) then begin
 					InputShiftAccepted := true;
 					if ((flags and TWS_IGNORE_HYPERLINKS) = 0) and ((Lines[LinePos]^[1]) = '!') then begin
 						pointerStr := Copy(Lines[LinePos]^, 2, Length(Lines[LinePos]^) - 1);
@@ -359,7 +370,7 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 								newLinePos := LinePos;
 								TextWindowDraw(state, false, viewingFile);
 								InputKeyPressed := #0;
-								InputShiftPressed := false;
+								strictShift := false;
 							end;
 						end else begin
 							if (flags and TWS_HYPERLINK_AS_SELECT) <> 0 then begin
@@ -375,7 +386,7 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 										end;
 										newLinePos := iLine;
 										InputKeyPressed := #0;
-										InputShiftPressed := false;
+										strictShift := false;
 										goto LabelMatched;
 									LabelNotMatched:
 									end;
@@ -404,7 +415,7 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 						if (flags and TWS_HYPERLINK_AS_SELECT) <> 0 then
 							TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
 								XDat.Params[THEME_START]),
-								#174'Press ENTER or SPACE to select'#175)
+								#174'Press ENTER ' + qStr + 'to select'#175)
 						else
 							TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
 								XDat.Params[THEME_START]),
@@ -413,7 +424,7 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 				if InputJoystickMoved then begin
 					Delay(35);
 				end;
-			until (InputKeyPressed = KEY_ESCAPE) or (InputKeyPressed = KEY_ENTER) or InputShiftPressed or (InputKeyPressed = ' ');
+						until (InputKeyPressed = KEY_ESCAPE) or (InputKeyPressed = KEY_ENTER) or strictShift or (InputKeyPressed = c);
 			if InputKeyPressed = KEY_ESCAPE then begin
 				InputKeyPressed := #0;
 				TextWindowRejected := true;

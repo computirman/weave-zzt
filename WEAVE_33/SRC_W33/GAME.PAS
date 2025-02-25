@@ -151,8 +151,8 @@ function ColorNumber(s: string; statId: integer): integer;
 			if ((i > -1) and (i < 256)) then ColorNumber := i;
 			exit;
 		end;
-		if (s = 'BLACK') then ColorNumber := 0
-		else if (s = 'DKBLUE') then ColorNumber := 1
+		if ((s = 'BLACK') or (s = 'FALSE')) then ColorNumber := 0
+		else if ((s = 'DKBLUE') or (s = 'TRUE')) then ColorNumber := 1
 		else if (s = 'DKGREEN') then ColorNumber := 2
 		else if (s = 'DKCYAN') then ColorNumber := 3
 		else if (s = 'DKRED') then ColorNumber := 4
@@ -206,6 +206,7 @@ function ParamConfigs(i: integer): string;
 			22: ParamConfigs := 'OTHER.EXTRAFLAGS';
 			71: ParamConfigs := 'OTHER.FOOTSTEPS';
 			72: ParamConfigs := 'OTHER.HIGHSCORES';
+			73: ParamConfigs := 'OTHER.STRICTWINDOW';
 		else ParamConfigs := '_nil' end;
 	end;
 
@@ -280,7 +281,7 @@ function DefaultParamList(i: integer): integer;
 			5,8: DefaultParamList := 50;
 			9: DefaultParamList := 254;
 			10: DefaultParamList := 33;
-			11,16,23,24,25,26,27,29,31,32,36,37,39,43,71: DefaultParamList := 0;
+			11,16,23,24,25,26,27,29,31,32,36,37,39,43,71,73: DefaultParamList := 0;
 			14: DefaultParamList := 15;
 			15: DefaultParamList := 14;
 			17: DefaultParamList := 7;
@@ -530,6 +531,10 @@ procedure CustomSidebarLoad;
 											CustomSidebar[j].Ident := i;
 									if CustomSidebar[j].Ident > -8 then
 										HasCustomSidebar := true;
+								end else if length(l) <= 20 then begin
+									CustomSidebar[j].Disp := l;
+									CustomSidebar[j].Ident := 127;
+									HasCustomSidebar := true;
 								end;
 							end;
 						end;
@@ -2735,29 +2740,34 @@ procedure GameDrawCustomSidebar;
 			with CustomSidebar[i] do begin
 				if Ident > -8 then begin
 					if ((CFlagPos[i + 8] and World.Info.CustomFlags[3]) = 0) then begin
-						VideoWriteText(64, i, AsColor(XDat.Params[THEME_START + 2],
-							XDat.Params[THEME_START]), Disp);
-						if Ident < 0 then
-							Str(Board.Info.Local[-Ident], numStr)
-						else
-							Str(World.Info.CustomCounters[Ident], numStr);
-						VideoWriteText(72, i, AsColor(XDat.Params[THEME_START + 2],
-							XDat.Params[THEME_START]), numStr + ' ');
-						if Elmt > -1 then {Sidebar Element}
-							if XDat.EDefs[Enum(Elmt)].Color = 0 then
-								VideoWriteText(62, i,
-									AsColor(XDat.Params[THEME_START + 6],
-									XDat.Params[THEME_START]),
-									XDat.EDefs[Enum(Elmt)].Character)
-							else if XDat.EDefs[Enum(Elmt)].Color and $F0 = 0 then
-								VideoWriteText(62, i,
-									AsColor(XDat.EDefs[Enum(Elmt)].Color and $0F,
-									XDat.Params[THEME_START]),
-									XDat.EDefs[Enum(Elmt)].Character)
+						if length(Disp) > 8 then
+							VideoWriteText(60, i, AsColor(XDat.Params[THEME_START + 1],
+								XDat.Params[THEME_START]), Disp)
+						else begin
+							VideoWriteText(64, i, AsColor(XDat.Params[THEME_START + 2],
+								XDat.Params[THEME_START]), Disp);
+							if Ident < 0 then
+								Str(Board.Info.Local[-Ident], numStr)
 							else
-								VideoWriteText(62, i,
-									XDat.EDefs[Enum(Elmt)].Color,
-									XDat.EDefs[Enum(Elmt)].Character);
+								Str(World.Info.CustomCounters[Ident], numStr);
+							VideoWriteText(72, i, AsColor(XDat.Params[THEME_START + 2],
+								XDat.Params[THEME_START]), numStr + ' ');
+							if Elmt > -1 then {Sidebar Element}
+								if XDat.EDefs[Enum(Elmt)].Color = 0 then
+									VideoWriteText(62, i,
+										AsColor(XDat.Params[THEME_START + 6],
+										XDat.Params[THEME_START]),
+										XDat.EDefs[Enum(Elmt)].Character)
+								else if XDat.EDefs[Enum(Elmt)].Color and $F0 = 0 then
+									VideoWriteText(62, i,
+										AsColor(XDat.EDefs[Enum(Elmt)].Color and $0F,
+										XDat.Params[THEME_START]),
+										XDat.EDefs[Enum(Elmt)].Character)
+								else
+									VideoWriteText(62, i,
+										XDat.EDefs[Enum(Elmt)].Color,
+										XDat.EDefs[Enum(Elmt)].Character);
+						end;
 					end else SideBarClearLine(i);
 				end;
 			end;

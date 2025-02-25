@@ -1,3 +1,26 @@
+2/25/2025: Weave 3.3x
+ * New Command: #FGPLAY (special case of #PLAY)
+    - The #PLAY command will add notes to the sound queue until the queue reaches 255 notes in length, but will not feed back that it has reached the limit in any meaningful way.
+    - This leads to confusion and the need to add many /i movement commands to get songs longer than 255 notes to play correctly.
+    - The #FGPLAY command will instead add notes to the sound queue only if the sound queue will be empty before the object executes its next tick. Otherwise, it will wait and attempt the operation again, similar to what /n does when an object is blocked to the north.
+    - In this way, long songs can be played without the need for brittle and frustrating workarounds.
+ * New Command: #SOUT (alternative to #OUT)
+    - The #OUT command adds board data to the object buffer in the form of #PUT commands. These can then be written to file with #XOUT <filename>.
+    - The #SOUT command adds counter data to the object buffer in the form of #SET commands. These can then be written to file with #XOUT <filename>.
+    - #OUT and #SOUT commands can be combined in the same output file.
+ * Clarified Functionality: sidebar.#.counter = [Element,"Display:"]
+    - Counter displays in the sidebar are a maximum of 8 characters long to accommodate displaying the number to its right and the element to its left.
+    - Before, if the counter was longer than 8 characters, sidebar.#.counter would display nothing and give no explanation.
+    - Instead, now Weave will attempt to display the sidebar element up to a length of 20 characters, though it will not display the element and number if there is no room.
+ * New .CFG: other.strictwindow
+    - Weave text windows are slightly more permissive, allowing SPACE as well as ENTER to select highlighted options or close the window.
+    - In vanilla ZZT, only the ENTER key could do this.
+    - Setting other.strictwindow to "true" will cause text windows to behave as they do in vanilla ZZT.
+
+2/2/2025: Weave 3.3v
+​* Pressing SPACE was no longer registering :SHIFT<dir> in the @INPUT object, as was stated to be the case in the demo. 
+* The Weave Manual, a comprehensive account of Weave's functionality, is now available as part of the Weave 3 download.
+
 1/28/2025: Weave 3.3u
 ​Not much has changed, but there are a couple interesting tidbits:
 (1) By changing the step values of MSGTXT, you can reposition the "ticker" where text is displayed on the screen. (make sure text isn't being displayed at the time or you'll leave a "ghost" of prior text) Acceptable values: StepX from -25 to 25, StepY from 0 to -24. ​To do this, you would #STEP MSGTXT <x> <y> or #PSET MSGTXT ORIGINX <x> or #PSET MSGTXT ORIGINY <y>.

@@ -59,7 +59,7 @@ interface
 		THEME_START = 13;
 		THEME_BLINK = 20;
 		PALETTE_START = 23;
-		PARAM_FILE_COUNT = 72;
+		PARAM_FILE_COUNT = 73;
 		{.INI FILE}
 		CUSTOM_KEY_COUNT = 24;
 		CUSTOM_LOCAL_OFFSET = CUSTOM_KEY_COUNT + 7;
@@ -108,7 +108,7 @@ interface
 			Cycle: integer;
 			TickProc: TElementTickProc;
 			TouchProc: TElementTouchProc;
-			Name: string[20];
+			Name: string[11];
 			P1: byte;
 			P2: byte;
 			P3: byte;
@@ -208,7 +208,7 @@ interface
 		TCustomKeyList = array[0 .. CUSTOM_KEY_COUNT - 1] of TString20;
 		TSearchArea = array[-7 .. 7] of array[-7 .. 7] of shortint;
 		TSidebar = record
-			Disp: TString8;
+			Disp: TString20;
 			Ident: shortint;
 			Elmt: shortint;
 		end;

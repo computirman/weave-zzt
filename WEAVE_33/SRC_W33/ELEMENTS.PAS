@@ -401,6 +401,7 @@ procedure ElementBulletTick(statId: integer);
 			2: begin
 				iStat := GetStatIdAt(ix, iy);
 				if OopSend(-iStat, 'SHOT', false) then begin end;
+				RemoveStat(statId);
 			end;
 			3: MoveStat(statid, ix, iy);
 			else RemoveStat(statId) end;
@@ -1472,24 +1473,29 @@ procedure ElementCustomInput(inputC: char);
 
 procedure ElementCustomDir(shiftPressed: boolean);
 	var
+		ix, iy: integer;
 		shiftMod: string;
 	begin
-		if shiftPressed then
-			shiftMod := 'SHIFT'
-		else
+		if shiftPressed then begin
+			shiftMod := 'SHIFT';
+			ix := PlayerDirX;
+			iy := PlayerDirY;
+		end else begin
 			shiftMod := '';
-		if InputDeltaY = -1 then
+			ix := InputDeltaX;
+			iy := InputDeltaY;
+		end;
+		if iy = -1 then
 			if OopSend(0, 'INPUT:' + shiftMod + 'UP', false) then begin end;
-		if InputDeltaY = 1 then
+		if iy = 1 then
 			if OopSend(0, 'INPUT:' + shiftMod + 'DOWN', false) then begin end;
-		if InputDeltaX = -1 then
+		if ix = -1 then
 			if OopSend(0, 'INPUT:' + shiftMod + 'LEFT', false) then begin end;
-		if InputDeltaX = 1 then
+		if ix = 1 then
 			if OopSend(0, 'INPUT:' + shiftMod + 'RIGHT', false) then begin end;
 		if (InputKeyPressed = ' ')
 			and (InputDeltaX = 0)
 			and (InputDeltaY = 0)
-			and (shiftMod = '')
 		then
 			if OopSend(0, 'INPUT:SPACE', false) then begin end;
 	end;
@@ -1538,7 +1544,7 @@ procedure ElementTruePlayerTick;
 				if InputShiftPressed and ((InputDeltaX <> 0) or (InputDeltaY <> 0)) then begin
 					PlayerDirX := InputDeltaX;
 					PlayerDirY := InputDeltaY;
-				end;					
+				end;
 
 				if (PlayerDirX <> 0) or (PlayerDirY <> 0) then begin
 					if Board.Info.MaxShots = 0 then begin
@@ -1597,7 +1603,7 @@ procedure ElementTruePlayerTick;
 					end;
 				end;
 			end;
-			if HasINI then ElementCustomDir(InputShiftPressed);
+			if HasINI then ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
 
 			inputC := UpCase(InputKeyPressed);
 			if (P2 = 1) {Locked players have limited input options}

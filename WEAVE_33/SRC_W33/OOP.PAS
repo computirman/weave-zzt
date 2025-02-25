@@ -157,6 +157,20 @@ function OopStringToWord(input: TString50): TString50;
 	end;
 
 {OUTPUT}
+procedure OopOutputVar(s: string; v: integer);
+	var
+		t, q: string;
+		j: integer;
+	begin
+		Str(v, q);
+		t := '#SET ' + s + ' ' + q + #13;
+		for j := 1 to Length(t) do begin
+			Char(OutTmpPos^) := t[j];
+			AdvancePointer(OutTmpPos, 1);
+		end;
+	end;
+
+{OUTPUT}
 procedure OopOutputTile(x, y, dx, dy: integer; tile: TTile);
 	var
 		s, t, q, r: string;
@@ -967,7 +981,7 @@ procedure WorldSetFlag(name: TString20);
 			if WorldGetFlagPosition(name) < 0 then begin
 				i := 1;
 				while (i < GetNumFlags) and (Length(WorldInfoFlags(i)) <> 0) do
-					i := i + 1;
+					Inc(i);
 				if i > MAX_FLAG then
 					XDat.Flags[i] := name
 				else
@@ -1747,7 +1761,12 @@ procedure OopExecute(statId: integer; name: TString50);
 									end;
 								end;
 							end;
-						end else if OopWord = 'PLAY' then begin
+						end else if (OopWord = 'PLAY') or (OopWord = 'FGPLAY') then begin
+							ix := Length(SoundBuffer) - SoundBufferPos + 1;
+							iy := Stat^.Cycle * 2;
+							if (OopWord = 'FGPLAY') and (ix > iy) and (Length(SoundBuffer) > 0) then
+								repeatInsNextTick := true
+							else begin
 							OopReadChar(Index, Stat^.DataPos);
 							if OopChar = #13 then
 								SoundClearQueue;
@@ -1756,6 +1775,7 @@ procedure OopExecute(statId: integer; name: TString50);
 							if Length(textLine) <> 0 then
 								SoundQueue(-1, textLine);
 							lineFinished := false;
+							end;
 						end else if OopWord = 'CYCLE' then begin
 							OopReadValue(Index, Stat^.DataPos);
 							if OopValue > 0 then
@@ -1798,6 +1818,12 @@ procedure OopExecute(statId: integer; name: TString50);
 									ix := OopRunFuncWith(Index, Stat^.DataPos, OopValue)
 								else
 									OopError(Index,Stat^.DataPos, 'Could not read ' + OopWord + ' value');
+							end else if OopWord = 'SOUT' then begin {OUTPUT}
+								ix := Stat^.DataPos;
+								OopReadWord(Index, Stat^.DataPos);
+								Stat^.DataPos := ix;
+								OopReadValue(Index, Stat^.DataPos);
+								OopOutputVar(OopWord, OopValue);
 							end else if OopWord = 'OUT' then begin {OUTPUT}
 								OopReadValue(Index, Stat^.DataPos);
 								deltaX := OopValue;
@@ -2125,8 +2151,7 @@ procedure OopExecute(statId: integer; name: TString50);
 				end else if OopChar = #0 then begin
 					endOfProgram := true;
 				end else begin
-					textLine := OopChar;
-					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos);
+					textLine := OopChar + OopReadLineToEnd(Index, Stat^.DataPos);
 					TextWindowAppend(textWindow, textLine);
 				end;
 
