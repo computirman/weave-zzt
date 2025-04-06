@@ -170,8 +170,8 @@ ISDARK						- True if the board is dark.
  -Works with #ALL, #OTHERS, and #SELF as well.
 
 Notes:
- -DETECT i will check underneath the object.
- -DETECT player will check underneath the player.
+ -DETECT under i will check underneath the object.
+ -DETECT under player will check underneath the player.
  -ISDARK can be set and cleared to toggle the room's dark state.
  -ISDARK can be set to values greater than 1 and the board will drain torches faster.
 
