@@ -35,7 +35,7 @@ interface
 		SoundEnabled: boolean;
 		SoundBlockQueueing: boolean;
 		SoundCurrentPriority: integer;
-		SoundFreqTable: array[1 .. 255] of word;
+		SoundFreqTable: array[0 .. 239] of word;
 		SoundDurationMultiplier: byte;
 		SoundDurationCounter: byte;
 		SoundBuffer: string;
@@ -119,7 +119,7 @@ procedure SoundInitFreqTable;
 		freqC1 := 32.0;
 		ln2 := Ln(2.0);
 		noteStep := Exp(ln2 / 12.0);
-		for octave := 1 to 15 do begin
+		for octave := 0 to 15 do begin
 			noteBase := Exp(octave * ln2) * freqC1;
 			for note := 0 to 11 do begin
 				SoundFreqTable[octave * 16 + note] := Trunc(noteBase);
@@ -233,11 +233,11 @@ function SoundParse(input: string): string;
 					Inc(inPos);
 				end;
 				'+': begin
-					if noteOctave < 6 then Inc(noteOctave);
+					if noteOctave < 8 then Inc(noteOctave);
 					Inc(inPos);
 				end;
 				'-': begin
-					if noteOctave > 1 then Dec(noteOctave);
+					if noteOctave > 0 then Dec(noteOctave);
 					Inc(inPos);
 				end;
 				'A'..'G': begin
