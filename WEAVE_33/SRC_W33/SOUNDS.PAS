@@ -52,7 +52,7 @@ interface
 	function SoundParse(input: string): string;
 
 implementation
-uses Crt, Dos, TimerSys;
+uses Crt, Dos, GameVars, TimerSys;
 
 const
 	SoundParseNoteTable: array['A' .. 'G'] of byte = (9, 11, 0, 2, 4, 5, 7);
@@ -195,9 +195,13 @@ function SoundParse(input: string): string;
 
 		while (inPos <= Length(input)) do begin
 			noteTone := -1;
+
+			{ Round down to 32th note precision for compat mode }
+			if not HasINI then noteDuration := noteDuration and $FFFE;
+
 			case UpCase(input[inPos]) of
 				'Y': begin
-					noteDuration := 1;
+					if HasINI then noteDuration := 1;
 					Inc(inPos);
 				end;
 				'T': begin
@@ -233,11 +237,13 @@ function SoundParse(input: string): string;
 					Inc(inPos);
 				end;
 				'+': begin
-					if noteOctave < 8 then Inc(noteOctave);
+					if HasINI and (noteOctave < 8) then Inc(noteOctave)
+					else if not HasINI and (noteOctave < 6) then Inc(noteOctave);
 					Inc(inPos);
 				end;
 				'-': begin
-					if noteOctave > 0 then Dec(noteOctave);
+					if HasINI and (noteOctave > 0) then Dec(noteOctave)
+					else if not HasINI and (noteOctave > 1) then Dec(noteOctave);
 					Inc(inPos);
 				end;
 				'A'..'G': begin
