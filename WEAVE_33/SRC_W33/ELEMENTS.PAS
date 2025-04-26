@@ -1763,7 +1763,7 @@ procedure ElementCloneTick(statId: integer);
 								Dec(World.Info.Ammo);
 								GameUpdateSidebar;
 
-								SoundQueue(2, #64#1#48#1#32#1);
+								SoundQueue(2, #64#2#48#2#32#2);
 
 								InputDeltaX := 0;
 								InputDeltaY := 0;

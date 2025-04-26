@@ -175,7 +175,7 @@ procedure SoundTimerHandler;
 	interrupt;
 	begin
 		Inc(TimerTicks);
-		Inc(TimerHsecs, 11);
+		if (TimerTicks and 1) = 0 then Inc(TimerHsecs, 11);
 
 		if not SoundEnabled then begin
 			SoundIsPlaying := false;
@@ -202,6 +202,10 @@ procedure SoundTimerHandler;
 
 procedure TimerSysInstall;
 	begin
+		{ Set x2 PIT speed }
+		Port[$40] := $FF;
+		Port[$40] := $7F;
+
 		TimerTicks := 0;
 		TimerHsecs := 0;
 
@@ -217,6 +221,10 @@ procedure TimerSysInstall;
 procedure TimerSysUninstall;
 	begin
 		SetIntVec($1C, SoundOldVector);
+
+		{ Set x1 PIT speed }
+		Port[$40] := $FF;
+		Port[$40] := $FF;
 	end;
 
 begin

@@ -189,35 +189,39 @@ function SoundParse(input: string): string;
 		inPos := 1;
 		outPos := 0;
 		noteOctave := 3;
-		noteDuration := 1;
+		noteDuration := 2;
 		TopMsg := input;
 		TopTimer := 16;
 
 		while (inPos <= Length(input)) do begin
 			noteTone := -1;
 			case UpCase(input[inPos]) of
-				'T': begin
+				'Y': begin
 					noteDuration := 1;
 					Inc(inPos);
 				end;
-				'S': begin
+				'T': begin
 					noteDuration := 2;
 					Inc(inPos);
 				end;
-				'I': begin
+				'S': begin
 					noteDuration := 4;
 					Inc(inPos);
 				end;
-				'Q': begin
+				'I': begin
 					noteDuration := 8;
 					Inc(inPos);
 				end;
-				'H': begin
+				'Q': begin
 					noteDuration := 16;
 					Inc(inPos);
 				end;
-				'W': begin
+				'H': begin
 					noteDuration := 32;
+					Inc(inPos);
+				end;
+				'W': begin
+					noteDuration := 64;
 					Inc(inPos);
 				end;
 				'.': begin
