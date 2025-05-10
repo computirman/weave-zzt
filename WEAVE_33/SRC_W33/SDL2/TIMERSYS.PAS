@@ -54,7 +54,8 @@ implementation
 uses AudioSim, CTypes, Sounds;
 
 const
-	PIT_SPEED_MS = 55;
+	{ TODO: This is slightly too fast (should be ~27.4ms }
+	PIT_SPEED_MS = 27;
 var
 	PitTimerId: TSDL_TimerID;
 	TimerHsecs: word;
@@ -140,7 +141,7 @@ function TimerSysGetHsecs: word;
 function PitTimerCallback(interval: Uint32; param: Pointer): Uint32; cdecl;
 	begin
 		Inc(TimerTicks);
-		TimerHsecs := TimerHsecs + (PIT_SPEED_MS div 5);
+		if (TimerTicks and 1) = 0 then Inc(TimerHsecs, 11);
 
 		{ Emulate DOS sound buffer. }
 		if not SoundEnabled then begin
