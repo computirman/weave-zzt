@@ -35,7 +35,7 @@ interface
 		SoundEnabled: boolean;
 		SoundBlockQueueing: boolean;
 		SoundCurrentPriority: integer;
-		SoundFreqTable: array[1 .. 255] of word;
+		SoundFreqTable: array[0 .. 239] of word;
 		SoundDurationMultiplier: byte;
 		SoundDurationCounter: byte;
 		SoundBuffer: string;
@@ -52,7 +52,7 @@ interface
 	function SoundParse(input: string): string;
 
 implementation
-uses Crt, Dos, TimerSys;
+uses Crt, Dos, GameVars, TimerSys;
 
 const
 	SoundParseNoteTable: array['A' .. 'G'] of byte = (9, 11, 0, 2, 4, 5, 7);
@@ -119,7 +119,7 @@ procedure SoundInitFreqTable;
 		freqC1 := 32.0;
 		ln2 := Ln(2.0);
 		noteStep := Exp(ln2 / 12.0);
-		for octave := 1 to 15 do begin
+		for octave := 0 to 15 do begin
 			noteBase := Exp(octave * ln2) * freqC1;
 			for note := 0 to 11 do begin
 				SoundFreqTable[octave * 16 + note] := Trunc(noteBase);
@@ -189,35 +189,43 @@ function SoundParse(input: string): string;
 		inPos := 1;
 		outPos := 0;
 		noteOctave := 3;
-		noteDuration := 1;
+		noteDuration := 2;
 		TopMsg := input;
 		TopTimer := 16;
 
 		while (inPos <= Length(input)) do begin
 			noteTone := -1;
+
+			{ Round down to 32th note precision for compat mode }
+			if not HasINI then noteDuration := noteDuration and $FFFE;
+
 			case UpCase(input[inPos]) of
-				'T': begin
-					noteDuration := 1;
+				'Y': begin
+					if HasINI then noteDuration := 1;
 					Inc(inPos);
 				end;
-				'S': begin
+				'T': begin
 					noteDuration := 2;
 					Inc(inPos);
 				end;
-				'I': begin
+				'S': begin
 					noteDuration := 4;
 					Inc(inPos);
 				end;
-				'Q': begin
+				'I': begin
 					noteDuration := 8;
 					Inc(inPos);
 				end;
-				'H': begin
+				'Q': begin
 					noteDuration := 16;
 					Inc(inPos);
 				end;
-				'W': begin
+				'H': begin
 					noteDuration := 32;
+					Inc(inPos);
+				end;
+				'W': begin
+					noteDuration := 64;
 					Inc(inPos);
 				end;
 				'.': begin
@@ -229,11 +237,13 @@ function SoundParse(input: string): string;
 					Inc(inPos);
 				end;
 				'+': begin
-					if noteOctave < 6 then Inc(noteOctave);
+					if HasINI and (noteOctave < 8) then Inc(noteOctave)
+					else if not HasINI and (noteOctave < 6) then Inc(noteOctave);
 					Inc(inPos);
 				end;
 				'-': begin
-					if noteOctave > 1 then Dec(noteOctave);
+					if HasINI and (noteOctave > 0) then Dec(noteOctave)
+					else if not HasINI and (noteOctave > 1) then Dec(noteOctave);
 					Inc(inPos);
 				end;
 				'A'..'G': begin
