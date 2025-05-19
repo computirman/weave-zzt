@@ -51,7 +51,7 @@ interface
 	procedure TimerSysAudioClose;
 
 implementation
-uses AudioSim, CTypes, Sounds;
+uses AudioSim, CTypes, Sounds, Math;
 
 const
 	{ TODO: This is slightly too fast (should be ~27.4ms }
