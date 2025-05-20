@@ -1,1 +1,0 @@
-This is a small spinoff of the Weave project designed to permit ease of web-playable ZZT.

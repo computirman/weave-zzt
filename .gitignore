@@ -1,4 +1,5 @@
-/WEAVE_33/BUILD
-/WEAVE_33/fpc-cross
-*.exe
+/BUILD
+/fpc-cross
+ZZT.exe
+TPC.exe
 *.TPL

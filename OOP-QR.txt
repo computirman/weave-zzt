@@ -1,0 +1,444 @@
+Weave Extended ZZT-OOP Quick Reference
+v0.11
+For Weave v3.4
+
+=== INDEX ===
+
+	0) USAGE GUIDE
+	1) NEW COMMANDS
+	2) BUILT-IN FLAGS & LABELS
+	3) NEW DIRECTIONS
+	4) BUILT-IN COUNTERS
+	5) NEW ELEMENT NAMES
+	6) INPUT READING AND EDITING
+	7) ADVANCED COUNTERS
+	8) EXTERNAL FILES
+	9) A QUICK PRIMER ON COMPANION (.CFG, .INI) FILES
+	10) LAST BITS
+
+
+
+=== 0)USAGE GUIDE ===
+
+ -If you do not know ZZT-OOP at all, this text file heavily assumes you know the base ZZT commands, directions, labels, and so on. If you don't, there are other guides available for the base OOP commands in ZZT v3.2.
+ -Commands and whatnot are presented in the following format: to use one, type the numeric sign and the word shown. <Words> in greater than/less than brackets are required parameters. [Words] in square brackets are optional parameters you may specify.
+ -Examples are listed in quotation marks, like "#COLOR N DkGrey".
+ -Although listings and examples are given in all caps, ZZT-OOP is largely case-insensitive, so you don't need to turn caps lock on.
+
+ -Many required parameters have a short explanation listed below:
+	<x>		A number denoting a horizontal position on the board. Goes from 1, or the left edge, to 60, or the right edge.
+	<y>		A number denoting a vertical position on the board. Goes from 1, the top edge, to 25, the bottom edge.
+	<dir>		A facing, or a direction to go. Directions can have modifiers added before the direction, like CCW NORTH. There may be things like <walkdir> or <shootdir> written down, but these are just for clarity purposes, since several commands require two direction parameters. They also take a direction.
+	<color>		One of the 16 colors of ZZT. Options are described below.
+	<label>		A marker in an object's code.
+	<range>		The distance between two points, in tiles. An object being 3 left and 2 up from the player will be 5 away from that player.
+	<objname>	An object's name, set by the first line of an object's code being @objname.
+	<file>		An external .OBJ filename. Do not include the extension. (use OBJECT instead of OBJECT.OBJ)
+	<cmd>		Any command. Seriously. This includes #IF commands, which can be nested into eachother. (i.e. "#IF <condition> #IF <condition> <cmd>") The only thing this can't be is text messages.
+
+ -You have access to all 16 colors:
+ (Left column is background colors. Right column is foreground colors.)
+ (Note: With blinking on, the left column is used as background colors. Using them as foreground will use light blinking colors instead.)
+
+	Black		DkGray
+	DkBlue		Blue
+	DkGreen		Green
+	DkCyan		Cyan
+	DkRed		Red
+	DkPurple	Purple
+	Brown		Yellow
+	Gray		White
+
+
+
+=== 1)NEW COMMANDS ===
+
+#COLOR <dir> <color> [bgcolor]	--
+ -Changes the color(s) of the element in the given drection. Use i for direction to change the object's colors.
+
+#BOARD <label> [x] [y]		--
+ -Teleports the player to the first board that contains the given board label. Board labels can be expressed in the following ways:
+   - As a :label; in the board title. Example: "#BOARD party" will teleport the player to the first board that contains ":party;" in its title.
+   - As EdgeW, EdgeE, EdgeN, or EdgeS, teleporting the player to whichever board is linked in the provided direction.
+   - As a number indicating the board number. You can check the board number of the destination using ZLoom2.
+   - As a counter indicating the board number; see above.
+ -If no coordinates are given, the player goes to the location the player object is on the target board.
+
+#EDGE <dir> <label>		--
+ -Changes the border exit of the given direction to point to the board with the given board label instead.
+ -For more information about board labels, see the #BOARD entry above.
+
+#PSET <dir> STEP <walkdir>		--
+ -Sets the walking direction of a stat in the given direction. Example: "#PSET N STEP W" will make the object or builtin north of it walk west.
+ -For builtins, this will set its facing, so you can change where transporters lead and where pushers go using this command.
+ -An alias, #STEP <dir> <walkdir>, exists for this command.
+
+#SHOVE <dir> <movedir>		--
+ -Like #PSET <dir> STEP, but moves the object in the move direction instead.
+ -Moving objects/built-ins with this ignores collision, allowing you to move players onto solid walls, for example.
+
+#DUPLICATE <dir> <duplicatedir>	--
+ -Clones the stat in the given direction and puts it in the duplicate direction.
+ -Does nothing if the duplicate direction is blocked.
+ -Duplicate I <duplicatedir> can be used to have an object clone itself.
+
+#LOCK [dir]			--
+ -Like #LOCK, but will target the object in the given direction, instead of a named object.
+ -"#LOCK PLAYER" can be used to lock player input.
+#UNLOCK [dir]			--
+ -Like #LOCK, but unlocks the target object instead.
+
+#ZAP <label> <value>		--
+ -ZAPping multiple labels with a single command also works by specifying a number after the label. "#ZAP blah 3" will zap the first 3 instances of the :blah label. #RESTORE works the same way: "#RESTORE blah 2" will restore the first 2 instances of a zapped :blah label. Using negative numbers works in reverse: #ZAP blah -3 will zap the LAST 3 instances of :blah and #RESTORE blah -1 will restore the LAST 'blah label encountered.
+
+#ZAP ![objname:]<link>		--
+ -#ZAP has been upgraded to be able to zap message links as well. "#ZAP !option" will zap the first instance of "!option;message" from the object, removing it from the text box.
+ -Use @label;msg for zapped options.
+ -Adding an object name and a colon before the message link will zap the link from the given object instead of itself.
+#RESTORE ![objname:]<link>	--
+ -Restores a zapped message option.
+
+Note: You can follow up #zap and #restore !link with positive and negative numbers for the same effect.
+
+#DIE ITEM			--
+ -Dies as an item. Removes itself, and then puts the player at its space.
+ -ITEM is technically a direction.
+
+#PLAY				--
+ -Specifying nothing after a #PLAY command will mute all sound, as if you toggled "Be quiet".
+
+#BGPLAY <sound>			--
+ -Like #PLAY, but behaves like built-in sound effects. Such sounds won't overwrite #PLAY sounds, (but will overwrite other #BGPLAY sounds) and won't queue up after any sounds.
+
+#SAVEGAME [<file>]		--
+ -Instantly saves the game. If a file is specified, it will save (and overwrite if present) the game with the given filename. Otherwise, it will open a save dialog box.
+
+#LOADGAME [<file>]		--
+ -Instantly restores the game from the given save. Does nothing if a filename is given and that file doesn't exist.
+ -If no filename is given, it will open the restore game dialog and allow you to pick a save to load.
+
+#PLAYER <color> <bgcolor> <char>--
+ -Changes the player's appearance. Alternately you can use #CHANGE PLAYER <color> <bgcolor> PLAYER to adjust the player's color or #CHANGE PLAYER PLAYER to revert the player to their defaults from the .CFG file.
+
+#PALETTE <color> <r> <g> <b>	--
+ -Directly changes the rgb channels of the specified color. This can be any color you want, with r, g, and b referring to red, green, and blue channel respectively, and each channel can take a number between 0 and 63, with 0 being no color and 63 being maximum color.
+ -Example: "#PALETTE Blue 0 63 63" will turn the light blue color cyan.
+ -For changing default colors on world load, change the settings in your world's .CFG file.
+
+#PSET <dir> [p1][p2][p3][cycle] <value>
+ -Modifies the parameters of the built-in or object in the given direction, allowing for total control over how built-ins behave, and setting cycles remotely.
+ -This is an advanced command that requires knowledge of what parameter values do what for built-ins, and even objects. Such knowledge is beyond the scope of this guide, but the best advice I can give you is to experiment in your editor of choice to find out what does what.
+ -Some aliases exist for these values, as well:
+      - #PSET <dir> CHAR <value>         # Alias for P1
+      - #PSET <dir> INTEL <value>        # Alias for P1
+      - #PSET <dir> INTELLIGENCE <value> # Alias for P1
+      - #PSET <dir> SPEED <value>        # Alias for P2
+      - #PSET <dir> RATE <value>         # Alias for P2
+  These aliases may help reduce confusion when modifying built-in parameters.
+
+#PSET <dir> DESTINATION <label>
+ -This will reset a passage found at <dir> to point at a new destination indicated by <label>. For more information about <label>, see the entry for #BOARD.
+
+#PSET <dir> <obj1-6> <value>	--
+ -#PSET can also be used to remotely assign values to the object counters of other objects. Only one counter can be assigned at a time.
+
+#STARTGAME [label]
+ - Use the #STARTGAME command on the title screen to begin play without requiring the player to input 'P'.
+ - Optionally, you can choose a board on which to start the game, identified with [label]. See the entry for #BOARD for the ways a board label can be specified.
+
+=== 2) BUILT-IN FLAGS AND LABELS ===
+COLOR <dir> <color> [bgcolor]			- True if the given direction is the specified colors.
+DETECT <dir> [color] [bgcolor] <type>		- True if there's a specific builtin in the given direction.
+RND						- True half the time.
+AT <x> <y>					- True if object is at the given coordinates.
+WITHIN <range>					- True if within <range> spaces of the player.
+<counter>					- True if the given counter is more than 0.
+ISDARK						- True if the board is dark.
+:ENTER						- Sent when the player enters the board.
+
+
+#AND <cmd>			--
+ -A special command that prefixes another command. #AND commands only execute if the last #IF command ran was true. (As in, #IF CONTACT executed while the player was touching the object.)
+ -If the last #IF command was false, this command is skipped.
+ -Example: "#AND put n red gem", which only runs if the last #IF executed was true.
+
+#ELSE <cmd>			--
+ -Like #AND, except only runs if the last #IF command ran was fale.
+
+#SEND OBJECT:END
+ -Like #SEND OBJECT:RESTART, will cause an object to stop executing code as though it had issued a #END command.
+ -Works with #ALL, #OTHERS, and #SELF as well.
+
+Notes:
+ -DETECT under i will check underneath the object.
+ -DETECT under player will check underneath the player.
+ -ISDARK can be set and cleared to toggle the room's dark state.
+ -ISDARK can be set to values greater than 1 and the board will drain torches faster.
+
+=== 3) NEW DIRECTIONS ===
+
+/BY <x> <y>		--
+ -Moves exactly x spaces left or right and y spaces up or down. Positive numbers go right and down, negative numbers go left and up.
+ -Ignores any obstacles between the object and its destination, but will be blocked by an obstacle at its destination.
+
+/AT <x> <y>		--
+ -Goes straight to the x y coordinates on the board. Collision works like /BY does.
+
+/TO <targetdir> <dir>	--
+ -Like /AT, but will move to the direction from the target direction. For example, "/TO player n" will have the object teleport to north of the player.
+
+/PLAYER		--
+ -Like /AT, but will always point to the player's coordinates.
+
+/PFIND [color] <tile>		--
+ - Like /PLAYER, but points to the first instance (searching top left to bottom right) of the given tile. The fg and bg color of the targeted tile may be specified.
+
+/TOWARD <x> <y>		--
+ -Seeks the given x y coordinates on the board. This is treated like the object using /SEEK, but it will go towards the coordinates instead of the player.
+
+/FIND <dir>		--
+ - Applies minimal pathfinding logic to attempt to reach the tile referenced at <dir>. Very basic, and pretty finicky.
+
+#SEND /<dir> <label>	--
+ -#SEND commands have been upgraded to be able to target objects in specific directions, by specifying a direction instead of an object's name.
+ -The / is required.
+
+Notes:
+ -The new directions can be used wherever you can specify a direction.
+ -An object shoving another stat via /BY or /AT will shove that object by the distance the shoving object has moved. All logic involving long distance movement still applies. This means a player being shoved by an object moving 2 right and 3 up to it will then have the player move 2 right and 3 up itself.
+
+Special direction: UNDER
+#put, #write, #color, #if color, #if detect, and PGET can all use a special direction, UNDER <dir>, to target the tile underneath a stat at that location. If there is no stat at that location, they will instead target the tile itself.
+
+=== 4) BUILT-IN COUNTERS ===
+
+These can be modified with #set, #give, #take, and #clear:
+
+MAXBULLETS  -- The maximum player bullets allowed on the board.
+TIMELIMIT   -- The time limit for the board, in seconds.
+ENERGIZED	-- How much energizer time you have left.
+WICK		-- How much torch time you have left.
+<color>KEY	-- How many of this key you have. See below.
+TICKSPEED	-- How fast the game runs. This is the same as setting in-game speed, and ranges from 1 to 9, with 1 being the fastest.
+
+In addition, there are read-only counters that can't be changed but still can be used:
+
+THISX THISY	-- The object's X or Y coordinate.
+PLAYERX PLAYERY -- The player's X or Y coordinate.
+MOUSEX MOUSEY   -- The mouse's X or Y coordinate, which is what tile your mouse is currently hovering over.
+BOARDID         -- The current board being played.
+EDGEN           -- The board link to the North.
+EDGES           -- The board link to the South.
+EDGEW           -- The board link to the West.
+EDGEE           -- The board link to the East.
+
+You can also #STEP MSGTEXT <x> <y> to shift the origin of the message "ticker" from (30, 25) to wherever you like on the screen. If you want to get the current origin, you can use:
+    #SET <counter> PGET MSGTXT ORIGINX
+    #SET <othercounter> PGET MSGTXT ORIGINY
+
+Notes:
+ -#GIVE'n energizer time does not start the music. You'll still get the sound for when it's about to end, though.
+ -The key counters can be #GIVE'n and #TAKE'n from like any other counter. The game is able to display key amounts up to 9. (After that it displays * instead of a number.)
+ -By default, builtin keys do not stack with each other, but this behavior can be changed in your .CFG file.
+ -Modifying key amounts via OOP ignores the limit, and doors don't care how many you have.
+ -EdgeN, EdgeS, EdgeE and EdgeW are 0 for unlinked board edges.
+ -MAXBULLETS can be set to any value 0-127. For any values less than 0 or greater than 127 (such as setting to 255 in modern editors) assume no limit.
+
+Elements:
+ - The sidebar displays the element associated with a given counter. A Torch element is displayed next to the "Torches:" counter display, a Gem next to the "Gems:" display, and so forth.
+ - if the element has no color info (like gems), then it will display using the theme's "Special" color (like gems do by default)
+ - if the element has a foreground color but no background color (like ammo), then it will display the correct foreground color but on the theme's sidebar background (as ammo does by default)
+ - if the element has both a foreground and background color (like the player does) then it will display using those.
+
+=== 4A) CONFIG CHANGES ===
+
+A special case related to the above, all entries in the TEMPLATE.CFG can be modified during play with #SET and #CLEAR, and all numeric entries can be modified with #GIVE and #TAKE as well. Some examples follow:
+
+#set other.altchar 3 (Players will now take on a heart shape when energized)
+#clear other.ouchdamage (Bullets and enemies can no longer harm the player.)
+#give other.torchsize (The radius of torchlight in dark rooms will increase slightly)
+#set theme.bg.sidebar brown (The sidebar will now be brown.)
+#set theme.blinking false (Extended colors will now be used.)
+#clear keys.save.bind (Disables saving the game)
+#set duplicator.snd s-cdefg (Changes the duplicator sound.)
+#set ammo.msg.touch Here's five ammo! (Changes the message that plays when ammo is first collected)
+#set ammo.p1 50 (Ammo containers now give 50 ammo.)
+
+Check the WEAVEDMO file for upper and lower bounds for the above entries.
+
+=== 5) NEW ELEMENT NAMES ===
+
+Edge		-- Board edge
+BlinkNS		-- Vertical blinkwall
+BlinkEW		-- Horizontal blinkwall
+Bluetext	-- Text elements.
+Greentext	-- Text elements.
+Cyantext	-- Text elements.
+Redtext		-- Text elements.
+Purpletext	-- Text elements.
+Yellowtext	-- Text elements.
+Whitetext	-- Text elements.
+
+Notes:
+ -These can be used for any <element> commands or conditions.
+ -These can also be configured in your world's .CFG file.
+ -Whitetext is, actually, the black on white text you can place.
+
+
+
+=== 6) INPUT READING AND DEFINING ==
+
+ -Any object named INPUT will be able to process key inputs. The object has to be named INPUT to get access to these built-in labels. (Or whatever's specified in the world's .INI file.)
+
+Labels for input:
+:UP		- When player pushes up.
+:DOWN		- When player pushes down.
+:LEFT		- When player pushes left.
+:RIGHT		- When player pushes right.
+:SHIFTUP	- When player holds shift and pushes up.
+:SHIFTDOWN	- When player holds shift and pushes down.
+:SHIFTLEFT	- When player holds shift and pushes left.
+:SHIFTRIGHT	- When player holds shift and pushes right.
+:LMOUSEB    - When the Left Mouse Button is clicked.
+:RMOUSEB    - When the Right Mouse Button is clicked.
+
+
+ -Extra keys can be defined, which, when pressed, will send a specified label to all objects on board. This is something to set up in the world's .INI file, so look there for info on how to do this.
+
+
+
+=== 7) ADVANCED COUNTERS ===
+
+ -Many counters have been added to Weave. Many, many more can also be defined on a per-world basis. These counters can also be used as flags.
+
+ -World counters: Default type of counter/flag. All base counters are world counters. Up to 99 more static flags and 114 more static counters can be defined in the .INI file for your world.
+ -Board counters: Counters tied to the board. There are 7 per board, and are named LOCAL1 through LOCAL7.
+ -Object counters: Counters tied to an object. There can be a maximum of 9 per object, though certain counters have different behavior.
+	-OBJ1, OBJ2, OBJ3, and OBJ4 behave as normal and can hold any value ZZT can process.
+	-OBJ5 and OBJ6 behave like OBJ1-4, but modern editors will set these to a default of -1. If you wish to use these, it's a good idea to assign them a value in OOP before doing any arithmatic with them.
+	-OBJ7, OBJ8, and OBJ9 have more limited ranges, and can only have a value between -128 and 127. Like OBJ5-6, modern editors will change these values unpredictably, so set them before further usage.
+
+#SET <counter> <amount>		--
+ -Sets the counter to the given ammount.
+
+#CLEAR <counter>		--
+ -Sets the counter to 0.
+
+ -These can be used as a substitute for any number in a command.
+RANDOM <min> <max>		-- Is a random number between <min> and <max> every execution.
+<counter>			-- Counters can be used in place of any number. Example: "#GIVE ammo torches" will give ammo equal to the number of torches the player has.
+PGET <dir> <attribute>          -- Pulls the attribute from the stat located at <dir>. The following attributes are available:
+ - P1
+ - P2
+ - P3
+ - CYCLE
+ - LOCKED
+ - OBJ1-OBJ6
+ - ARRAY
+ - DESTINATION (for passages)
+ - FG*
+ - BG*
+ - COLOR*
+ - CHAR*
+Of these, the last four (marked with * above) will work for any given tile, even ones without stats. They will also work with the UNDER direction to capture the color and character underneath a given stat.
+
+ -These are used with #IF commands.
+<counter> ABOVE <amount>	-- True if the counter given is above the amount given.
+<counter> BELOW <amount>	-- True if the counter given is below the amount given.
+<counter> IS <amount>		-- True if the counter given is exactly the amount given.
+
+Notes:
+ -#GIVE and TAKE now assumes 1 if no amount is given.
+ -Use #GIVE and #TAKE to increase and decrease counters as needed.
+ -#SETting wick to -1 gives a torch that never expires. #CLEARing wick removes it.
+
+ -ARRAY is a local counter for use in message sending and object loading. You can set ARRAY to a number, (like 8) and then run, "#SEND label^" to substitute the ^ with the value of ARRAY. (so that it would become "#SEND label8")
+ -The ^ character can also be used with #SET and #LOAD, setting a counter by a specified number, or loading a specified external file. In particular, you can name many external files OBJECT1, 2, 3, and so on, and then use ARRAY assignments to conditionally load specific files based on the value of ARRAY.
+
+
+
+=== 8) EXTERNAL FILES ===
+
+ -Weave can load external .OBJ files as extra code to run. The files should be in the same folder the world's in, or in a subfolder. They should, for the purposes of compatibility with DOS, have DOS line endings (CR LF) and named without long tilenames (maximum length XXXXXXXX.XXX).
+
+#LOAD i <file>		--
+ -Takes a file in the folder the world's in, and processes that file as a ZZT object to run. The object's code will be replaced with the external file.
+
+#LOAD i APPEND <file>	--
+ -Like #LOAD, but adds the file to the bottom of the already running code.
+
+ -Functions are object files that are loaded and then ran once. They are different from normal object files in that A) they're meant to be loaded by an object, executed by that object, and then the object resumes its own coding; and B) functions can return values for use with the calling object.
+ -Functions need to terminate by executing a command that causes it to wait a cycle: either #END, /i, #DIE, or any movement. If you don't do this, they run forever and softlock your game.
+
+#RUN <function>
+ - #RUN <function> will load a <function>.OBJ file, and run it. If run by itself in this way, it will discard the result passed via #END.
+ - Note: If you pass a :label instead of the name of an OBJ file, the object will go to that label and #RUN it as a function.
+
+#RUNWITH <value> <function>
+ - #RUNWITH <value> <function> will load a <function>.OBJ file, and run it. The <value> passed into the function will be available in the function as the special read-only counter, ARG. If run by itself in this way, it will discard the result passed via #END.
+ - Note: If you pass a :label instead of the name of an OBJ file, the object will go to that label and #RUNWITH it as a function.
+
+#END <value>		--
+ -For use in functions. Ends the function and returns the given value.
+ -#END <value> must be used to return a value to the calling object. If the function ends in any other way, -1 is returned instead.
+
+#GIVE <counter> RUN <function>		--
+#TAKE <counter> RUN <function>		--
+#SET <counter> RUN <function>		--
+#IF <counter> IS RUN <function>		--
+#IF <counter> ABOVE RUN <function>	--
+#IF <counter> BELOW RUN <function>	--
+ - RUN <function> can be substituted anywhere you would normally use a number. The function will run, and the returned result will be used in the command.  For example, if the function ends with, say, "#END 5", the calling object would then use 5 as the <value> parameter in that command. 
+
+#GIVE <counter> RUNWITH <value> <function>		--
+#TAKE <counter> RUNWITH <value> <function>		--
+#SET <counter> RUNWITH <value> <function>		--
+#IF <counter> IS RUNWITH <value> <function>		--
+#IF <counter> ABOVE RUNWITH <value> <function>	--
+#IF <counter> BELOW RUNWITH <value> <function>	--
+ - RUNWITH <function> can be substituted anywhere you would normally use a number. The function will run with the provided <value> passed into the function as the special read-only counter, ARG. The returned result will be used in the command.  For example, if the function ends with, say, "#END 5", the calling object would then use 5 as the <value> parameter in that command. 
+
+#IF RUN <function> <cmd>--
+ -Runs a function and checks to see if the function returns a value that is TRUE. If so, it runs the given command.
+ - Note: If you pass a :label instead of the name of an OBJ file, the object will go to that label's location in the object and run it as a function, then return the result.
+
+IF RUNWITH <value> <function> <cmd>--
+ - Runs a function and checks to see if the function returns a value that is TRUE. The <value> passed into the function will be available in the function as the special read-only counter, ARG. If the function returns TRUE, it runs the given command.
+ - Note: If you pass a :label instead of the name of an OBJ file, the object will go to that label's location in the object and run it as a function, then return the result.
+
+#END TRUE		--
+ -Like #END <value>, but returns TRUE instead. Used in conjuntion with "#IF RUN <file>" to create custom conditionals.
+
+#END FALSE		--
+ -Like #END <value>, but returns FALSE instead. Used in conjuntion with "#IF RUN <file>" to create custom conditionals.
+
+
+
+=== 9) A QUICK PRIMER ON COMPANION FILES ===
+
+ -Weave ZZT worlds can have included companion files that share the same name as the ZZT world.
+ -Companion files have the following extensions: .CFG, .INI, .CHR, .PAL, and .HLP.
+ -If you want to use them in your game and your game is named MYGAME.ZZT, you would name your companion files MYGAME.INI, MYGAME.CHR, MYGAME.PAL etc.
+ -The .CFG files modify the default behavior of built-ins and can change or remove default messages and sounds.
+ -To use, simply clone TEMPLATE.CFG and rename the copy to the name of your ZZT world. It will be automatically read when Weave loads your world, and will change its look and behavior based on the contents of your .CFG file.
+ -The .INI files unlock Weave's extended ZZT-OOP capability, including local counters, predefined flags (that don't take up a flag slot), key binds, and custom sidebar counters.
+ -To use, simply clone TEMPLATE.INI and rename the copy to the name of your ZZT world. It will be automatically read when Weave loads your world, and will unlock the extended ZZT-OOP functions as well as the additional counters, flags, and sidebar extensions.
+ -A complete explanation of what can be done with .INI files is included in TEMPLATE.INI.
+ -The .CHR files apply a custom character set to your ZZT world. You will need to create them using a utility such as Font Mania (Export as BINARY and rename the resulting .BIN file to .CHR) or the Megazeux character editor (exports .CHR natively). You will not need to add any code, it will be displayed automatically.
+ -The .PAL files apply a custom palette to your ZZT world. You will need to create them using an external utility such as Megazeux's .PAL editor. Similar to the .CHR file, no additional code is required.
+ -The .HLP files add a custom help file to your game, accessible when you hit 'H' during gameplay. Write them similar to how you might write any ZZT object, with maximum line lengths of 42 characters. You can use !Link;Linktext and :label;Labeltext when writing.
+
+=== 10) COMPAT MODE
+
+ -Weave worlds without an accompanying .INI file are considered to be in 'Compat Mode'.
+ -Compat mode will be indicated during gameplay via a dark cyan '3.2' at the very top of the sidebar.
+ -Compat mode is a ZZT 3.2 compatibility mode where all normal ZZT 3.2 behavior is unchanged, but Weave behavior that would simply result in an error in vanilla ZZT is still honored.
+ -For a complete rundown of how this mode behaves, check out the COMPAT.ZZT world that came with your download of Weave.
+
+
+=== 11) LAST BITS ===
+
+ -The board and object counters can be renamed if you so wish. Look in your world's INI file.
+ -For those used to ZZT, you can put numbers in labels now.
+ -A variable or flag is true if it has any number that greater than 0. Likewise, it's false if it is 0 or less.
+ -Instead of 10 all-purpose flags as in vanilla ZZT, 99 all-purpose flags are available.

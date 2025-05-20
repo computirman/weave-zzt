@@ -1,108 +1,107 @@
-# WeaveZZT 3.3
+# Weave 3.4
 
-With Weave 3.3, all previous recommendations for Weave have been addressed and the design specifications are frozen. It is the culmination of the Weave project.
-We are experimenting with a couple possible final tweaks while spinning up work on a SuperZZT version of Weave.
+Weave is the definitive way to mod the classic 1991 MS-DOS game, ZZT. This version, 3.4, distributes native win32 and win64 binaries for playing Weave games, as well as DOS binaries for doing so on native hardware or via emulation.
 
-Designed with the full scope of the ZZTer audience in mind, this version hopes to supply the needs of anyone that wants to tweak something about ZZT. Weave 2 made use of several accessory files to allow ZZTers to enhance their game's experience without diving into the Pascal code. Weave 3 restricts this to just two, with the following goals:
+### What is it?
 
- - .CFG file weaving: To make cosmetic and rule changes about ZZT without expanding ZZT-OOP.
- - .INI file weaving: To expand ZZT-OOP with more counters, commands, and keybind inputs.
+Weave is a system for playing original and modified ZZT games. If you run your ZZT 3.2 compatible games with Weave it will play them as 3.2 does, with some bugfixes:
 
-In the absence of any accompanying .CFG or .INI file, WEAVE3.EXE is designed to play normal ZZT games with sufficiently faithful accuracy that players won't be able to tell the difference. The exception is the removal of bugs that crash or softlock the game (as opposed to bugs frequently abused by adept ZZTers).
+ - Bugs that crash the game are fixed.
+ - Out-of-bounds movement is prohibited.
+ - Conveyors no longer "eat" the player or other stats.
+ - Placing stats, e.g. "#put <dir> lion", no longer leaves a hole in the floor.
+    
+Overall the experience is nicer. If you are making a game and want to modify some of ZZT's functionality, read on!
 
-## Using
+### What should I watch out for?
 
-With your own copy of Turbo Pascal 5.5, you can compile WEAVE3.EXE yourself using the BUILDW33.BAT file provided in the WEAVE_33 subdirectory. Just make sure the TPC.EXE and TURBO.TPL files are in the same directory as the BUILDW33.BAT file. (These are DOS executables you will need a DOS emulator to compile.)
+There are a couple potential roadblocks, both related to the DOS version:
 
-## Types of weaving
+- Weave attempts to load your ZZT files into EMS/XMS.
+    - If your machine or emulator does not have those, Weave will probably not work.
+- Weave can be resource intensive.
+    - If you insist on emulating ZZT with a non-preferred emulator such as DOSBox, set your emulation speed to maximum.
+    - Some Weave games will not perform well on original hardware.
 
-There are two primary types of weaving, as noted above. These center around the .CFG and .INI files that can accompany a Weave game.
+### What can I do with it?
 
-For examples of .CFG weaving, look at the TEMPLATE.CFG example file in the WEAVE_33/SRC_W33 subdirectory.
+There are a few ways to learn what Weave can do for you:
 
-For examples of .INI weaving, look at the TEMPLATE.INI file in the WEAVE_33/SRC_W33 subdirectory. Additionally, the inclusion of a .INI file unlocks new ZZT-OOP commands, some of which allow you to use other external files. For examples of those, have a look at the .OBJ files in that same subdirectory.
-## File types in this project:
+- For a sampling of what you can do with Weave, check out the included WEAVEDMO.ZZT file.
+- There is a quick reference guide, OOP-QR.TXT, with information about the new commands in ZZT-OOP.
+- There is a complete manual, "THE WEAVE MANUAL.TXT", with detailed information.
+- For information on supported MegaZeux .PAL and .CHR formats, seek out resources for MegaZeux.
 
-There are a few different kinds of files found in this project:
+### Okay, but WHAT CAN I DO WITH IT?
 
-* PAS files:
-    * The Turbo Pascal 5.5 source files for Weave.
-* CFG files:
-    * Custom strings.
-    * Custom sounds.
-    * Custom colors.
-    * Custom element parameters.
-    * Custom game settings.
-    * WEAVEZZT.CFG includes custom startup behavior.
-* INI files:
-    * Custom flags and counters.
-    * Custom keybinds.
-* BAT files:
-    * Used to compile Weave in DOS or DOSBox.
-* TXT, DOC, PNG and HTM files:
-    * Documents designed to be shipped with Weave.
-* OBJ files:
-    * ZZT-OOP code to be loaded into objects.
-* ZZT files
-    * Demonstration ZZT worlds for Weave.
-* EXE files
-    * LZEXE.EXE is the tool used to compress the weave EXE.
-* ZIP files
-    * Additional tools are provided to help newcomers with Weave.
-    * The source code to produce these is also available.
+You can enhance your ZZT game with additional files. Here are the filetypes you can add to your game project:
 
-## Files in this project:
+- CFG: Adding a .CFG file lets you change the following and more:
+    - The way ZZT sounds.
+    - The messages it displays.
+    - The look of default items, terrains, text and the UI.
+    - How many objects can be on screen at one time (the Stat Limit).
+    - The 16 colors in ZZT's palette.
+- INI: An .INI file changes elements of ZZT-OOP:
+    - Adds new flags.
+    - Adds new counters.
+    - Executes new commands.
+    - Loads external files.
+- WEAVE.CFG: The WEAVE.CFG file is where you select accessibility and convienience options:
+    - Unique keyshapes.
+    - Visual representations of sound.
+    - Default game speed and starting world.
+    - Release and WebRelease modes.
+- OBJ: If you added an .INI file, you can add .OBJ files:
+    - Load or run ZZT-OOP code during gameplay.
+    - Append functions to objects and call them with the #RUN command.
+    - Retrieve saved board data.
+- CHR and PAL:
+    - MegaZeux .CHR and .PAL formats can be loaded.
 
-Below are listed the files in the various folders of the project.
+For further explanation about any of the above, see the learning resources from the prior question.
 
-### WEAVE_33 directory
+### Anything else?
 
-* TOOLS
-    * UPX.EXE
-        * For shrinking ZZT.EXE.
-    * LOOMZZT.zip
-        * For editing ZZT files with Weave 3 considerations.
-        * Modification of cknave's KevEdit: https://github.com/cknave/kevedit
-        * Source is included.
-    * WEBWEAVE.zip
-        * For distributing WeaveZZT worlds on the web.
-        * Instructions are included.
-    * WEBZZT32.ZIP
-        * Uses a very slightly modified ZZT.EXE to distribute ZZT 3.2 worlds on the web.
-    * ZLOOM2.zip
-        * For editing ZZT files with Weave 3 considerations.
-        * Modification of DrLancer-X's zedit2: https://github.com/DrLancer-X/zedit2
-        * Source is included in the parent directory under zloom2-source.
-* SRC_W33
-    * ALL .PAS FILES (ELEMENTS.PAS, EXTMEM.PAS, etc.)
-        * Forked from the ZZT Reconstruction and ClassicZoo.
-        * Reconstruction: github.com/asiekierka/reconstruction-of-zzt
-        * ClassicZoo: github.com/OpenZoo/ClassicZoo
-    * ALL .OBJ FILES (ANGRY.OBJ, WONKY.OBJ, etc.)
-        * Example objects and code used in the WeaveZZT demo.
-    * WEAVEDMO.CFG
-        * Element parameters for the WeaveZZT demo.
-    * TEMPLATE.CFG
-        * Parameters file with configuration options.
-    * WEAVEDMO.INI
-        * Counters and Keybinds for the WeaveZZT demo.
-    * TEMPLATE.INI
-        * Standard Counters and Keybinds template file.
-    * Using_Weave_with_Zeta.htm
-        * A simple tutorial to get you started using Weave with Zeta. Included with the Weave 2 download.
-    * howto1.png, howto2.png, howto3.png
-        * Companion images to the above tutorial.
-* BUILDW33.BAT
-    * Used in DOS or DOSBox to build Weave from source.
-* LICENSE.TXT
-    * MIT License, required by reconstruction-of-zzt.
-* README.TXT
-    * A brief explanation of Weaving.
-* WEAVEDMO.ZZT
-    * The WeaveZZT demo file.
+Weave provides tools for creating Weave and Web-playable ZZT games. They are in the TOOLS folder as follows:
 
-## Questions
+- LOOMZZT.ZIP
+    - A hacked version of KevEdit to make Weave 3 game creation easier.
+    - Adds extra syntax highlighting.
+    - Raises stat and board limits.
+    - Supports custom text.
+- WEBWEAVE.ZIP
+    - A drag-and-drop utility to turn Weave files into web-playable content.
+- ZLOOM2.ZIP
+    - A hacked version of zedit2 with custom text support.
+- UPX.EXE
+    - Used during compilation to shrink ZZT.EXE's filesize.
 
-Hit me up in the ZZT Discord if you've got feedback or there's something to add. I'm not married to anything here so if there's a better way to do something, please ping the discord in #zzt-programs and throw a suggestion in there. You may have also seen a FIX_F10 directory in the source code; this is for FixWeave, a project that has stalled and whose future is uncertain. A companion page for FixWeave is available on Itch at **meangirls dot itch dot io slash fixweave-2**
+### I want to compile my own. How do I do this?
 
-Discord of ZZT Link: **museumofzzt dot com slash discord**
+- Native Windows
+    - git pull --recurse-submodules (the SDL2 headers are in a Git submodule),
+    - Install a fairly recent version of Free Pascal (tested with 3.2.2),
+    - navigate to SRC_W34
+    - Building for 32 bit (i386)
+        - Run "fpc @fpc.sdl2.cfg ZZT.PAS"
+    - Building for 64 bit (x86_64)
+        - Run "fpc -Px86_64 @fpc.sdl2.cfg ZZT.PAS"
+    - On Windows, provide SDL2.dll alongside the EXE
+        - Make sure to provide a 32 or 64 bit SDL2.dll as appropriate.
+- DOS build
+    - Acquire the TPC.EXE and TURBO.TPL files from a legally acquired copy of Turbo Pascal 5.5.
+    - Place those files in the same directory as the BUILDW34.BAT file.
+    - Either on native hardware or in a DOS emulator, run BUILDW34.BAT.
+
+### What Software License does this use?
+
+With the exception of LOOMZZT, Weave 3 is MIT licensed. See LICENSE.TXT for details.
+
+LOOMZZT is GPL-licensed. For details about its license, see the README.MD file included in the LOOMZZT source, provided with the program.
+
+### Still have questions?
+
+If something doesn't behave as described, or if I've missed something crucial that needs to be added, head on over to the Discord of ZZT and let me know. Thanks.
+
+Discord of ZZT Link: https://museumofzzt.com/discord/
