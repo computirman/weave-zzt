@@ -1100,7 +1100,6 @@ Below is a list of the elements in the element table, and any attributes they us
     - Modify "energizer.msg.touch" to change the message displayed when an Energizer is collected.
     - Use "energizer.snd.song1", "energizer.snd.song2", "energizer.snd.song3", "energizer.snd.song4", and "energizer.snd.end" to build the energizer song.
     - The P3 value is the element# that energizers turn into when collected. Default is 0 (Empty).
-    - Change "other.altchar" to change the character the player alternates between while energized. Default is 1.
 
  * Element 15: Star
     - Attributes used: Cycle, P1, P2
@@ -1276,10 +1275,6 @@ Below is a list of the elements in the element table, and any attributes they us
 
 There are some internal counters labeled "other" that don't otherwise fall into the above categories. They are:
 
- * other.maxstats
-   - Default is 151, Max is 254
-   - Raise to change the # of available free stats on a board.
-
  * other.startboard
    - Sets the boardId of the start board.
    - Default is -1 (reads from the .ZZT file instead)
@@ -1291,11 +1286,6 @@ There are some internal counters labeled "other" that don't otherwise fall into 
  * other.highscores
    - Sets the # of high scores to save (Default is 30, Maximum is 30)
    - Set to False to eliminate the use of high scores entirely.
-
- * other.extraflags
-   - adds 89 more standard flags (in addition to the 10 in vanilla ZZT, that makes 99)
-   - Set to False for compatibility with game systems that rely on 10 flags, such as Hugo's House of Horrors ZZT.
-   - Defaults to True.
 
  * other.strictwindow
    - Restricts the closing of text windows to ENTER, as in vanilla ZZT, as opposed to allowing both ENTER and SPACE, as in previous versions of Weave.

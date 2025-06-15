@@ -59,7 +59,7 @@ interface
 		THEME_START = 13;
 		THEME_BLINK = 20;
 		PALETTE_START = 23;
-		PARAM_FILE_COUNT = 73;
+		PARAM_FILE_COUNT = 70;
 		{.INI FILE}
 		CUSTOM_KEY_COUNT = 24;
 		CUSTOM_LOCAL_OFFSET = CUSTOM_KEY_COUNT + 7;
@@ -250,6 +250,7 @@ interface
 		LastLoadedCHR: TString8;
 		SelUnder: boolean;
 		QuickStart: boolean;
+		QuickQuit: boolean;
 		QStartBoard: integer;
 		IoTmpBufSize: word;
 		FileWorldCachedLinePos: integer; 

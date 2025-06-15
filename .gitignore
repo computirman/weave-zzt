@@ -1,5 +1,7 @@
 /BUILD
+/DIST
 /fpc-cross
-ZZT.exe
-TPC.exe
 *.TPL
+/BIN
+*.dll
+*.exe

@@ -254,8 +254,7 @@ Elements:
 
 A special case related to the above, all entries in the TEMPLATE.CFG can be modified during play with #SET and #CLEAR, and all numeric entries can be modified with #GIVE and #TAKE as well. Some examples follow:
 
-#set other.altchar 3 (Players will now take on a heart shape when energized)
-#clear other.ouchdamage (Bullets and enemies can no longer harm the player.)
+#set other.ouchdamage 3 (Players will now take only 3 damage when shot, bombed, etc.)
 #give other.torchsize (The radius of torchlight in dark rooms will increase slightly)
 #set theme.bg.sidebar brown (The sidebar will now be brown.)
 #set theme.blinking false (Extended colors will now be used.)

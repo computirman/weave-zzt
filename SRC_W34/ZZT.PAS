@@ -161,6 +161,7 @@ begin
 	LastLoadedCHR := #0;
 	JustStarted := true;
 	QuickStart := false;
+	QuickQuit := false;
 	WorldMenuChar := 'W';
 	SpeedMenuChar := 'S';
 	HighScoreChar := 'H';

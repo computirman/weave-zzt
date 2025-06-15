@@ -1,0 +1,29 @@
+@FOO
+#char 70
+#bgplay cg+c#
+#send /s candest
+Foo object is loaded!
+#end
+:candest
+#restore !dest
+#end
+:touch
+I am Foo, the object loaded from FOO.OBJ!
+
+$What you want Foo to do?
+
+!make;Put an empty object above Foo.
+#if detect n object !do;Load FOO.OBJ north of Foo.
+@dest;Destroy this Foo.
+!;Nothing do.
+#end
+:make
+#put n object
+#pset n char 71
+#color n purple black
+#end
+:do
+#load n foo
+#end
+:dest
+#become empty

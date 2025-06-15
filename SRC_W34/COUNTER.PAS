@@ -239,11 +239,6 @@ function CounterFromWord(var c: TCounter; statId: integer; s: string): boolean;
 					if s[1] = 'T' then c.UpdateTheme := true;
 					exit;
 				end;
-			for i := 71 to PARAM_FILE_COUNT do
-				if s = ParamConfigs(i) then begin
-					c.Pointer := @XDat.Params[i];
-					exit;
-				end;
 			for i := 1 to CONFIG_FILE_COUNT do
 				if s = StringConfigs(i) then begin
 					c.CType := TCConfig;

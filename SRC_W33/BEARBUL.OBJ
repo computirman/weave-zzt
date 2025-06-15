@@ -1,8 +1,0 @@
-@BearBullet
-#char 153
-:z
-#if not blocked flow /i#z
-#if detect flow brown object /i#z
-#bgplay -b-b
-#if detect flow breakable put flow empty
-#die

@@ -182,7 +182,7 @@ function ParamConfigs(i: integer): string;
 		j: integer;
 	begin
 		case i of
-			1: ParamConfigs := 'OTHER.ALTCHAR';
+			1: ParamConfigs := 'OTHER.FOOTSTEPS';
 			2: ParamConfigs := 'OTHER.OUCHDAMAGE';
 			3: ParamConfigs := 'OTHER.TORCHRATIOX';
 			4: ParamConfigs := 'OTHER.TORCHRATIOY';
@@ -190,7 +190,7 @@ function ParamConfigs(i: integer): string;
 			6: ParamConfigs := 'OTHER.BOMBRATIOX';
 			7: ParamConfigs := 'OTHER.BOMBRATIOY';
 			8: ParamConfigs := 'OTHER.BOMBSIZE';
-			9: ParamConfigs := 'OTHER.MAXSTATS';
+			9: ParamConfigs := 'OTHER.STRICTWINDOW';
 			10: ParamConfigs := 'OTHER.MAXOOP';
 			11: ParamConfigs := 'OTHER.GRACEPERIOD';
 			12: ParamConfigs := 'OTHER.FRIENDLYFIRE';
@@ -203,10 +203,7 @@ function ParamConfigs(i: integer): string;
 			19: ParamConfigs := 'THEME.FG.SPECIAL';
 			20: ParamConfigs := 'THEME.BLINKING';
 			21: ParamConfigs := 'OTHER.STARTBOARD';
-			22: ParamConfigs := 'OTHER.EXTRAFLAGS';
-			71: ParamConfigs := 'OTHER.FOOTSTEPS';
-			72: ParamConfigs := 'OTHER.HIGHSCORES';
-			73: ParamConfigs := 'OTHER.STRICTWINDOW';
+			22: ParamConfigs := 'OTHER.HIGHSCORES';
 		else ParamConfigs := '_nil' end;
 	end;
 
@@ -275,20 +272,19 @@ procedure LoadPalette;
 function DefaultParamList(i: integer): integer;
 	begin
 		case i of
-			1,3,6,12,13,20,22: DefaultParamList := 1;
+			1,9,11,16,23,24,25,26,27,29,31,32,36,37,39,43,1: DefaultParamList := 0;
 			2: DefaultParamList := 10;
+			3,6,12,13,20: DefaultParamList := 1;
 			4,7: DefaultParamList := 2;
 			5,8: DefaultParamList := 50;
-			9: DefaultParamList := 254;
 			10: DefaultParamList := 33;
-			11,16,23,24,25,26,27,29,31,32,36,37,39,43,71,73: DefaultParamList := 0;
 			14: DefaultParamList := 15;
 			15: DefaultParamList := 14;
 			17: DefaultParamList := 7;
 			18: DefaultParamList := 3;
 			19: DefaultParamList := 12;
 			21: DefaultParamList := -1;
-			72: DefaultParamList := 30;
+			22: DefaultParamList := 30;
 			28,30,33,34,35,38,40,41,44,45,46: DefaultParamList := 42;
 			42,47,48,49,50,51,53,55,56,60,61,63,67: DefaultParamList := 21;
 			52,54,57,58,59,62,64,65,66,68,69,70: DefaultParamList := 63;
@@ -550,7 +546,7 @@ procedure HighScoresLoad;
 		f: file of THighScoreList;
 		i: integer;
 	begin
-		if XDat.Params[72] > 0 then begin
+		if XDat.Params[22] > 0 then begin
 {$IFNDEF MSDOS}
 			AssignFSys(f, World.Info.Name + '.HI');
 {$ELSE}
@@ -561,7 +557,7 @@ procedure HighScoresLoad;
 				Read(f, HighScoreList);
 				Close(f);
 			end else begin
-				for i := 1 to XDat.Params[72] do begin
+				for i := 1 to XDat.Params[22] do begin
 					HighScoreList[i].Name := '';
 					HighScoreList[i].Score := -1;
 				end;
@@ -573,7 +569,7 @@ procedure HighScoresSave;
 	var
 		f: file of THighScoreList;
 	begin
-		if XDat.Params[72] > 0 then begin
+		if XDat.Params[22] > 0 then begin
 {$IFNDEF MSDOS}
 			AssignFSys(f, World.Info.Name + '.HI');
 {$ELSE}
@@ -596,7 +592,7 @@ procedure HighScoresInitTextWindow(var state: TTextWindowState);
 		TextWindowInitState(state);
 		TextWindowAppend(state, 'Score  Name');
 		TextWindowAppend(state, '-----  ----------------------------------');
-		for i := 1 to XDat.Params[72] do begin
+		for i := 1 to XDat.Params[22] do begin
 			if (Length(HighScoreList[i].Name) > 0) and (HighScoreList[i].Score > 0) then begin
 				Str(HighScoreList[i].Score:5, scoreStr);
 				TextWindowAppend(state, scoreStr + '  ' + HighScoreList[i].Name);
@@ -626,10 +622,10 @@ procedure HighScoresAdd(score: integer);
 		i, listPos: integer;
 	begin
 		listPos := 1;
-		while (listPos <= XDat.Params[72]) and (score < HighScoreList[listPos].Score) do
+		while (listPos <= XDat.Params[22]) and (score < HighScoreList[listPos].Score) do
 			listPos := listPos + 1;
-		if (listPos <= XDat.Params[72]) and (score > 0) then begin
-			for i := (XDat.Params[72] - 1) downto listPos do
+		if (listPos <= XDat.Params[22]) and (score > 0) then begin
+			for i := (XDat.Params[22] - 1) downto listPos do
 				HighScoreList[i + 1] := HighScoreList[i];
 			HighScoreList[listPos].Score := score;
 			HighScoreList[listPos].Name := '-- You! --';
@@ -1498,7 +1494,7 @@ procedure AddStat(tx, ty: integer; txelement, txcolor: byte; tcycle: integer; te
 	var
 		i: integer;
 	begin
-		if Board.StatCount < XDat.Params[9] then begin {Max Stats}
+		if Board.StatCount < 254 then begin {Max Stats}
 			Inc(Board.StatCount);
 			Board.Stats[Board.StatCount] := template;
 			with Board.Stats[Board.StatCount] do begin
@@ -2695,8 +2691,9 @@ procedure GameDrawMainSidebar;
 	var
 		i: integer;
 	begin
-		for i := 2 to 15 do
-			GameDrawMainSidebarElement(MainSidebarList[i]);
+		if GameStateElement = E_PLAYER then
+			for i := 2 to 15 do
+				GameDrawMainSidebarElement(MainSidebarList[i]);
 	end;
 
 procedure GameDrawCustomSidebar;
@@ -2706,71 +2703,73 @@ procedure GameDrawCustomSidebar;
 		numStr: string[8];
 		disp: string[20];
 	begin
-		i := 0;
-		{ Custom Key elements }
-		while i < KeyLimit do begin
-			j := 62;
-			Val(KeyList[(i * 3) + 2],y,code);
-			if (y > 2) and (y < 25) then begin
-				if length(KeyList[i * 3]) < 4 then begin
-					disp := ' ' + UpCase(KeyList[i * 3][1]) + ' ';
-					Inc(j);
-				end else begin
-					disp := KeyList[i * 3];
-					Delete(disp,1,1);
-					while (Length(disp) > 1) and (disp[1] <> #39) do
+		if GameStateElement = E_PLAYER then begin
+			i := 0;
+			{ Custom Key elements }
+			while i < KeyLimit do begin
+				j := 62;
+				Val(KeyList[(i * 3) + 2],y,code);
+				if (y > 2) and (y < 25) then begin
+					if length(KeyList[i * 3]) < 4 then begin
+						disp := ' ' + UpCase(KeyList[i * 3][1]) + ' ';
+						Inc(j);
+					end else begin
+						disp := KeyList[i * 3];
 						Delete(disp,1,1);
-					if disp[1] = #39 then Delete(disp,1,1);
-					if (disp[Length(disp)] = #39) then Delete(disp,Length(disp),1);
+						while (Length(disp) > 1) and (disp[1] <> #39) do
+							Delete(disp,1,1);
+						if disp[1] = #39 then Delete(disp,1,1);
+						if (disp[Length(disp)] = #39) then Delete(disp,Length(disp),1);
+					end;
+					if ((CFlagPos[y + 8] and World.Info.CustomFlags[3]) = 0) then begin
+						VideoWriteText(62, y,
+							AsColor(XDat.Params[THEME_START + 3],
+							XDat.Params[THEME_START + 5 - (y mod 2)]),
+							disp);
+						VideoWriteText(j + Length(disp), y,
+							AsColor(XDat.Params[THEME_START + 1],
+							XDat.Params[THEME_START]), KeyList[(i * 3) + 1]);
+					end else SideBarClearLine(y);
 				end;
-				if ((CFlagPos[y + 8] and World.Info.CustomFlags[3]) = 0) then begin
-					VideoWriteText(62, y,
-						AsColor(XDat.Params[THEME_START + 3],
-						XDat.Params[THEME_START + 5 - (y mod 2)]),
-						disp);
-					VideoWriteText(j + Length(disp), y,
-						AsColor(XDat.Params[THEME_START + 1],
-						XDat.Params[THEME_START]), KeyList[(i * 3) + 1]);
-				end else SideBarClearLine(y);
+				Inc(i);
 			end;
-			Inc(i);
-		end;
-		{ Custom Sidebar Counters }
-		for i := 3 to 24 do
-			with CustomSidebar[i] do begin
-				if Ident > -8 then begin
-					if ((CFlagPos[i + 8] and World.Info.CustomFlags[3]) = 0) then begin
-						if length(Disp) > 8 then
-							VideoWriteText(60, i, AsColor(XDat.Params[THEME_START + 1],
-								XDat.Params[THEME_START]), Disp)
-						else begin
-							VideoWriteText(64, i, AsColor(XDat.Params[THEME_START + 2],
-								XDat.Params[THEME_START]), Disp);
-							if Ident < 0 then
-								Str(Board.Info.Local[-Ident], numStr)
-							else
-								Str(World.Info.CustomCounters[Ident], numStr);
-							VideoWriteText(72, i, AsColor(XDat.Params[THEME_START + 2],
-								XDat.Params[THEME_START]), numStr + ' ');
-							if Elmt > -1 then {Sidebar Element}
-								if XDat.EDefs[Enum(Elmt)].Color = 0 then
-									VideoWriteText(62, i,
-										AsColor(XDat.Params[THEME_START + 6],
-										XDat.Params[THEME_START]),
-										XDat.EDefs[Enum(Elmt)].Character)
-								else if XDat.EDefs[Enum(Elmt)].Color and $F0 = 0 then
-									VideoWriteText(62, i,
-										AsColor(XDat.EDefs[Enum(Elmt)].Color and $0F,
-										XDat.Params[THEME_START]),
-										XDat.EDefs[Enum(Elmt)].Character)
+			{ Custom Sidebar Counters }
+			for i := 3 to 24 do
+				with CustomSidebar[i] do begin
+					if Ident > -8 then begin
+						if ((CFlagPos[i + 8] and World.Info.CustomFlags[3]) = 0) then begin
+							if length(Disp) > 8 then
+								VideoWriteText(60, i, AsColor(XDat.Params[THEME_START + 1],
+									XDat.Params[THEME_START]), Disp)
+							else begin
+								VideoWriteText(64, i, AsColor(XDat.Params[THEME_START + 2],
+									XDat.Params[THEME_START]), Disp);
+								if Ident < 0 then
+									Str(Board.Info.Local[-Ident], numStr)
 								else
-									VideoWriteText(62, i,
-										XDat.EDefs[Enum(Elmt)].Color,
-										XDat.EDefs[Enum(Elmt)].Character);
-						end;
-					end else SideBarClearLine(i);
+									Str(World.Info.CustomCounters[Ident], numStr);
+								VideoWriteText(72, i, AsColor(XDat.Params[THEME_START + 2],
+									XDat.Params[THEME_START]), numStr + ' ');
+								if Elmt > -1 then {Sidebar Element}
+									if XDat.EDefs[Enum(Elmt)].Color = 0 then
+										VideoWriteText(62, i,
+											AsColor(XDat.Params[THEME_START + 6],
+											XDat.Params[THEME_START]),
+											XDat.EDefs[Enum(Elmt)].Character)
+									else if XDat.EDefs[Enum(Elmt)].Color and $F0 = 0 then
+										VideoWriteText(62, i,
+											AsColor(XDat.EDefs[Enum(Elmt)].Color and $0F,
+											XDat.Params[THEME_START]),
+											XDat.EDefs[Enum(Elmt)].Character)
+									else
+										VideoWriteText(62, i,
+											XDat.EDefs[Enum(Elmt)].Color,
+											XDat.EDefs[Enum(Elmt)].Character);
+							end;
+						end else SideBarClearLine(i);
+					end;
 				end;
-			end;
+		end;
 	end;
 
 procedure GoToDirectory(var input: string);
@@ -2863,7 +2862,7 @@ procedure GameDrawTheme;
 				XDat.Params[THEME_START + 5]), ' A ');
 			VideoWriteText(65, 16, AsColor(XDat.Params[THEME_START + 1],
 				XDat.Params[THEME_START]), ' License Info');
-			if XDat.Params[72] > 0 then begin
+			if XDat.Params[22] > 0 then begin
 				VideoWriteText(62, 17, AsColor(XDat.Params[THEME_START + 3],
 					XDat.Params[THEME_START + 4]), ' H ');
 				VideoWriteText(65, 17, AsColor(XDat.Params[THEME_START + 2],
@@ -3045,7 +3044,7 @@ procedure GamePlayLoop(boardChanged: boolean);
 		SoundClearQueue;
 
 		if GameStateElement = E_PLAYER then begin
-			if (World.Info.Health <= 0) and (XDat.Params[72] > 0) then begin
+			if (World.Info.Health <= 0) and (XDat.Params[22] > 0) then begin
 				HighScoresLoad;
 				HighScoresAdd(World.Info.Score);
 			end;

@@ -178,7 +178,7 @@ procedure TextWindowDrawOpen(var state: TTextWindowState);
 					AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrTop);
 				VideoWriteText(TextWindowX, TextWindowY + TextWindowHeight - iy,
 					AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrBottom);
-				Delay(25);
+				Delay(9);
 			end;
 
 			VideoWriteText(TextWindowX, TextWindowY + 2, AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrSep);
@@ -197,7 +197,7 @@ procedure TextWindowDrawClose(var state: TTextWindowState);
 					AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrTop);
 				VideoWriteText(TextWindowX, TextWindowY + TextWindowHeight - iy,
 					AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrBottom);
-				Delay(18);
+				Delay(8);
 				VideoMove(TextWindowX, TextWindowY + iy, TextWindowWidth,
 					@ScreenCopy[iy + 1], true);
 				VideoMove(TextWindowX, TextWindowY + TextWindowHeight - iy, TextWindowWidth,
@@ -327,7 +327,7 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 	label LabelNotMatched;
 	begin
 		viewingFile := (flags and TWS_VIEWING_FILE) <> 0;
-		if XDat.Params[73] > 0 then begin
+		if XDat.Params[9] > 0 then begin
 			c := #2;
 			qStr := ''
 		end else begin
@@ -415,11 +415,11 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 						if (flags and TWS_HYPERLINK_AS_SELECT) <> 0 then
 							TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
 								XDat.Params[THEME_START]),
-								#174'Press ENTER ' + qStr + 'to select'#175)
+								#17'Press ENTER ' + qStr + 'to select'#16)
 						else
 							TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
 								XDat.Params[THEME_START]),
-								#174'Press ENTER for more info'#175);
+								#17'Press ENTER for more info'#16);
 				end;
 				if InputJoystickMoved then begin
 					Delay(35);
@@ -551,8 +551,8 @@ procedure TextWindowInit;
 		TextWindowStrSep    :=  ' '#198 + TextWindowStrInnerLine  + #181' ';
 		TextWindowStrText   :=  ' '#179 + TextWindowStrInnerEmpty + #179' ';
 		TextWindowStrInnerArrows := TextWindowStrInnerEmpty;
-		TextWindowStrInnerArrows[1] := #175;
-		TextWindowStrInnerArrows[Length(TextWindowStrInnerArrows)] := #174;
+		TextWindowStrInnerArrows[1] := #16;
+		TextWindowStrInnerArrows[Length(TextWindowStrInnerArrows)] := #17;
 		TextWindowStrInnerSep := TextWindowStrInnerEmpty;
 		for i := 1 to (TextWindowWidth div 5) do
 			TextWindowStrInnerSep[i * 5 + ((TextWindowWidth mod 5) shr 1)] := #7;

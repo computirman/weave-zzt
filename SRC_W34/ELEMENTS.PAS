@@ -776,8 +776,6 @@ procedure ElementPlayerDraw(x, y: integer; var ch: byte);
 			Board.Tiles[x][y].Color := World.Info.PlayerColor;
 			if World.Info.EnergizerTicks > 0 then begin
 				Board.Tiles[x][y].Color := AsColor(World.Info.PlayerColor and $0F,(CurrentTick mod 7) + 1);
-				if (CurrentTick mod 2) <> 0 then
-					ch := XDat.Params[1];
 			end;
 		end;
 	end;
@@ -813,8 +811,10 @@ procedure ElementEnergizerTouch(x, y: integer; sourceStatId: integer; var deltaX
 	begin
 		SoundQueue(9, SoundParse(XDat.Configs[7]) {Energizer Song}
 			+ SoundParse(XDat.Configs[8])
-			+ SoundParse(XDat.Configs[9])
-			+ SoundParse(XDat.Configs[10]));
+			+ SoundParse(XDat.Configs[8])
+			+ SoundParse(XDat.Configs[8])
+			+ SoundParse(XDat.Configs[8])
+			+ SoundParse(XDat.Configs[8]));
 
 		Board.Tiles[x][y].Element := XDat.EDefs[E_ENERGIZER].P3;
 		BoardDrawTile(x, y);
@@ -1441,6 +1441,7 @@ procedure DrawBombSurroundings(x, y: integer; bombPhase: integer);
 
 procedure GamePromptEndPlay;
 	begin
+		QuickQuit := false;
 		if (World.Info.Health <= 0) and (World.Info.GracePeriod >= XDat.Params[11]) then begin
 			GamePlayExitRequested := true;
 			BoardDrawBorder;
@@ -1585,7 +1586,7 @@ procedure ElementTruePlayerTick;
 				XDat.EDefs[Enum(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].TouchProc(
 					X + InputDeltaX, Y + InputDeltaY, 0, InputDeltaX, InputDeltaY);
 				if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
-					if SoundEnabled and not SoundIsPlaying and not (XDat.Params[71] = 0) then
+					if SoundEnabled and not SoundIsPlaying and not (XDat.Params[1] = 0) then
 {$IFDEF SDL2}
 						AudioSimPlayerStep := true;
 {$ELSE}
@@ -1614,7 +1615,7 @@ procedure ElementTruePlayerTick;
 				and (inputC <> UpCase(XDat.Configs[83][1]))
 			then
 				inputC := #0;
-			if ((inputC = #27) or (inputC = 'Q')) then
+			if ((inputC = #27) or (inputC = 'Q')) or QuickQuit then
 				GamePromptEndPlay
 			else if inputC = UpCase(XDat.Configs[70][1]) then begin {'T' Torch hotkey}
 				GameMove := true;
@@ -2315,10 +2316,10 @@ function StringConfigs(i: integer): string;
 			4: StringConfigs := 'BOMB.SND.TOCK';
 			5: StringConfigs := 'BOMB.SND.EXPLODE';
 			6: StringConfigs := 'ENERGIZER.MSG.TOUCH';
-			7: StringConfigs := 'ENERGIZER.SND.SONG1';
-			8: StringConfigs := 'ENERGIZER.SND.SONG2';
-			9: StringConfigs := 'ENERGIZER.SND.SONG3';
-			10: StringConfigs := 'ENERGIZER.SND.SONG4';
+			7: StringConfigs := 'ENERGIZER.SND.START';
+			8: StringConfigs := 'ENERGIZER.SND.SONG';
+			9: StringConfigs := '';
+			10: StringConfigs := '';
 			11: StringConfigs := 'ENERGIZER.SND.END';
 			12: StringConfigs := 'KEY.MSG.TOUCH1';
 			13: StringConfigs := 'KEY.MSG.TOUCH2';
@@ -2410,9 +2411,9 @@ function DefaultConfigList(i: integer): string;
 			5: DefaultConfigList := 't+++c-c-c-c-c-c';
 			6: DefaultConfigList := 'Energizer - You are invincible';
 			7: DefaultConfigList := 's.-cd#e';
-			8: DefaultConfigList := 's.-f+f-fd#c+c-d#ef+f-fd#c+c-d#e';
-			9: DefaultConfigList := 's.-f+f-fd#c+c-d#ef+f-fd#c+c-d#e';
-			10: DefaultConfigList := 's.-f+f-fd#c+c-d#e';
+			8: DefaultConfigList := 's.-f+f-fd#c+c-d#e';
+			9: DefaultConfigList := '';
+			10: DefaultConfigList := '';
 			11: DefaultConfigList := 's.-c-a#gf#fd#c';
 			12: DefaultConfigList := 'You now have the ';
 			13: DefaultConfigList := ' key.';
@@ -2586,9 +2587,6 @@ procedure InitElementsGame;
 								if (v = -32767) then
 									Val(l, v, code);
 								for i := 1 to (PALETTE_START - 1) do
-									if ParamConfigs(i) = k then
-										XDat.Params[i] := v;
-								for i := 71 to (PARAM_FILE_COUNT) do
 									if ParamConfigs(i) = k then
 										XDat.Params[i] := v;
 							end;

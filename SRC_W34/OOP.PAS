@@ -637,6 +637,7 @@ procedure OopReadValue(statId: integer; var position: integer);
 		isNumeric: boolean;
 		counter: TCounter;
 		tmpCond: boolean;
+		tile: TMatchTile;
 	begin
 		wordPos := 0;
 		repeat
@@ -700,6 +701,13 @@ procedure OopReadValue(statId: integer; var position: integer);
 				s := OopWord;
 				OopValue := OopPget(statId, position);
 				OopWord := s;
+			end else if s = 'COUNT' then begin
+				if not OopParseTile(statId, position, tile) then
+					OopError(statId,position, 'Bad object kind');
+				ix := 0;
+				iy := 1;
+				OopValue := 0;
+				while FindTileOnBoard(ix, iy, tile) do Inc(OopValue);
 			end else if s = 'RUN' then begin
 				s := OopWord;
 				OopValue := OopRunFunc(statId, position);
@@ -906,10 +914,10 @@ function WorldGetBoardPosition(statId: integer; var position: integer): integer;
 
 function GetNumFlags: integer;
 	begin
-		if (XDat.Params[22] = 1) then
+		if HasINI then
 			GetNumFlags := 99
 		else
-		GetNumFlags := 10;
+			GetNumFlags := 10;
 	end;
 
 function WorldInfoFlags(flag: integer): string;
@@ -1059,7 +1067,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 						'P': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].CanPut;
 						'D': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].SeeDark;
 					end;
-				end else if (OopWord = 'BLOCKED') then
+				end else if (elemAttr = 'C') then
 					OopCheckCondition := true
 				else
 					OopCheckCondition := false;
@@ -1174,7 +1182,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 		end;
 	end;
 
-function OopReadLineToEnd(statId: integer; var position: integer) : string;
+function OopReadLineToEnd(statId: integer; var position: integer; upcased: boolean) : string;
 	var
 		s,t: string;
 	begin
@@ -1494,7 +1502,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								if counter.CType = TCConfig then begin
 									if (OopChar <> #13) and (OopChar <> #0) then
 										Inc(Stat^.DataPos);
-									textLine := OopReadLineToEnd(Index, Stat^.DataPos);
+									textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
 									if textLine <> '' then begin
 										XDat.Configs[counter.Value] := textLine;
 										Dec(Stat^.DataPos);
@@ -1587,6 +1595,9 @@ procedure OopExecute(statId: integer; name: TString50);
 							Stat^.DataPos := -1;
 							OopChar := #0;
 						end else if OopWord = 'ENDGAME' then begin
+							OopReadWord(Index, Stat^.DataPos);
+							if OopWord = 'QUIT' then
+								QuickQuit := true;
 							World.Info.Health := 0;
 							World.Info.GracePeriod := XDat.Params[11];
 						end else if OopWord = 'IDLE' then begin
@@ -1771,7 +1782,7 @@ procedure OopExecute(statId: integer; name: TString50);
 							if OopChar = #13 then
 								SoundClearQueue;
 							Dec(Stat^.DataPos);
-							textLine := SoundParse(OopReadLineToEnd(Index, Stat^.DataPos));
+							textLine := SoundParse(OopReadLineToEnd(Index, Stat^.DataPos, true));
 							if Length(textLine) <> 0 then
 								SoundQueue(-1, textLine);
 							lineFinished := false;
@@ -1839,7 +1850,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								while OopChar = ' ' do
 									OopReadChar(Index, Stat^.DataPos);
 								Dec(Stat^.DataPos);
-								textLine := OopReadLineToEnd(Index, Stat^.DataPos);
+								textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
 								XOut(textLine);
 								Dec(Stat^.DataPos);
 							end else if OopWord = 'LOAD' then begin
@@ -1858,7 +1869,7 @@ procedure OopExecute(statId: integer; name: TString50);
 										if OopWord <> 'APPEND' then
 											Stat^.DataPos := ix;
 										Inc(Stat^.DataPos);
-										textLine := OopReadLineToEnd(Index, Stat^.DataPos);
+										textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
 										Dec(Stat^.DataPos);
 										if (OopWord = 'APPEND') then begin
 											if FileAppendStatData(textLine,bindStatId) then
@@ -1882,7 +1893,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								argTile.Element := 128 + (ix mod 128);
 
 								Inc(Stat^.DataPos);
-								textLine := OopReadLineToEnd(Index, Stat^.DataPos);
+								textLine := OopReadLineToEnd(Index, Stat^.DataPos, false);
 								Dec(Stat^.DataPos);								
 
 								iy := Length(textLine);
@@ -1967,7 +1978,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								if Stat^.DataPos = ix then
 									GameWorldSave(XDat.Configs[78] + ':', SavedGameFileName, '.SAV')
 								else begin
-									textLine := OopReadLineToEnd(Index, Stat^.DataPos);
+									textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
 									WorldSave(textLine,'.SAV');
 									Dec(Stat^.DataPos);
 								end;
@@ -1985,7 +1996,7 @@ procedure OopExecute(statId: integer; name: TString50);
 										TransitionDrawToBoard;
 									end;
 								end else begin
-									textLine := OopReadLineToEnd(Index, Stat^.DataPos);
+									textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
 									if WorldLoad(textLine, '.SAV') then begin
 										ReturnBoardId := World.Info.CurrentBoard;
 										BoardChange(ReturnBoardId);
@@ -2122,7 +2133,7 @@ procedure OopExecute(statId: integer; name: TString50);
 										OopError(Index,Stat^.DataPos, 'Unknown color.');
 								end;
 							end else if OopWord = 'BGPLAY' then begin
-								textLine := SoundParse(OopReadLineToEnd(Index, Stat^.DataPos));
+								textLine := SoundParse(OopReadLineToEnd(Index, Stat^.DataPos, true));
 								if Length(textLine) <> 0 then
 									SoundQueue(2, textLine);
 								lineFinished := false;
@@ -2152,15 +2163,13 @@ procedure OopExecute(statId: integer; name: TString50);
 					endOfProgram := true;
 				end else begin
 					textLine := OopChar;
-					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos);
+					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos, false);
 					TextWindowAppend(textWindow, textLine);
 				end;
 
 			until endOfProgram or stopRunning or repeatInsNextTick or replaceStat or (insCount > XDat.Params[10]);
 
 			ScheduledUpdatesApply(scheduledUpdates);
-
-			if OopWord = 'SAVEDGAMES' then goto StopExecution;
 
 			if repeatInsNextTick then
 				Stat^.DataPos := lastPosition;
@@ -2172,7 +2181,7 @@ procedure OopExecute(statId: integer; name: TString50);
 				namePosition := 0;
 				OopReadChar(Index, namePosition);
 				if (OopChar = '@') then begin
-					name := OopReadLineToEnd(Index, namePosition);
+					name := OopReadLineToEnd(Index, namePosition, false);
 				end;
 
 				if Length(name) = 0 then
