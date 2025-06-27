@@ -1092,7 +1092,7 @@ function ElementDuplicate(srcX, srcY, dstX, dstY, statId: integer): boolean;
 						ElementPushablePush(X + dstX, Y + dstY, dstX, dstY);
 
 					if (Element = E_EMPTY)
-						or (HasINI and XDat.EDefs[ENum(Element)].CanPut = true)
+						or (XDat.EDefs[ENum(Element)].CanPut = true)
 					then begin
 						sourceStatId := GetStatIdAt(X + srcX, Y + srcY);
 						if sourceStatId > 0 then begin
@@ -1227,8 +1227,7 @@ procedure ElementPassageTouch(x, y: integer; sourceStatId: integer; var deltaX, 
 		BoardPassageTeleport(x, y);
 		deltaX := 0;
 		deltaY := 0;
-		if HasINI then
-			if OopSend(0, 'ALL:ENTER', false) then begin end;
+		if OopSend(0, 'ALL:ENTER', false) then begin end;
 	end;
 
 procedure ElementDoorTouch(x, y: integer; sourceStatId: integer; var deltaX, deltaY: integer);
@@ -1394,8 +1393,7 @@ procedure ElementBoardEdgeTouch(x, y: integer; sourceStatId: integer; var deltaX
 				deltaX := 0;
 				deltaY := 0;
 				BoardEnter;
-				if HasINI then
-					if OopSend(0, 'ALL:ENTER', false) then begin end;
+				if OopSend(0, 'ALL:ENTER', false) then begin end;
 			end else begin
 				BoardChange(boardId);
 			end;
@@ -1478,7 +1476,7 @@ procedure ElementMessageDec;
 procedure ElementCustomInput(inputC: char);
 	var
 		i: integer;	
-	begin {.INI keyboard inputs - Override defaults}
+	begin {.CFG keyboard inputs - Override defaults}
 		i := 0;
 		while i < KeyLimit do begin
 			if (inputC = UpCase(KeyList[i * 3][1]))
@@ -1626,7 +1624,7 @@ procedure ElementTruePlayerTick;
 					end;
 				end;
 			end;
-			if HasINI then ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
+			ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
 
 			inputC := UpCase(InputKeyPressed);
 			if (P2 = 1) {Locked players have limited input options}
@@ -1684,7 +1682,7 @@ procedure ElementTruePlayerTick;
 				and (World.Info.Health > 0))
 			then
 				GamePaused := true
-			else if HasINI then
+			else
 				ElementCustomInput(inputC);
 
 			if World.Info.TorchTicks > 0 then begin
@@ -1807,17 +1805,15 @@ procedure ElementPlayerTick(statId: integer);
 	begin
 		PMouseX := RMouseX;
 		PMouseY := RMouseY;
-		if HasINI then begin
-			if (RMouseButL <> PMouseButL) then begin
-				PMouseButL := RMouseButL;
-				if RMouseButL then
-					if OopSend(0, 'INPUT:LMOUSEB', false) then begin end;
-			end;
-			if (RMouseButR <> PMouseButR) then begin
-				PMouseButR := RMouseButR;
-				if RMouseButR then
-					if OopSend(0, 'INPUT:RMOUSEB', false) then begin end;
-			end;
+		if (RMouseButL <> PMouseButL) then begin
+			PMouseButL := RMouseButL;
+			if RMouseButL then
+				if OopSend(0, 'INPUT:LMOUSEB', false) then begin end;
+		end;
+		if (RMouseButR <> PMouseButR) then begin
+			PMouseButR := RMouseButR;
+			if RMouseButR then
+				if OopSend(0, 'INPUT:RMOUSEB', false) then begin end;
 		end;
 		if statId = 0 then
 			ElementTruePlayerTick
@@ -1836,8 +1832,7 @@ procedure ElementMonitorTick(statId: integer);
 		if QuickStart then GamePlayExitRequested := true;
 		if inputC in [#27, 'A', 'E', 'H', 'N', 'P', 'Q', 'R', 'S', 'W', '|'] then
 			GamePlayExitRequested := true;
-		if HasINI
-			and (statId = 0)
+		if (statId = 0)
 			and not (Board.Stats[0].P1 = 1)
 		then begin
 			ElementCustomInput(inputC);

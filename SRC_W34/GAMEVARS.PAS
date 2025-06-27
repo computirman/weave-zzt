@@ -60,11 +60,8 @@ interface
 		THEME_BLINK = 20;
 		PALETTE_START = 23;
 		PARAM_FILE_COUNT = 70;
-		{.INI FILE}
 		CUSTOM_KEY_COUNT = 24;
-		CUSTOM_LOCAL_OFFSET = CUSTOM_KEY_COUNT + 7;
-		CUSTOM_OBJ_OFFSET = CUSTOM_LOCAL_OFFSET + 6;
-		CUSTOM_COUNTER_OFFSET = CUSTOM_OBJ_OFFSET + 1;
+		CUSTOM_COUNTER_OFFSET = CUSTOM_KEY_COUNT + 1;
 		CUSTOM_FLAG_OFFSET = CUSTOM_COUNTER_OFFSET + 1;
 		CUSTOM_COUNTER_COUNT = 114;
 		CUSTOM_FLAG_COUNT = 128;
@@ -203,8 +200,6 @@ interface
 		THighScoreList = array[1 .. 30] of THighScoreEntry;
 		TCustomCounterList = array[1 .. CUSTOM_COUNTER_COUNT] of TString20;
 		TCustomFlagList = array[1 .. CUSTOM_FLAG_COUNT] of TString20;
-		TCustomBoardList = array[1 .. 7] of TString20;
-		TCustomObjList = array[1 .. 6] of TString20;
 		TCustomKeyList = array[0 .. CUSTOM_KEY_COUNT - 1] of TString20;
 		TSearchArea = array[-7 .. 7] of array[-7 .. 7] of shortint;
 		TSidebar = record
@@ -244,7 +239,6 @@ interface
 		IsSpeedForced: boolean;
 		GameMove: boolean;
 		CurrentBlink: boolean;
-		HasINI: boolean;
 		HasCustomSidebar: boolean;
 		HasCHR: boolean;
 		LastLoadedCHR: TString8;
@@ -298,8 +292,6 @@ interface
 
 		CustomCounterList: TCustomCounterList;
 		CustomFlagList: TCustomFlagList;
-		CustomBoardList: TCustomBoardList;
-		CustomObjList: TCustomObjList;
 		KeyList: TCustomKeyList;
 		SearchArea: TSearchArea;
 		HighScoreList: THighScoreList;

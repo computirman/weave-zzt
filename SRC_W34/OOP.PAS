@@ -49,7 +49,6 @@ interface
 	function OopStringToWord(input: TString50): TString50;
 	procedure OopReadValue(statId: integer; var position: integer);
 	procedure GetBoardInfo;
-	function GetNumFlags: integer;
 	function WorldInfoFlags(flag: integer): string;
 
 implementation
@@ -696,7 +695,7 @@ procedure OopReadValue(statId: integer; var position: integer);
 		if Length(s) <> 0 then begin
 			if isNumeric then
 				Val(s, OopValue, code)
-			else if HasINI and (s = 'RANDOM') then begin
+			else if (s = 'RANDOM') then begin
 				OopReadValue(statId, position);
 				if OopValue <> -32767 then begin
 					ix := OopValue;
@@ -882,7 +881,7 @@ function OopFindLabel(
 		if foundStat then begin
 			if objectMessage = 'RESTART' then begin
 				iDataPos := 0;
-			end else if HasINI and (objectMessage = 'END') then
+			end else if (objectMessage = 'END') then
 				iDataPos := Board.Stats[iStat].DataLen
 			else begin
 				iDataPos := OopFindString(iStat, searchDir, labelPrefix + objectMessage);
@@ -930,14 +929,6 @@ function WorldGetBoardPosition(statId: integer; var position: integer): integer;
 			WorldGetBoardPosition := bpos;
 	end;
 
-function GetNumFlags: integer;
-	begin
-		if HasINI then
-			GetNumFlags := 99
-		else
-			GetNumFlags := 10;
-	end;
-
 function WorldInfoFlags(flag: integer): string;
 	begin
 		if flag > MAX_FLAG then
@@ -951,7 +942,7 @@ function WorldGetFlagPosition(name: TString20): integer;
 		i: integer;
 	begin
 		WorldGetFlagPosition := -1;
-		for i := 1 to GetNumFlags do begin
+		for i := 1 to 99 do begin
 			if WorldInfoFlags(i) = name then
 				WorldGetFlagPosition := i;
 		end;
@@ -1006,7 +997,7 @@ procedure WorldSetFlag(name: TString20);
 		if not CustomSetFlag(name) then begin
 			if WorldGetFlagPosition(name) < 0 then begin
 				i := 1;
-				while (i < GetNumFlags) and (Length(WorldInfoFlags(i)) <> 0) do
+				while (i < 99) and (Length(WorldInfoFlags(i)) <> 0) do
 					Inc(i);
 				if i > MAX_FLAG then
 					XDat.Flags[i] := name
@@ -1095,7 +1086,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 				ix := 0;
 				iy := 1;
 				OopCheckCondition := FindTileOnBoard(ix, iy, tile);
-			end else if HasINI then begin
+			end else begin
 				if OopWord = 'COLOR' then begin
 					OopReadDirection(statId, position, deltaX, deltaY);
 					if ((X + deltaX) > 0)
@@ -1195,8 +1186,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 						OopCheckCondition := true
 					else
 						OopCheckCondition := WorldGetFlagPosition(OopWord) > 0;
-			end else
-				OopCheckCondition := WorldGetFlagPosition(OopWord) > 0;
+			end;
 		end;
 	end;
 
@@ -1274,7 +1264,7 @@ procedure GetBoardInfo;
 			TextWindowAppend(textWindow, 'Player Char: ' + World.Info.PlayerChar);
 			for i := 1 to 7 do begin
 				Str(Local[i],s);
-				TextWindowAppend(textWindow, CustomBoardList[i] + ': ' + s);
+				TextWindowAppend(textWindow, Locals(i) + ': ' + s);
 			end;
 			TextWindowAppend(textWindow, '$** Board connections: **');
 			for i := 0 to 3 do
@@ -1322,12 +1312,12 @@ procedure InspectObjectCode(statId, PointPos: integer; ErrMsg: string);
 				TextWindowAppend(textWindow, 'Cycle: ' + s);
 				for i := 1 to 4 do begin
 					Str(ObjLocal[i],s);
-					TextWindowAppend(textWindow, CustomObjList[i] + ': ' + s);
+					TextWindowAppend(textWindow, Locals(i + 7) + ': ' + s);
 				end;
 				Str(Leader,s);
-				TextWindowAppend(textWindow, CustomObjList[5] + ': ' + s);
+				TextWindowAppend(textWindow, Locals(12) + ': ' + s);
 				Str(Follower,s);
-				TextWindowAppend(textWindow, CustomObjList[6] + ': ' + s);
+				TextWindowAppend(textWindow, Locals(13) + ': ' + s);
 				Str(ObjArray,s);
 				TextWindowAppend(textWindow, 'Array: ' + s);
 				s := '';
@@ -1525,9 +1515,7 @@ procedure OopExecute(statId: integer; name: TString50);
 						end else if OopWord = 'SET' then begin
 							OopReadWord(Index, Stat^.DataPos);
 							textLine := OopWord;
-							if not HasINI then
-								WorldSetFlag(OopWord)
-							else if CounterFromWord(counter, Index, OopWord) then begin
+							if CounterFromWord(counter, Index, OopWord) then begin
 								if counter.CType = TCConfig then begin
 									if (OopChar <> #13) and (OopChar <> #0) then
 										Inc(Stat^.DataPos);
@@ -1553,9 +1541,7 @@ procedure OopExecute(statId: integer; name: TString50);
 							If HasCustomSidebar then GameDrawCustomSidebar;
 						end else if OopWord = 'CLEAR' then begin
 							OopReadWord(Index, Stat^.DataPos);
-							if not HasINI then
-								WorldClearFlag(OopWord)
-							else if CounterFromWord(counter, Index, OopWord) then begin
+							if CounterFromWord(counter, Index, OopWord) then begin
 								if counter.CType = TCConfig then begin
 									XDat.Configs[counter.Value] := '';
 									XDat.Configs[counter.Value][1] := #1;
@@ -1856,7 +1842,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								Stat^.DataPos := 0;
 								Stat^.doStack := 0;
 							end;
-						end else if HasINI then begin
+						end else begin
 							if (OopWord = 'ELSE') then begin
 								if Stat^.elseCheck then goto ReadCommand;
 							end else if (OopWord = 'AND') then begin
@@ -2189,12 +2175,6 @@ procedure OopExecute(statId: integer; name: TString50);
 								else if Pos(':', textLine) <= 0 then
 									OopError(Index, Stat^.DataPos, 'Bad command ' + textLine);
 							end;
-						end else begin
-							textLine := OopWord;
-							if OopSend(Index, OopWord, false) then
-								lineFinished := false
-							else if Pos(':', textLine) <= 0 then
-								OopError(Index, Stat^.DataPos, 'Bad command ' + textLine);
 						end;
 					end;
 
@@ -2270,8 +2250,7 @@ procedure OopExecute(statId: integer; name: TString50);
 					((Board.Stats[0].X <> ix) or
 						(Board.Stats[0].Y <> iy)) then
 					MoveStat(0, ix, iy);
-				if HasINI then
-					if OopSend(0, 'ALL:ENTER', false) then begin end;
+				if OopSend(0, 'ALL:ENTER', false) then begin end;
 			end;
 		end;
 

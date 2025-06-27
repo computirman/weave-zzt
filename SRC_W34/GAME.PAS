@@ -99,7 +99,7 @@ interface
 	procedure ResetCachedLinePos;
 	function ParamConfigs(i: integer): string;
 	function DefaultParamList(i: integer): integer;
-	procedure KeyRepeat;
+	function Locals(i: integer): string;
 
 const
 	ColorNames: array[0 .. 7] of TString8 =
@@ -131,14 +131,6 @@ const
 implementation
 uses Dos, FileSel, FileSys, Crt, ExtMem, ZVideo, Sounds, TimerSys,
 ZInput, Elements, Oop, Counter, ObjTrack;
-
-procedure KeyRepeat;
-	begin
-		if HasINI then
-			RepeatSpeed(1)
-		else
-			RepeatSpeed(0);
-	end;
 
 function ColorNumber(s: string; statId: integer): integer;
 	var
@@ -361,6 +353,20 @@ procedure CustomCharsetLoad(chrfile: string);
 
 	end;
 
+function Locals(i: integer): string;
+	var
+		s: string;
+	begin
+		if i > 7 then begin
+			Dec(i,7);
+			Str(i,s);
+			Locals := 'OBJ' + s;
+		end else begin
+			Str(i,s);
+			Locals := 'LOCAL' + s;
+		end;
+	end;
+
 procedure CustomOOPLoad;
 	var
 		s: string;
@@ -384,25 +390,15 @@ procedure CustomOOPLoad;
 			Str(i,s);
 			CustomFlagList[104 + i] := 'HIDELINE' + s;
 		end;
-		for i := 1 to 7 do begin
-			Str(i,s);
-			CustomBoardList[i] := 'LOCAL' + s;
-		end; 
-		for i := 1 to 6 do begin
-			Str(i,s);
-			CustomObjList[i] := 'OBJ' + s;
-		end;
 		for i := 3 to 24 do begin
 			CustomSidebar[i].Disp := '';
 			CustomSidebar[i].Ident := -8;
 			CustomSidebar[i].Elmt := -1;
 		end;
-		HasINI := false;
 		if (World.Info.Name <> '')
-			and FileExists(World.Info.Name + '.INI')
+			and FileExists(World.Info.Name + '.CFG')
 		then begin
-			HasINI := true;
-			AssignFSysText(f, World.Info.Name + '.INI');
+			AssignFSysText(f, World.Info.Name + '.CFG');
 			Reset(f);
 			if IOResult = 0 then begin
 				j := 0;
@@ -440,12 +436,6 @@ procedure CustomOOPLoad;
 								if KeyLimit <= (i div 3) then
 									KeyLimit := (i div 3) + 1;
 							end;
-						for i := (CUSTOM_KEY_COUNT + 1) to CUSTOM_LOCAL_OFFSET do
-							if (OopConfigs(i) = k) and (l <> '') then
-								CustomBoardList[i - CUSTOM_KEY_COUNT] := UpcaseString(l, false);
-						for i := (CUSTOM_LOCAL_OFFSET + 1) to CUSTOM_OBJ_OFFSET do
-							if (OopConfigs(i) = k) and (l <> '') then
-								CustomObjList[i - CUSTOM_LOCAL_OFFSET] := UpcaseString(l, false);
 						if (OopConfigs(CUSTOM_COUNTER_OFFSET) = k) and (l <> '') then begin
 							CustomCounterList[v] := UpcaseString(l, false);
 							Inc(v);
@@ -470,75 +460,73 @@ procedure CustomSidebarLoad;
 		h, i, j, k: integer;
 	begin
 		HasCustomSidebar := false;
-		if HasINI then begin
-			k := 0;
-			AssignFSysText(f, World.Info.Name + '.INI');
-			Reset(f);
-			if (IOResult = 0) then begin
-				while k <= 64 do begin
-					s := '';
-					ReadLn(f, s);
-					if s = '' then
-						Inc(k);
-					if length(s) > 20 then begin
-						t := '       ';
-						for i := 1 to 7 do
-							t[i] := s[i];
-						if (t = 'SIDEBAR') or (t = 'sidebar') then begin
-							j := Ord(s[9]) - 48;
-							if s[10] <> '.' then begin
-								j := j * 10;
-								inc(j, Ord(s[10]) - 48);
-							end;
-							if (j > 2) and (j < 25) then begin
-								i := 11;
-								h := -2;
-								while (s[i] <> #34) and (i <= Length(s)) do begin
-									if h <> -1 then
-										if s[i] = '-' then
-											h := -1
-										else if (s[i] >= '0') and (s[i] <= '9') then begin
-											if h = -2 then Inc(h,2);
-											h := h * 10;
-											h := h + Ord(s[i]) - 48;
-										end;
-									Inc(i);
-								end;
-								CustomSidebar[j].Elmt := h;
+		k := 0;
+		AssignFSysText(f, World.Info.Name + '.CFG');
+		Reset(f);
+		if (IOResult = 0) then begin
+			while k <= 64 do begin
+				s := '';
+				ReadLn(f, s);
+				if s = '' then
+					Inc(k);
+				if length(s) > 20 then begin
+					t := '       ';
+					for i := 1 to 7 do
+						t[i] := s[i];
+					if (t = 'SIDEBAR') or (t = 'sidebar') then begin
+						j := Ord(s[9]) - 48;
+						if s[10] <> '.' then begin
+							j := j * 10;
+							inc(j, Ord(s[10]) - 48);
+						end;
+						if (j > 2) and (j < 25) then begin
+							i := 11;
+							h := -2;
+							while (s[i] <> #34) and (i <= Length(s)) do begin
+								if h <> -1 then
+									if s[i] = '-' then
+										h := -1
+									else if (s[i] >= '0') and (s[i] <= '9') then begin
+										if h = -2 then Inc(h,2);
+										h := h * 10;
+										h := h + Ord(s[i]) - 48;
+									end;
 								Inc(i);
-								l := '';
-								t := '';
-								while (s[i] <> #34) and (i <= Length(s)) do begin
-									l := l + s[i];
-									c := UpCase(s[i]);
-									if ((c >= 'A') and (c <= 'Z'))
-										or ((c >= '0') and (c <= '9'))
-									then
-										t := t + c;
-									Inc(i);
-								end;
-								if length(l) <= 8 then begin
-									CustomSidebar[j].Disp := l;
-									for i := 1 to 7 do
-										if CustomBoardList[i] = t then
-											CustomSidebar[j].Ident := -i;
-									for i := 1 to CUSTOM_COUNTER_COUNT do
-										if CustomCounterList[i] = t then
-											CustomSidebar[j].Ident := i;
-									if CustomSidebar[j].Ident > -8 then
-										HasCustomSidebar := true;
-								end else if length(l) <= 20 then begin
-									CustomSidebar[j].Disp := l;
-									CustomSidebar[j].Ident := 127;
+							end;
+							CustomSidebar[j].Elmt := h;
+							Inc(i);
+							l := '';
+							t := '';
+							while (s[i] <> #34) and (i <= Length(s)) do begin
+								l := l + s[i];
+								c := UpCase(s[i]);
+								if ((c >= 'A') and (c <= 'Z'))
+									or ((c >= '0') and (c <= '9'))
+								then
+									t := t + c;
+								Inc(i);
+							end;
+							if length(l) <= 8 then begin
+								CustomSidebar[j].Disp := l;
+								for i := 1 to 7 do
+									if Locals(i) = t then
+										CustomSidebar[j].Ident := -i;
+								for i := 1 to CUSTOM_COUNTER_COUNT do
+									if CustomCounterList[i] = t then
+										CustomSidebar[j].Ident := i;
+								if CustomSidebar[j].Ident > -8 then
 									HasCustomSidebar := true;
-								end;
+							end else if length(l) <= 20 then begin
+								CustomSidebar[j].Disp := l;
+								CustomSidebar[j].Ident := 127;
+								HasCustomSidebar := true;
 							end;
 						end;
 					end;
 				end;
 			end;
-			Close(f);
 		end;
+		Close(f);
 	end;
 
 procedure HighScoresLoad;
@@ -2375,8 +2363,7 @@ procedure BoardEnter;
 		with Board.Stats[0] do begin
 			Board.Info.StartPlayerX := X;
 			Board.Info.StartPlayerY := Y;
-			if not HasINI 
-				or (StepX < -25)
+			if (StepX < -25)
 				or (StepX > 25)
 				or (StepY < -24)
 				or (StepY > 0)
@@ -2814,8 +2801,8 @@ procedure GameDrawTheme;
 			XDat.Params[THEME_START + 4]), '      ZZT      ');
 		VideoWriteText(62, 1, AsColor(XDat.Params[THEME_START + 5],
 			XDat.Params[THEME_START + 4]), ' Weave');
-		if not HasINI then VideoWriteText(74, 1, AsColor(XDat.Params[THEME_START + 5],
-			XDat.Params[THEME_START + 4]), '3.2');
+		VideoWriteText(74, 1, AsColor(XDat.Params[THEME_START + 5],
+			XDat.Params[THEME_START + 4]), '4.0');
 		VideoWriteText(61, 2, AsColor(XDat.Params[THEME_START + 1],
 			XDat.Params[THEME_START]), '    - - - - -      ');
 		if GameStateElement = E_PLAYER then begin
@@ -3056,7 +3043,7 @@ procedure GamePlayLoop(boardChanged: boolean);
 				HighScoresLoad;
 				HighScoresAdd(World.Info.Score);
 			end;
-			if (HasINI and not DebugEnabled) then if WorldLoad(World.Info.Name, '.ZZT') then begin
+			if (not DebugEnabled) then if WorldLoad(World.Info.Name, '.ZZT') then begin
 				LoadPalette;
 			end;
 		end else if GameStateElement = E_MONITOR then
@@ -3117,7 +3104,6 @@ procedure GameTitleLoop;
 							BoardChange(ReturnBoardId);
 							BoardEnter;
 						end;
-						KeyRepeat;
 					end;
 					'A': GameAboutScreen;
 					'S': begin
@@ -3131,7 +3117,6 @@ procedure GameTitleLoop;
 							BoardChange(ReturnBoardId);
 							startPlay := true;
 						end;
-						KeyRepeat;
 					end;
 					'H': begin
 						HighScoresLoad;

@@ -206,20 +206,20 @@ function CounterFromWord(var c: TCounter; statId: integer; s: string): boolean;
 		end else begin
 			c.CType := TCInteger;
 			for i := 1 to 7 do
-				if s = CustomBoardList[i] then begin
+				if s = Locals(i) then begin
 					c.Pointer := @Board.Info.Local[i];
 					exit;
 				end;
-			for i := 1 to 4 do
-				if s = CustomObjList[i] then begin
+			for i := 8 to 11 do
+				if s = Locals(i) then begin
 					c.Pointer := @Board.Stats[statId].ObjLocal[i];
 					exit;
 				end;
-			if s = CustomObjList[5] then begin
+			if s = Locals(12) then begin
 				c.Pointer := @Board.Stats[statId].Leader;
 				exit;
 			end;
-			if s = CustomObjList[6] then begin
+			if s = Locals(13) then begin
 				c.Pointer := @Board.Stats[statId].Follower;
 				exit;
 			end;

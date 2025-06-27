@@ -196,12 +196,9 @@ function SoundParse(input: string): string;
 		while (inPos <= Length(input)) do begin
 			noteTone := -1;
 
-			{ Round down to 32th note precision for compat mode }
-			if not HasINI then noteDuration := noteDuration and $FFFE;
-
 			case UpCase(input[inPos]) of
 				'Y': begin
-					if HasINI then noteDuration := 1;
+					noteDuration := 1;
 					Inc(inPos);
 				end;
 				'T': begin
@@ -237,13 +234,11 @@ function SoundParse(input: string): string;
 					Inc(inPos);
 				end;
 				'+': begin
-					if HasINI and (noteOctave < 8) then Inc(noteOctave)
-					else if not HasINI and (noteOctave < 6) then Inc(noteOctave);
+					if (noteOctave < 8) then Inc(noteOctave);
 					Inc(inPos);
 				end;
 				'-': begin
-					if HasINI and (noteOctave > 0) then Dec(noteOctave)
-					else if not HasINI and (noteOctave > 1) then Dec(noteOctave);
+					if (noteOctave > 0) then Dec(noteOctave);
 					Inc(inPos);
 				end;
 				'A'..'G': begin

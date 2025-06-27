@@ -130,13 +130,6 @@ var
 	InputGameController: PSDL_GameController;
 	InputJoystick: PSDL_Joystick;
 
-procedure RepeatSpeed(speed: shortint);
-	begin
-		if (speed <= 1) and (speed >= -2) then begin
-			JOY_REPEAT_HSECS_DELAY := (2 - speed) * 25;
-		end;
-	end;
-
 function UpCaseString(input: string; extChars: boolean): string;
 	var
 		s: string;

@@ -202,6 +202,13 @@ procedure SoundTimerHandler;
 
 procedure TimerSysInstall;
 	begin
+		{ Set Fast KeyRepeat }
+		regs.ah := $03;
+		regs.al := $05;
+		regs.bh := 0;
+		regs.bl := $06;
+		Intr($16, regs);
+
 		{ Set x2 PIT speed }
 		Port[$40] := $FF;
 		Port[$40] := $7F;
