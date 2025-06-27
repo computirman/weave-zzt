@@ -2187,7 +2187,8 @@ procedure OopExecute(statId: integer; name: TString50);
 				end else if OopChar = #0 then begin
 					endOfProgram := true;
 				end else begin
-					textLine := OopChar + OopReadLineToEnd(Index, Stat^.DataPos, false);
+					textLine := OopChar;
+					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos, false);
 					TextWindowAppend(textWindow, textLine);
 				end;
 
