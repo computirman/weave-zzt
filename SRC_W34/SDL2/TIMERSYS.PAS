@@ -141,7 +141,7 @@ function TimerSysGetHsecs: word;
 function PitTimerCallback(interval: Uint32; param: Pointer): Uint32; cdecl;
 	begin
 		Inc(TimerTicks);
-		if (TimerTicks and 1) = 0 then Inc(TimerHsecs, 11);
+		Inc(TimerHsecs, 11);
 
 		{ Emulate DOS sound buffer. }
 		if not SoundEnabled then begin

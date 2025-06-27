@@ -175,7 +175,7 @@ procedure SoundTimerHandler;
 	interrupt;
 	begin
 		Inc(TimerTicks);
-		if (TimerTicks and 1) = 0 then Inc(TimerHsecs, 11);
+		Inc(TimerHsecs, 11);
 
 		if not SoundEnabled then begin
 			SoundIsPlaying := false;

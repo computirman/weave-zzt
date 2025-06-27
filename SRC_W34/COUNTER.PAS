@@ -212,7 +212,7 @@ function CounterFromWord(var c: TCounter; statId: integer; s: string): boolean;
 				end;
 			for i := 8 to 11 do
 				if s = Locals(i) then begin
-					c.Pointer := @Board.Stats[statId].ObjLocal[i];
+					c.Pointer := @Board.Stats[statId].ObjLocal[i - 7];
 					exit;
 				end;
 			if s = Locals(12) then begin
