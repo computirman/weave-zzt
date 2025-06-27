@@ -83,7 +83,6 @@ interface
 	function InputGetControllerName: string;
 	procedure InputSetControllerID(value: string);
 	procedure InputSwitchToNextController;
-	procedure RepeatSpeed(speed: shortint);
 
 {DEFINE DEBUG_INPUT_FLAGS}
 

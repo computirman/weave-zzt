@@ -1803,14 +1803,14 @@ procedure OopExecute(statId: integer; name: TString50);
 							if (OopWord = 'FGPLAY') and (ix > iy) and (Length(SoundBuffer) > 0) then
 								repeatInsNextTick := true
 							else begin
-							OopReadChar(Index, Stat^.DataPos);
-							if OopChar = #13 then
-								SoundClearQueue;
-							Dec(Stat^.DataPos);
-							textLine := SoundParse(OopReadLineToEnd(Index, Stat^.DataPos, true));
-							if Length(textLine) <> 0 then
-								SoundQueue(-1, textLine);
-							lineFinished := false;
+								OopReadChar(Index, Stat^.DataPos);
+								if OopChar = #13 then
+									SoundClearQueue;
+								Dec(Stat^.DataPos);
+								textLine := SoundParse(OopReadLineToEnd(Index, Stat^.DataPos, true));
+								if Length(textLine) <> 0 then
+									SoundQueue(-1, textLine);
+								lineFinished := false;
 							end;
 						end else if OopWord = 'CYCLE' then begin
 							OopReadValue(Index, Stat^.DataPos);
@@ -2187,8 +2187,7 @@ procedure OopExecute(statId: integer; name: TString50);
 				end else if OopChar = #0 then begin
 					endOfProgram := true;
 				end else begin
-					textLine := OopChar;
-					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos, false);
+					textLine := OopChar + OopReadLineToEnd(Index, Stat^.DataPos, false);
 					TextWindowAppend(textWindow, textLine);
 				end;
 

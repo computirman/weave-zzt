@@ -310,21 +310,8 @@ function OopConfigs (i: integer): string;
 			22: OopConfigs := 'INPUT.8.KEYBIND';
 			23: OopConfigs := 'INPUT.8.LABEL';
 			24: OopConfigs := 'INPUT.8.SIDEBAR.ROW';
-			25: OopConfigs := 'FLAG.BOARD.1';
-			26: OopConfigs := 'FLAG.BOARD.2';
-			27: OopConfigs := 'FLAG.BOARD.3';
-			28: OopConfigs := 'FLAG.BOARD.4';
-			29: OopConfigs := 'FLAG.BOARD.5';
-			30: OopConfigs := 'FLAG.BOARD.6';
-			31: OopConfigs := 'FLAG.BOARD.7';
-			32: OopConfigs := 'FLAG.OBJ.1';
-			33: OopConfigs := 'FLAG.OBJ.2';
-			34: OopConfigs := 'FLAG.OBJ.3';
-			35: OopConfigs := 'FLAG.OBJ.4';
-			36: OopConfigs := 'FLAG.OBJ.5';
-			37: OopConfigs := 'FLAG.OBJ.6';
-			38: OopConfigs := 'WORLD.COUNTER';
-			39: OopConfigs := 'WORLD.FLAG';
+			25: OopConfigs := 'WORLD.COUNTER';
+			26: OopConfigs := 'WORLD.FLAG';
 		else OopConfigs := '_nil' end;
 	end;
 
@@ -2041,7 +2028,7 @@ procedure DisplayMessage(time: integer; message: string);
 					end else
 						Board.Info.Message := message;
 					P3 := time div (TickTimeDuration + 1);
-					VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, 9 + (P3 mod 7), ' '+Board.Info.Message+' ');
+					VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, 10, ' '+Board.Info.Message+' ');
 				end;
 			end;
 		end;
@@ -2487,14 +2474,19 @@ procedure GameDebugPrompt;
 			end;
 		end else if input = 'SPEED' then begin
 			SidebarPromptSlider(true, 64, 4, 'Game speed:;FS', TickSpeed);
-			TickTimeDuration := TickSpeed * 2;
+			if TickSpeed = 8 then
+				TickTimeDuration := 1
+			else if TickSpeed = 0 then
+				TickTimeDuration := 0
+			else
+				TickTimeDuration := (TickSpeed * 2) + 1;	
 			SidebarClearLine(6);
 		end else if input = 'FLAGS' then begin
 			TextWindowInitState(textWindow);
 			textWindow.Selectable := false;
 			textWindow.Title := 'List of Flags';
 			TextWindowAppend(textWindow, '$** Flags **');
-			for i := 1 to GetNumFlags do
+			for i := 1 to 99 do
 				if WorldInfoFlags(i) <> '' then
 					TextWindowAppend(textWindow, WorldInfoFlags(i));
 			TextWindowAppend(textWindow, '$** Keys **');
@@ -2914,7 +2906,12 @@ procedure GamePlayLoop(boardChanged: boolean);
 		if boardChanged then
 			TransitionDrawBoardChange;
 
-		TickTimeDuration := TickSpeed * 2;
+		if TickSpeed = 8 then
+			TickTimeDuration := 1
+		else if TickSpeed = 0 then
+			TickTimeDuration := 0
+		else
+			TickTimeDuration := (TickSpeed * 2) + 1;
 		GamePlayExitRequested := false;
 		exitLoop := false;
 

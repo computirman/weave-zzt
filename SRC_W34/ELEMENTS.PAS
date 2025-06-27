@@ -1457,10 +1457,16 @@ procedure ElementMessageDec;
 	begin
 		with Board.Stats[0] do begin
 			if P3 > 0 then begin
-				if TickSpeed < 3 then
+				if TickSpeed = 4 then
+					i := 9 + (((P3 * 2) - 1) div 3) mod 7
+				else if TickSpeed = 3 then
 					i := 9 + ((P3 - 1) div 2) mod 7
+				else if TickSpeed < 3 then
+					i := 9 + ((P3 - 1) div 4) mod 7
+				else if TickSpeed > 7 then
+					i := 9 + ((P3 - 1) div 5) mod 7
 				else
-					i := 9 + (P3 - 1) mod 7;
+					i := 9 + (((P3 * 3) - 1) div 2) mod 7;
 				
 				VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i,
 					' '+Board.Info.Message+' ');
@@ -1523,8 +1529,7 @@ procedure ElementCustomDir(shiftPressed: boolean);
 
 procedure ElementTruePlayerTick;
 	var
-		i: integer;
-		bulletCount: integer;
+		i, bulletCount: integer;
 		inputC: char;
 	begin
 		if NeuromotorAssist then GameMove := false else GameMove := true;
@@ -1832,9 +1837,7 @@ procedure ElementMonitorTick(statId: integer);
 		if QuickStart then GamePlayExitRequested := true;
 		if inputC in [#27, 'A', 'E', 'H', 'N', 'P', 'Q', 'R', 'S', 'W', '|'] then
 			GamePlayExitRequested := true;
-		if (statId = 0)
-			and not (Board.Stats[0].P1 = 1)
-		then begin
+		if (statId = 0) and not (Board.Stats[0].P1 = 1) then begin
 			ElementCustomInput(inputC);
 			ElementCustomDir(InputShiftPressed);
 		end;
@@ -2396,14 +2399,14 @@ function StringConfigs(i: integer): string;
 			78: StringConfigs := 'KEYS.SAVE.LABEL';
 			79: StringConfigs := 'KEYS.PAUSE.BIND';
 			80: StringConfigs := 'KEYS.PAUSE.LABEL';
-			81: StringConfigs := 'SIDEBAR.PAUSE.MSG';
-			82: StringConfigs := 'SIDEBAR.TITLEPROMPT';
+			81: StringConfigs := 'THEME.PAUSE.MSG';
+			82: StringConfigs := 'THEME.TITLEPROMPT';
 			83: StringConfigs := 'KEYS.CHEAT.BIND';
 			84: StringConfigs := 'DEFAULT.OBJECT.NAME';
 			85: StringConfigs := 'DEFAULT.SCROLL.NAME';
-			86: StringConfigs := 'SIDEBAR.MOVE.MSG';
-			87: StringConfigs := 'SIDEBAR.SHOOT.MSG';
-			88: StringConfigs := 'SIDEBAR.SHIFT.MSG';
+			86: StringConfigs := 'THEME.MOVE.MSG';
+			87: StringConfigs := 'THEME.SHOOT.MSG';
+			88: StringConfigs := 'THEME.SHIFT.MSG';
 		else StringConfigs := '_nil' end;
 	end;
 
