@@ -1453,24 +1453,20 @@ procedure GamePromptEndPlay;
 
 procedure ElementMessageDec;
 	var
-		i, x, y: integer;
+		i, k: integer;
+		s: string;
 	begin
 		with Board.Stats[0] do begin
 			if P3 > 0 then begin
-				if TickSpeed = 4 then
-					i := 9 + (((P3 * 2) - 1) div 3) mod 7
-				else if TickSpeed = 3 then
-					i := 9 + ((P3 - 1) div 2) mod 7
-				else if TickSpeed < 3 then
-					i := 9 + ((P3 - 1) div 4) mod 7
-				else if TickSpeed > 7 then
-					i := 9 + ((P3 - 1) div 5) mod 7
+				if (TickTimeDuration < 8) then
+					k := 4
 				else
-					i := 9 + (((P3 * 3) - 1) div 2) mod 7;
+					k := 2;
+				i := 9 + (P3 mod 7);
 				
 				VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i,
 					' '+Board.Info.Message+' ');
-				if GameMove then
+				if GameMove and ((CurrentTick mod k) = 0) then
 					Dec(P3);
 			end else if Board.Info.Message <> '' then begin
 				Board.Info.Message := '';

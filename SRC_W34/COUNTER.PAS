@@ -293,10 +293,8 @@ function CounterWriteValue(var c: TCounter; var u: TScheduledUpdates): boolean;
 				TickSpeed := c.Value - 1;
 			if TickSpeed = 8 then
 				TickTimeDuration := 1
-			else if TickSpeed = 0 then
-				TickTimeDuration := 0
 			else
-				TickTimeDuration := (TickSpeed * 2) + 1;
+				TickTimeDuration := TickSpeed * 4;
 		end else
 			CounterWriteValue := false;
 	end;

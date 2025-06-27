@@ -2006,7 +2006,7 @@ procedure GameUpdateSidebar;
 
 procedure DisplayMessage(time: integer; message: string);
 	var
-		statId: integer;
+		i: integer;
 	begin
 		if Length(message) <> 0 then begin
 			with Board.Stats[0] do begin
@@ -2027,8 +2027,9 @@ procedure DisplayMessage(time: integer; message: string);
 						BoardDrawRow(BOARD_HEIGHT + StepY);
 					end else
 						Board.Info.Message := message;
-					P3 := time div (TickTimeDuration + 1);
-					VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, 10, ' '+Board.Info.Message+' ');
+					P3 := time div 8;
+					i := 9 + (P3 mod 7);
+					VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i, ' '+Board.Info.Message+' ');
 				end;
 			end;
 		end;
@@ -2476,10 +2477,8 @@ procedure GameDebugPrompt;
 			SidebarPromptSlider(true, 64, 4, 'Game speed:;FS', TickSpeed);
 			if TickSpeed = 8 then
 				TickTimeDuration := 1
-			else if TickSpeed = 0 then
-				TickTimeDuration := 0
 			else
-				TickTimeDuration := (TickSpeed * 2) + 1;	
+				TickTimeDuration := TickSpeed * 4;
 			SidebarClearLine(6);
 		end else if input = 'FLAGS' then begin
 			TextWindowInitState(textWindow);
@@ -2908,10 +2907,8 @@ procedure GamePlayLoop(boardChanged: boolean);
 
 		if TickSpeed = 8 then
 			TickTimeDuration := 1
-		else if TickSpeed = 0 then
-			TickTimeDuration := 0
 		else
-			TickTimeDuration := (TickSpeed * 2) + 1;
+			TickTimeDuration := TickSpeed * 4;
 		GamePlayExitRequested := false;
 		exitLoop := false;
 
