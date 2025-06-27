@@ -1,0 +1,112 @@
+@Grenades
+#set obj5 16
+#set obj6 1
+:deactivate
+#clear obj4
+#if any bomb set obj4 pget pfind bomb p1
+#if obj4 above 2 shove pfind bomb at 31 1
+#and put at 31 1 empty
+#color i 0 13
+#write at obj5 obj6 purple black INACTIVE
+#restore touch
+#end
+
+:touch
+#set array bomb.cycle
+#if array $CURRENT BOMB CYCLE IS ^
+#else $CURRENT BOMB CYCLE IS 0
+#set array bomb.p3
+#if array $CURRENT BOMB P3 IS ^
+#else $CURRENT BOMB P3 IS 0
+
+!ccyc;Change Cycle
+!cp3;Change P3
+!cgo;Launch Grenade (size 20)
+!cbig;Launch Grenade (size 125)
+#end
+:ccyc
+#set obj1 bomb.cycle
+#set array
+$Choose a new Cycle:
+
+#if not obj1 is 1 !cyc1;1
+#if not obj1 is 2 !cyc2;2
+#if not obj1 is 3 !cyc3;3
+#if not obj1 is 4 !cyc4;4
+#if not obj1 is 5 !cyc5;5
+#if not obj1 is 6 !cyc6;6
+!;Choose a random value (default)
+/i
+#set array random 1 6
+#cyc1
+:cyc6
+#give array
+:cyc5
+#give array
+:cyc4
+#give array
+:cyc3
+#give array
+:cyc2
+#give array
+:cyc1
+#set bomb.cycle array
+Bomb Cycle set to ^.
+#end
+:cp3
+#set obj1 bomb.p3
+#clear array
+$Choose a new P3 value:
+
+#if not obj1 is 0 !pp1;0
+#if not obj1 is 1 !pp2;1
+#if not obj1 is 2 !pp3;2
+#if not obj1 is 3 !pp4;3
+#if not obj1 is 5 !pp5;5
+#if not obj1 is 7 !pp6;7
+#if not obj1 is 9 !pp7;9
+!;Choose a random value (default)
+/i
+#set array random 1 7
+#send pp^
+:pp7
+#give array 2
+:pp6
+#give array 2
+:pp5
+#give array 2
+:pp4
+#give array
+:pp3
+#give array
+:pp2
+#give array
+:pp1
+#set bomb.p3 array
+#if not array pz
+P3 value set to ^.
+#end
+:pz
+P3 value set to 0.
+#end
+:cgo
+#set other.bombsize 20
+#set obj3 9
+#launch
+:cbig
+#set other.bombsize 125
+#set obj3 15
+:launch
+#zap touch
+#others:deactivate
+#write at obj5 obj6 purple black ACTIVE  
+#color i 0 5
+/i/i/i#bgplay i--ct+cxcxc
+LAUNCHING GRENADE: STAND CLEAR!
+/i/i/i/i/i/i/i/i/i
+#put e obj3 0 bomb
+#pset e p1 9
+#step e e
+:waitfor
+/i#if any bomb waitfor
+#deactivate

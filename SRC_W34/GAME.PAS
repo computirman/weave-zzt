@@ -272,7 +272,7 @@ procedure LoadPalette;
 function DefaultParamList(i: integer): integer;
 	begin
 		case i of
-			1,9,11,16,23,24,25,26,27,29,31,32,36,37,39,43,1: DefaultParamList := 0;
+			1,9,11,16,23,24,25,26,27,29,31,32,36,37,39,43: DefaultParamList := 0;
 			2: DefaultParamList := 10;
 			3,6,12,13,20: DefaultParamList := 1;
 			4,7: DefaultParamList := 2;
@@ -2039,6 +2039,14 @@ procedure DisplayMessage(time: integer; message: string);
 					P3 := 0;
 					BoardDrawRow(BOARD_HEIGHT + StepY);
 				end else begin
+					if (StepY < -24)
+						or (StepY > 0)
+					then
+						StepY := 0;
+					if (StepX < -25)
+						or (StepX > 25)
+					then
+						StepX := 0;
 					if Length(Board.Info.Message) > Length(message) then begin
 						Board.Info.Message := message;
 						BoardDrawRow(BOARD_HEIGHT + StepY);

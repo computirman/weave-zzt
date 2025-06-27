@@ -134,7 +134,7 @@ function CounterFromWord(var c: TCounter; statId: integer; s: string): boolean;
 		end else if s = 'WHITEKEY' then begin
 			c.CType := TCShortInt;
 			c.Pointer := @World.Info.Keys[7];
-		end else if s = 'TICKSPEED' then begin
+		end else if (s = 'TICKSPEED') or (s = 'GAMESPEED') then begin
 			c.CType := TCTickSpeed;
 		end else if s = 'MAXBULLETS' then begin
 			c.CType := TCShortInt;

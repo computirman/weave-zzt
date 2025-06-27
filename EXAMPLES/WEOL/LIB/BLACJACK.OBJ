@@ -1,0 +1,84 @@
+@Machine
+:enter
+'touch
+#write at obj5 obj6 purple black INACTIVE
+#write at 21 17 13 0 ллллл
+#write at 21 18 13 0 ллллл
+#write at 21 19 13 0 ллллл
+#write at 21 20 13 0      
+#write at 31 22 13 0   
+#restore touch
+#zap touch
+#end
+'touch
+#lock
+#restore touch
+#set obj1 random 0 3
+#if obj1 above 1 give obj1 obj1
+#else give obj1
+#set obj2 random 1 13
+:redraw
+#set obj3 random 0 3
+#if obj3 above 1 give obj3 obj3
+#else give obj3
+#set obj4 random 1 13
+#if obj1 is obj3 if obj2 is obj4 redraw
+#clear array
+#if obj2 above 9 give array 10
+#else if obj2 is 1 give array 11
+#else give array obj2
+#if obj4 above 9 give array 10
+#else if obj4 if 1 give array 11
+#else give array obj4
+#if array is 22 set array 12
+#if array is 21 write at 31 22 12 0 21
+#else write at 31 22 7 0 ^
+#run :drawcard1
+#run :drawcard2
+#color i 0 5
+#write at obj5 obj6 purple black INACTIVE
+#unlock
+#end
+
+:drawcard1
+#set array obj2
+#if obj2 is 1 write at 21 17 15 obj1 A
+#else if obj2 is 10 write at 21 17 15 obj1 T
+#else if obj2 is 11 write at 21 17 15 obj1 J
+#else if obj2 is 12 write at 21 17 15 obj1 Q
+#else if obj2 is 13 write at 21 17 15 obj1 K
+#else write at 21 17 15 obj1 ^
+#put at 22 17 223 text 8 obj1
+#if obj1 is 1 put at 21 18 5 0 text 15 1
+#if obj1 is 2 put at 21 18 6 0 text 15 2
+#if obj1 is 4 put at 21 18 3 0 text 15 4
+#if obj1 is 6 put at 21 18 4 0 text 15 6
+#put at 22 18 219 text obj1 0
+#write at 21 19 8 obj1 н 
+#put at 21 20 222 text 8 7
+#put at 22 20 220 text 8 obj1
+#end
+
+:drawcard2
+#set array obj4
+#if obj4 is 1 write at 23 17 15 obj3 A
+#else if obj4 is 10 write at 23 17 15 obj3 T
+#else if obj4 is 11 write at 23 17 15 obj3 J
+#else if obj4 is 12 write at 23 17 15 obj3 Q
+#else if obj4 is 13 write at 23 17 15 obj3 K
+#else write at 23 17 15 obj3 ^
+#put at 24 17 223 text 8 obj3
+#put at 25 17 221 text 8 7
+#if obj3 is 1 put at 23 18 5 0 text 15 1
+#if obj3 is 2 put at 23 18 6 0 text 15 2
+#if obj3 is 4 put at 23 18 3 0 text 15 4
+#if obj3 is 6 put at 23 18 4 0 text 15 6
+#write at 24 18 8 obj3  о
+#write at 23 19 8 obj3 н 
+#put at 23 20 222 text 8 7
+#put at 24 20 220 text 8 obj3
+#set obj1 pget at 23 17 char
+#set obj2 pget at 23 18 char
+#put at 25 19 obj2 text 15 obj3
+#put at 25 20 obj1 text 15 obj3
+#end

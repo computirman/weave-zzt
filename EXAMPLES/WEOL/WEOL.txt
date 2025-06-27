@@ -1,0 +1,10 @@
+The Weave Example Object Library (W.E.O.L.)
+-------------------------------------------
+
+A supplementary set of examples of what you can do with Weave, based on the examples set forth for ZZT in the original Z.E.O.L. series. 
+
+You will need to provide your own emulation. Zeta, as with all Weave versions, is preferred.
+
+The example objects are in the WEOL\lib folder.
+
+These examples are designed for Weave 3.3u+ or later.

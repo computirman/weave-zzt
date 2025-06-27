@@ -1,0 +1,41 @@
+@Warp
+#set obj1 thisx
+#take obj1 26
+#if obj1 is 1 set purpletext.fg dkpurple
+#and set purpletext.bg black
+#and set purpletext.walkable true
+#set array obj1
+#send init^
+:default
+#set obj2 30
+#set obj3 12
+:start
+#unlock
+/i#if not contact start
+#color i 0 13
+#bgplay 9
+#if obj1 is 8 change 8 0 invisible 15 0 solid
+#else change obj1 0 invisible 219 text 15 obj1
+:wait
+#if contact /i#wait
+#color i 13 0
+#if obj1 is 8 change 15 0 solid 8 0 invisible
+#else change 219 text 15 obj1 obj1 0 invisible
+#start
+:touch
+#play -cg+c#g#-da+d#a#
+#board obj1 obj2 obj3
+#wait
+
+:init4
+#set obj2 9
+#set obj3 12
+#start
+:init7
+#set obj2 7
+#set obj3 11
+#start
+:init8
+#set obj2 31
+#set obj3 12
+#start

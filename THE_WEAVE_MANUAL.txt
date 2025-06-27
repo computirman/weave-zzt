@@ -6,7 +6,7 @@ This document assumes you are familiar with creating ZZT games, and expects you 
 
 == Version ==
 
-The version of this manual is 0.5. It covers Weave versions 3.4 and later.
+The version of this manual is 0.6. It covers Weave versions 3.4 and later.
 
 == Using this Manual ==
 
@@ -311,6 +311,14 @@ Recolors a tile to the given color. For example, "#COLOR I Red DkRed" will make 
 
 Note: Custom counters can store color data. For more information on this, see Appendix C: "Color Substitution".
 
+== #DO / #DONE ==
+
+Similar to #AND, if the last #IF statement evaluated to TRUE, the lines of code between #DO and #DONE will be executed.
+
+Multiple #DO and #DONE blocks can be nested in one another.
+
+Additionally, see the entry for #ELSEDO below.
+
 == #DIE ITEM ==
 
 Similar to items like ammo, gems and torches, an object that dies with #DIE ITEM will place the player on its current position as it dies.
@@ -375,6 +383,27 @@ Keeping in mind the above, you can use #IF, #AND and #ELSE to evaluate many diff
 
 Test the above code for yourself to see how it works.
 
+== #ELSEDO ==
+
+You can place #ELSEDO inside a #DO / #DONE block:
+
+    @EitherOr
+    #IF THISX ABOVE 30 DO
+    #WALK W
+    /i/i/i#WALK I
+    #SHOOT W
+    #ELSEDO
+    #WALK E
+    /i/i/i#WALK I
+    #SHOOT S
+    #DONE
+
+If the last #IF statement evaluated to TRUE, then the code between #DO and #ELSEDO will be run.
+
+If the last #IF statement evaluated to FALSE, the code between #ELSEDO and #DONE will be run.
+
+Multiple #DO / #ELSEDO / #DONE blocks can be nested in one another.
+
 == #FGPLAY <notes> ==
 
 Like #PLAY, but checks that the queue is empty, or will soon be empty, before adding <notes> to the sound queue. If the queue is too full, it will try again on its next tick, similar to how /movement works.  Useful for playing long songs without having to calculate how many /i commands are needed to keep the buffer from overrunning.
@@ -399,6 +428,7 @@ In addition to ANY, BLOCKED, and similar from Vanilla ZZT, Weave adds the follow
 
  * #IF CANPUT <dir>
     - Evaluates true if the object can #put a stat nondestructively in a given direction, because either it is not blocked, or there's water in that direction.
+    - Elements where CANPUT is true and WALKABLE is false behave like water, with bullets being able to pass over but other stats being unable.
 
  * #IF CANSHOOT <dir>
     - Evaluates true if the object can shoot in a given direction, either because there is a breakable in that direction, is it unblocked, or it is over water.
@@ -1196,7 +1226,6 @@ Below is a list of the elements in the element table, and any attributes they us
     - Modify "error.msg" and "error.snd" to change the message and sound when an object encounters a ZZT-OOP error. "#CLEAR error.msg" will cause errors to be ignored.
     - Set "other.friendlyfire" to False to disable object-to-object friendly fire (Object bullets no longer invoke the :SHOT label). Default is True.
     - Increase "other.maxoop" to raise the limit on lines of ZZT-OOP an object can execute per tick. Default is 33.
-
 
  * Element 37: SLIME, p2
     - Attributes used: fg, bg, char

@@ -1,0 +1,20 @@
+@BeColor
+#set obj5 50
+#set obj6 3
+#end
+:touch
+#lock player
+#write at obj5 obj6 purple black ACTIVE  
+/i
+:newfg
+#set obj1 random 1 15
+#if obj1 is pget i fg newfg
+:newbg
+#set obj2 random 2 15
+#if obj2 is obj1 newbg
+#if obj2 is pget i bg newbg
+#color i obj1 obj2
+/i
+#write at obj5 obj6 purple black INACTIVE
+#unlock player
+#end

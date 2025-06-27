@@ -1,0 +1,35 @@
+@Rainbow
+#set obj5 15
+#set obj6 2
+#end
+:touch
+#lock player
+#all:deactivate
+#restore deactivate
+#color i 0 5
+/i
+#write at obj5 obj6 purple black ACTIVE  
+#unlock player
+:rainbowloop
+/i#put under player 4 4 fake
+#change 4 14 fake empty
+/i#put under player 4 14 fake
+#change 14 14 fake empty
+/i#put under player 14 14 fake
+#change 10 3 fake empty
+/i#put under player 10 3 fake
+#change 2 10 fake empty
+/i#put under player 2 10 fake
+#change 9 10 fake empty
+/i#put under player 9 10 fake
+#change 9 1 fake empty
+/i#put under player 9 1 fake
+#change 4 4 fake empty
+#rainbowloop
+'deactivate
+#zap deactivate
+#color i 0 13
+#change fake empty
+#put under player empty
+#write at obj5 obj6 purple black INACTIVE
+#end

@@ -1,0 +1,44 @@
+@Porter
+#set obj5 14
+#set obj6 1
+#shove i e
+#shove i pfind yellowtext
+#set obj1 thisx
+#set obj2 thisy
+#shove i pfind yellowtext
+#shove i w
+:enter
+#set yellowtext.walkable true
+#set yellowtext.canshoot true
+#set yellowtext.fg yellow
+#set yellowtext.bg dkgray
+:pre
+#color i 0 5
+#if blocked e /i#pre
+#write at obj5 obj6 purple black INACTIVE
+:loop
+#color i 0 13
+#if detect e yellowtext set array pget e char
+#and anim^
+#write at obj5 obj6 purple black ACTIVE  
+#if contact lock player
+#and color i 0 5
+#and /i#unlock player
+#shove e at obj1 obj2
+#set obj3 pget at obj1 obj2 stepx
+#if obj3 below 0 step at obj1 obj2 e
+#bgplay 0000
+#send /to at obj1 obj2 w pre
+#send anim^
+:anim179
+#color e 92
+/i#loop
+:anim92
+#color e 124
+/i#loop
+:anim124
+#color e 47
+/i#loop
+:anim47
+#color e 179
+/i#loop

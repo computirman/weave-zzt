@@ -242,9 +242,25 @@ procedure XOut(s: TString50);
 		Close(f);
 	end;
 
+function StringMsg(i: integer): boolean;
+	begin
+		case i of
+			6,12,13,15,16,18,19,
+			21,22,24,26,28,31,33,
+			35,36,38,40,41,44,45,
+			46,48,54,57,63,64,65,
+			66,67,68,69,71,73,74,
+			76,78,80,81,82,84,85,
+			86,87,88:
+				StringMsg := false;
+		else
+			StringMsg := true
+		end;
+	end;
+
 function OopRunFunc(statId: integer; var position: integer): integer;
 	var
-		ix, iy, qpos: integer;
+		ix, iy, sdo: integer;
 		labelPtr: pointer;
 		tmpcond: boolean;
 	begin
@@ -253,6 +269,7 @@ function OopRunFunc(statId: integer; var position: integer): integer;
 		with TrackPushStat(statId)^ do begin
 			tmpcond := Stat^.elseCheck;
 			ix := Stat^.DataPos;
+			sdo := Stat^.doStack;
 			if OopWord[1] = ':' then begin
 				Delete(OopWord, 1, 1);
 				if OopSend(Index, OopWord, true) then
@@ -264,7 +281,7 @@ function OopRunFunc(statId: integer; var position: integer): integer;
 				Stat^.DataLen := 0;
 				if FileLoadStatData(OopWord,Index) then begin
 					OopExecute(Index,'%%Function');
-					FreeMem(Stat^.Data,Stat^.DataLen);
+					FreeMem(Stat^.Data, Stat^.DataLen);
 				end else 
 					OopError(Index,position, 'File not found ' + OopWord + '.OBJ');
 				Stat^.Data := labelPtr;
@@ -272,6 +289,7 @@ function OopRunFunc(statId: integer; var position: integer): integer;
 			end;
 			Stat^.elseCheck := tmpcond;
 			Stat^.DataPos := ix;
+			Stat^.doStack := sdo;
 		end;
 		TrackPopStat;
 		GameUpdateSidebar;
@@ -540,7 +558,7 @@ procedure OopReadDirectionRel(statId: integer; var position: integer; var dx, dy
 			end;
 		end else begin
 			OopReadDirection(statId, position, dx, dy);
-			if (textLine = 'AT') then begin
+			if (textLine = 'AT') or (textLine = 'PFIND') then begin
 				Dec(dx,ix - Board.Stats[statId].X);
 				Dec(dy,iy - Board.Stats[statId].Y);
 			end;
@@ -1190,7 +1208,10 @@ function OopReadLineToEnd(statId: integer; var position: integer; upcased: boole
 		OopReadChar(statId, position);
 		while (OopChar <> #0) and (OopChar <> #13) do begin
 			if (OopChar <> '^') or (Board.Stats[statId].ObjArray = 0) then
-				s := s + OopChar
+				if upcased then
+					s := s + UpCase(OopChar)
+				else
+					s := s + OopChar
 			else begin
 				Str(Board.Stats[statId].ObjArray, t);
 				s := s + t;
@@ -1366,6 +1387,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 					OopSend := true;
 
 				Board.Stats[iStat].DataPos := iDataPos + 1;
+				Board.Stats[iStat].doStack := 0;
 			end;
 		end;
 	end;
@@ -1418,19 +1440,26 @@ procedure OopExecute(statId: integer; name: TString50);
 			insCount := 1;
 			repeat
 		ReadInstruction:
+			{ do/done parsing START }
+				if (Stat^.doStack > 0) and (Stat^.DataPos < Stat^.DataLen) then begin
+					textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
+					if (textLine = '#DONE') or ((Stat^.doStack = 1) and (textLine = '#ELSEDO')) then
+						Dec(Stat^.doStack)
+					else if (textLine[1] = '#')
+						and (textLine[length(textline)-1] = 'D')
+						and (textLine[length(textline)] = 'O')
+						and ((textLine[length(textline)-2] = ' ') or (textLine[length(textline)-2] = '#'))
+					then
+						Inc(Stat^.doStack);
+				end else begin
+			{ do/done parsing END }
+
 				lineFinished := true;
 				lastPosition := Stat^.DataPos;
 				OopReadChar(Index, Stat^.DataPos);
 
-				{ skip labels }
-				while OopChar = ':' do begin
-					repeat
-						OopReadChar(Index, Stat^.DataPos);
-					until (OopChar = #0) or (OopChar = #13);
-					OopReadChar(Index, Stat^.DataPos);
-				end;
-
-				if (OopChar = '@') or (OopChar = #39) { apostrophe } then
+				{ skip labels and comments }
+				if (OopChar = '@') or (OopChar = ':') or (OopChar = #39) { apostrophe } then
 					OopSkipLine(Index, Stat^.DataPos)
 				else if (OopChar = '/') or (OopChar = '?') then begin
 					if OopChar = '/' then
@@ -1456,7 +1485,7 @@ procedure OopExecute(statId: integer; name: TString50);
 
 						stopRunning := true;
 					end else
-						OopError(Index,Stat^.DataPos, 'Bad direction ' + OopWord);
+						OopError(Index, Stat^.DataPos, 'Bad direction ' + OopWord);
 				end else if OopChar = '#' then begin
 		ReadCommand:
 					OopReadWord(Index, Stat^.DataPos);
@@ -1502,7 +1531,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								if counter.CType = TCConfig then begin
 									if (OopChar <> #13) and (OopChar <> #0) then
 										Inc(Stat^.DataPos);
-									textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
+									textLine := OopReadLineToEnd(Index, Stat^.DataPos, StringMsg(counter.Value));
 									if textLine <> '' then begin
 										XDat.Configs[counter.Value] := textLine;
 										Dec(Stat^.DataPos);
@@ -1520,7 +1549,7 @@ procedure OopExecute(statId: integer; name: TString50);
 							end else if OopNextWord(Index, Stat^.DataPos) = '' then begin
 								WorldSetFlag(OopWord);
 							end else
-								OopError(Index,Stat^.DataPos, 'Unknown counter ' + OopWord);
+								OopError(Index, Stat^.DataPos, 'Unknown counter ' + OopWord);
 							If HasCustomSidebar then GameDrawCustomSidebar;
 						end else if OopWord = 'CLEAR' then begin
 							OopReadWord(Index, Stat^.DataPos);
@@ -1547,8 +1576,16 @@ procedure OopExecute(statId: integer; name: TString50);
 								Dec(Stat^.DataPos);
 								if (OopChar <> #13) then
 									goto ReadCommand;
-							end else
+							end else begin
 								Stat^.elseCheck := true;
+								if (OopChar <> #13) then begin
+									OopReadWord(Index, Stat^.DataPos);
+									if (OopWord = 'DO') then
+										Inc(Stat^.doStack)
+									else if (OopWord = 'ELSEDO') or (OopWord = 'ELSE') then
+										goto ReadCommand;
+								end;
+							end;
 						end else if OopWord = 'SHOOT' then begin
 							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
 							if BoardShoot(E_BULLET, Stat^.X, Stat^.Y, deltaX, deltaY, XDat.EDefs[E_BULLET].P3) then
@@ -1586,13 +1623,14 @@ procedure OopExecute(statId: integer; name: TString50);
 										goto ReadCommand;
 								end else if CounterWriteValue(counter, scheduledUpdates) then begin end;
 							end else
-								OopError(Index,Stat^.DataPos, 'Unknown counter ' + OopWord);
+								OopError(Index, Stat^.DataPos, 'Unknown counter ' + OopWord);
 							scheduledUpdates.UpdateSidebar := true;
 							If HasCustomSidebar then GameDrawCustomSidebar;
 						end else if OopWord = 'END' then begin {#END Returns Functions.}
 							OopReadValue(Index, Stat^.DataPos);
 							OopFuncReturn := OopValue;
 							Stat^.DataPos := -1;
+							Stat^.doStack := 0;
 							OopChar := #0;
 						end else if OopWord = 'ENDGAME' then begin
 							OopReadWord(Index, Stat^.DataPos);
@@ -1604,6 +1642,7 @@ procedure OopExecute(statId: integer; name: TString50);
 							stopRunning := true;
 						end else if OopWord = 'RESTART' then begin
 							Stat^.DataPos := 0;
+							Stat^.doStack := 0;
 							lineFinished := false;
 						end else if (OopWord = 'ZAP') or (OopWord = 'RESTORE') then begin
 							textLine := OopWord;
@@ -1686,18 +1725,18 @@ procedure OopExecute(statId: integer; name: TString50);
 								replaceTile.Element := argTile.Element;
 								replaceTile.Color := argTile.Color;
 							end else begin
-								OopError(Index,Stat^.DataPos, 'Bad #BECOME');
+								OopError(Index, Stat^.DataPos, 'Bad #BECOME');
 							end;
 						end else if OopWord = 'PUT' then begin
 							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
 							if not OopParseTile(Index, Stat^.DataPos, argTile) then
-								OopError(Index,Stat^.DataPos, 'Bad #PUT')
+								OopError(Index, Stat^.DataPos, 'Bad #PUT')
 							else if ((Stat^.X + deltaX) > 0)
 								and ((Stat^.X + deltaX) <= BOARD_WIDTH)
 								and ((Stat^.Y + deltaY) > 0)
 								and ((Stat^.Y + deltaY) <= BOARD_HEIGHT) then
 							begin
-								ix := GetStatIdAt(Stat^.X + deltaX,Stat^.Y + deltaY);
+								ix := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
 								if SelUnder and (ix > -1) then begin
 									Board.Stats[ix].Under.Element := argTile.Element;
 									if argTile.Color and $F0 > 0 then
@@ -1729,11 +1768,11 @@ procedure OopExecute(statId: integer; name: TString50);
 							end;
 						end else if OopWord = 'CHANGE' then begin
 							if not OopParseTile(Index, Stat^.DataPos, argTile) then
-								OopError(Index,Stat^.DataPos, 'Bad #CHANGE to ' + OopWord)
+								OopError(Index, Stat^.DataPos, 'Bad #CHANGE to ' + OopWord)
 							else begin
 								textLine := OopWord;
 								if not OopParseTile(Index, Stat^.DataPos, argTile2) then
-									OopError(Index,Stat^.DataPos, 'Bad #CHANGE from ' + textLine + ' to ' + OopWord)
+									OopError(Index, Stat^.DataPos, 'Bad #CHANGE from ' + textLine + ' to ' + OopWord)
 								else begin
 									if (argTile.Element = E_PLAYER) then begin
 										if (argTile.Color = 0)
@@ -1815,12 +1854,17 @@ procedure OopExecute(statId: integer; name: TString50);
 									Stat^.DataLen := Board.Stats[bindStatId].DataLen;
 								end;
 								Stat^.DataPos := 0;
+								Stat^.doStack := 0;
 							end;
 						end else if HasINI then begin
 							if (OopWord = 'ELSE') then begin
 								if Stat^.elseCheck then goto ReadCommand;
 							end else if (OopWord = 'AND') then begin
 								if not Stat^.elseCheck then goto ReadCommand;
+							end else if (OopWord = 'DO') then begin
+								if Stat^.elseCheck then Inc(Stat^.doStack);
+							end else if (OopWord = 'ELSEDO') then begin
+								if not Stat^.elseCheck then Inc(Stat^.doStack);
 							end else if (OopWord = 'RUN') then begin
 								ix := OopRunFunc(Index, Stat^.DataPos);
 							end else if OopWord = 'RUNWITH' then begin
@@ -1828,7 +1872,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								if OopValue <> -32767 then
 									ix := OopRunFuncWith(Index, Stat^.DataPos, OopValue)
 								else
-									OopError(Index,Stat^.DataPos, 'Could not read ' + OopWord + ' value');
+									OopError(Index, Stat^.DataPos, 'Could not read ' + OopWord + ' value');
 							end else if OopWord = 'SOUT' then begin {OUTPUT}
 								ix := Stat^.DataPos;
 								OopReadWord(Index, Stat^.DataPos);
@@ -1875,21 +1919,22 @@ procedure OopExecute(statId: integer; name: TString50);
 											if FileAppendStatData(textLine,bindStatId) then
 												goto ReadCommand
 											else
-												OopError(Index,Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
+												OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
 										end else if FileLoadStatData(textLine,bindStatId) then begin
 											Board.Stats[bindStatId].DataPos := 0;
+											Board.Stats[bindStatId].doStack := 0;
 											goto ReadCommand;
 										end else
-											OopError(Index,Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
+											OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
 									end;
 								end;
 							end else if OopWord = 'WRITE' then begin
 								OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
-								Inc(deltaX,Stat^.X);
-								Inc(deltaY,Stat^.Y);
+								Inc(deltaX, Stat^.X);
+								Inc(deltaY, Stat^.Y);
 
 								ix := OopGetColor(Index, Stat^.DataPos, argTile);
-								if ix < 0 then OopError(Index,Stat^.DataPos, 'Invalid WRITE color.');
+								if ix < 0 then OopError(Index, Stat^.DataPos, 'Invalid WRITE color.');
 								argTile.Element := 128 + (ix mod 128);
 
 								Inc(Stat^.DataPos);
@@ -1907,9 +1952,9 @@ procedure OopExecute(statId: integer; name: TString50);
 									begin
 										argTile.Color := Ord(textLine[Length(textLine) - iy]);
 										if ((deltaX <> 0) or (deltaY <> 0)) and (GetStatIdAt(deltaX, deltaY) <> 0) then
-											if SelUnder and (GetStatIdAt(Stat^.X + deltaX,Stat^.Y + deltaY) > 0) then begin
-												Board.Stats[GetStatIdAt(Stat^.X + deltaX,Stat^.Y + deltaY)].Under.Element := argTile.Element;
-												Board.Stats[GetStatIdAt(Stat^.X + deltaX,Stat^.Y + deltaY)].Under.Color := argTile.Color;
+											if SelUnder and (GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY) > 0) then begin
+												Board.Stats[GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY)].Under.Element := argTile.Element;
+												Board.Stats[GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY)].Under.Color := argTile.Color;
 											end else begin
 												replaceTile.Element := argTile.Element;
 												replaceTile.Color := argTile.Color;
@@ -1947,7 +1992,7 @@ procedure OopExecute(statId: integer; name: TString50);
 									XDat.CurrentPalette[(ix * 3) + 2] := deltaY;
 									BlockPalette(ix,iy,deltaX,deltaY);
 								end else
-									OopError(Index,Stat^.DataPos, 'Bad PALETTE Command');
+									OopError(Index, Stat^.DataPos, 'Bad PALETTE Command');
 							end else if OopWord = 'PLAYER' then begin
 								OopReadValue(Index, Stat^.DataPos);
 								ix := OopValue;
@@ -2009,8 +2054,8 @@ procedure OopExecute(statId: integer; name: TString50);
 							end else if OopWord = 'STEP' then begin
 								OopReadDirection(Index, Stat^.DataPos, ix, iy);
 								textLine := OopNextWord(Index, Stat^.DataPos);
-								Inc(ix,Stat^.X);
-								Inc(iy,Stat^.Y);
+								Inc(ix, Stat^.X);
+								Inc(iy, Stat^.Y);
 								OopReadDirectionRel(Index, Stat^.DataPos, deltaX, deltaY, ix, iy, textLine);
 								bindStatId := GetStatIdAt(ix, iy);
 								if (bindStatId > -1) then begin
@@ -2024,8 +2069,8 @@ procedure OopExecute(statId: integer; name: TString50);
 									OopReadWord(Index, Stat^.DataPos);
 									if (OopWord = 'STEP') or (OopWord = 'ORIGIN') then begin
 										textLine := OopNextWord(Index, Stat^.DataPos);
-										Inc(deltaX,Stat^.X);
-										Inc(deltaY,Stat^.Y);
+										Inc(deltaX, Stat^.X);
+										Inc(deltaY, Stat^.Y);
 										OopReadDirectionRel(Index, Stat^.DataPos, ix, iy, deltaX, deltaY, textLine);
 										Board.Stats[bindStatId].StepX := ix;
 										Board.Stats[bindStatId].StepY := iy;
@@ -2062,9 +2107,9 @@ procedure OopExecute(statId: integer; name: TString50);
 											Board.Info.NeighborBoards[2] := ix
 										else Board.Info.NeighborBoards[3] := ix;
 									end else
-										OopError(Index,Stat^.DataPos, 'No board label :' + OopWord);
+										OopError(Index, Stat^.DataPos, 'No board label :' + OopWord);
 								end else
-									OopError(Index,Stat^.DataPos, 'Bad board direction');
+									OopError(Index, Stat^.DataPos, 'Bad board direction');
 							end else if OopWord = 'BOARD' then begin
 								deltaX := WorldGetBoardPosition(Index, Stat^.DataPos);
 								if (deltaX > -1) and (deltaX <= World.BoardCount) then begin
@@ -2075,7 +2120,7 @@ procedure OopExecute(statId: integer; name: TString50);
 									replaceBoard := true;
 									stopRunning := true;
 								end else
-									OopError(Index,Stat^.DataPos, 'No board label :' + OopWord);
+									OopError(Index, Stat^.DataPos, 'No board label :' + OopWord);
 							end else if OopWord = 'DUPLICATE' then begin
 								OopReadDirection(Index, Stat^.DataPos, ix, iy);
 								textLine := OopNextWord(Index, Stat^.DataPos);
@@ -2085,8 +2130,8 @@ procedure OopExecute(statId: integer; name: TString50);
 							end else if OopWord = 'SHOVE' then begin
 								OopReadDirection(Index, Stat^.DataPos, ix, iy);
 								textLine := OopNextWord(Index, Stat^.DataPos);
-								Inc(ix,Stat^.X);
-								Inc(iy,Stat^.Y);
+								Inc(ix, Stat^.X);
+								Inc(iy, Stat^.Y);
 								OopReadDirectionRel(Index, Stat^.DataPos, deltaX, deltaY, ix, iy, textLine);
 								argTile.Element := Board.Tiles[ix][iy].Element;
 								if (((deltaX <> 0) or (deltaY <> 0)) and (argTile.Element <> E_EMPTY))
@@ -2123,33 +2168,33 @@ procedure OopExecute(statId: integer; name: TString50);
 									if ( iy < 1 ) or ( iy > 15 ) then
 										iy := 0;
 									if ((ix + (iy * 16)) > -1) and ((ix + (iy * 16)) < 256) then begin
-										if SelUnder and (GetStatIdAt(Stat^.X + deltaX,Stat^.Y + deltaY) > -1) then
-											Board.Stats[GetStatIdAt(Stat^.X + deltaX,Stat^.Y + deltaY)].Under.Color := AsColor(ix, iy)
+										if SelUnder and (GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY) > -1) then
+											Board.Stats[GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY)].Under.Color := AsColor(ix, iy)
 										else begin
 											Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Color := AsColor(ix, iy);
 											BoardDrawTile(Stat^.X + deltaX, Stat^.Y + deltaY);
 										end;
 									end else
-										OopError(Index,Stat^.DataPos, 'Unknown color.');
+										OopError(Index, Stat^.DataPos, 'Unknown color.');
 								end;
 							end else if OopWord = 'BGPLAY' then begin
 								textLine := SoundParse(OopReadLineToEnd(Index, Stat^.DataPos, true));
 								if Length(textLine) <> 0 then
 									SoundQueue(2, textLine);
 								lineFinished := false;
-							end else begin
+							end else if OopWord <> 'DONE' then begin
 								textLine := OopWord;
 								if OopSend(Index, OopWord, false) then
 									lineFinished := false
 								else if Pos(':', textLine) <= 0 then
-									OopError(Index,Stat^.DataPos, 'Bad command ' + textLine);
+									OopError(Index, Stat^.DataPos, 'Bad command ' + textLine);
 							end;
 						end else begin
 							textLine := OopWord;
 							if OopSend(Index, OopWord, false) then
 								lineFinished := false
 							else if Pos(':', textLine) <= 0 then
-								OopError(Index,Stat^.DataPos, 'Bad command ' + textLine);
+								OopError(Index, Stat^.DataPos, 'Bad command ' + textLine);
 						end;
 					end;
 
@@ -2166,6 +2211,10 @@ procedure OopExecute(statId: integer; name: TString50);
 					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos, false);
 					TextWindowAppend(textWindow, textLine);
 				end;
+
+				{ do/done END }
+				end;
+				{ do/done END }
 
 			until endOfProgram or stopRunning or repeatInsNextTick or replaceStat or (insCount > XDat.Params[10]);
 

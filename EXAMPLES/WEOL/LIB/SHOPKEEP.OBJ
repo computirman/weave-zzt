@@ -1,0 +1,151 @@
+@Shopkeep
+#set obj5 16
+#set obj6 1
+:newcycle
+#write at obj5 obj6 purple black INACTIVE
+#color i 13 0
+:main
+?cw rnd#if not within 6 main
+#if thisx above 30 ?ccw rndne
+#if thisx below 30 ?rndne
+#if not detect under player black dkpurple fake main
+#restore hi
+:phase2
+#walk seek
+#if not aligned if blocked flow phase2
+/i#walk i
+#if not within 8 main
+#phase2
+'hi
+#walk i
+#if not any ammo if not any torch if not any key if stolen sad
+#if not any ammo if not any torch if not any key restock
+$Shopkeep: Hello!
+
+#if not any ammo $Buy Ammo (sold out)            
+#else if gems below 5 $Buy Ammo (need 5)             
+#else !buyammo;Buy Ammo (5/20Ñ)
+#if not any torch $Buy a Torch (sold out)         
+#else if gems below 5 $Buy a Torch (need 5)          
+#else !buytorch;Buy a Torch (5/ù)
+#if not any blue key $Buy a Small Bomb (sold out)    
+#else if gems below 5 $Buy a Small Bomb (need 5)     
+#else !buyblue;Buy a Small Bomb (5 ea.)
+#if not any yellow key $Buy a Medium Bomb (sold out)   
+#else if gems below 10 $Buy a Medium Bomb (need 10)   
+#else !buyyellow;Buy a Medium Bomb (10)
+#if not any white key $Buy a Large Bomb (sold out)    
+#else if gems below 15 $Buy a Large Bomb (need 15)    
+#else !buywhite;Buy a Large Bomb (15)
+!;Nothing for now
+/i
+Shopkeep: No problem, take your time.
+/i#phase2
+:sad
+#zap hi
+#zap sad
+:sad
+'hi
+Shopkeep: I'm ruined! Someone stole my stuff!
+#end
+:restock
+#zap hi 2
+#zap restock
+:restock
+Shopkeep: You'll have to wait for a restock.
+#end
+:buyammo
+#zap hi 3
+#color i 5 0
+#write at obj5 obj6 purple black ACTIVE  
+#take gems 5
+#bgplay -g+c
+Shopkeep: Coming right up!
+:getammo
+?find pfind ammo
+#if detect to n n ammo put to n n empty
+#and bgplay ce
+#else getammo
+:giveammo
+?find player
+#if not detect to s s player giveammo
+#bgplay eg
+#give ammo 20
+Shopkeep: Here you go!
+/i/i/i#newcycle
+:buytorch
+#zap hi 3
+#color i 5 0
+#write at obj5 obj6 purple black ACTIVE  
+#take gems 5
+#bgplay -g+c
+Shopkeep: Coming right up!
+:gettorch
+?find pfind torch
+#if detect to n n torch put to n n empty
+#and bgplay ce
+#else gettorch
+:givetorch
+?find player
+#if not detect to s s player givetorch
+#bgplay eg
+#give torches
+Shopkeep: Here you go!
+/i/i/i#newcycle
+:buyblue
+#zap hi 3
+#color i 5 0
+#write at obj5 obj6 purple black ACTIVE  
+#take gems 5
+#bgplay -g+c
+Shopkeep: Coming right up!
+:getblue
+?find pfind blue key
+#if detect to n n blue key put to n n empty
+#and bgplay ce
+#else getblue
+:giveblue
+?find player
+#if not detect to s s player giveblue
+#bgplay eg
+#give bluekey
+Shopkeep: Here you go!
+/i/i/i#newcycle
+:buyyellow
+#zap hi 3
+#color i 5 0
+#write at obj5 obj6 purple black ACTIVE  
+#take gems 10
+#bgplay -g+c
+Shopkeep: Coming right up!
+:getyellow
+?find pfind yellow key
+#if detect to n n yellow key put to n n empty
+#and bgplay ce
+#else getyellow
+:giveyellow
+?find player
+#if not detect to s s player giveyellow
+#bgplay eg
+#give yellowkey
+Shopkeep: Here you go!
+/i/i/i#newcycle
+:buywhite
+#zap hi 3
+#color i 5 0
+#write at obj5 obj6 purple black ACTIVE  
+#take gems 15
+#bgplay -g+c
+Shopkeep: Coming right up!
+:getwhite
+?find pfind white key
+#if detect to n n white key put to n n empty
+#and bgplay ce
+#else getwhite
+:givewhite
+?find player
+#if not detect to s s player givewhite
+#bgplay eg
+#give whitekey
+Shopkeep: Here you go!
+/i/i/i#newcycle

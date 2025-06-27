@@ -1,75 +1,85 @@
 @INPUT
-' static pages
+' smooth pages
 ' spacing and centering guide: (copy and paste. Width 50 columns.)
-'                 xwvutsrqponmlkjihgfedcbaXXabcdefghijklmnopqrstuvwx
+' xwvutsrqponmlkjihgfedcbaXXabcdefghijklmnopqrstuvwx
 #end
 :touch
 #zap touch
-#set array
-#set obj4 15
 #put under i 232 text 3 0
 #pset i char 31
 #shove i at 5 25
+#set tickspeed 2
 #change empty black solid
 #step msgtxt by 0 -7
-UP/DOWN TO VIEW PAGES, SPACE TO EXIT.
-:z
-#run :pg^
-
-
-#put at 5 20 30 text 3 0
-#put at 5 21 30 text 3 0
-#put at 56 20 30 text 3 0
-#put at 56 21 30 text 3 0
-#put at 56 24 31 text 3 0
-#put at 56 25 31 text 3 0
-#put n 31 text 3 0
-#color i 3 0
-/i#restore up
+UP/DOWN TO VIEW TEXT, SPACE TO EXIT.
+:v
+#clear obj1
+#clear obj3
+#clear obj4
+:x
+#give obj3 obj4
+#set obj1 obj3
+#if not obj6 run :pg
+#else set array obj6
+#else run :ex^
+#take obj5 y
+#if any 33 text 0 0 y
+#if obj4 if detect at 7 25 text 0 0 y
+#if not obj4 if detect at 7 20 text 0 0 y
+/i#x
+:y
+#runwith 3 :uarr
+#runwith 3 :darr
+#restore up
 #restore down
 #restore space
 #restore left
 #restore right
-#end
+:z
+#if any 35 text 7 0 if obj3 below 18 write pfind 35 text 7 0 11 0 #IF DETECT <dir> CHAR TEXT 0 0
+#if any 35 text 7 0 if obj3 above 17 write pfind 35 text 7 0 11 0 #SET ARRAY PGET <dir> CHAR
+#if any 33 text 0 0 if not any 42 text 12 0 def
+#if not any 255 text 7 0 if not any 255 text 9 0 if not any 255 text 10 0 if not any 255 text 12 0 end
+#run :effect
+/i/i#z
 
 'up
-
-#put at 5 20 30 text 11 0
-#put at 5 21 30 text 11 0
-#put at 56 20 30 text 11 0
-#put at 56 21 30 text 11 0
-
-:y
+#if not obj3 z
+#runwith 11 :uarr
+#set obj4 -1
+:a
 #bgplay 00
+#set obj5 4
 #zap up
 #zap down
 #zap left
 #zap right
 #zap space
-#z
-
+#x
 'down
-
-#put at 56 24 31 text 11 0
-#put at 56 25 31 text 11 0
-#put n 31 text 11 0
-#color i 11 0
-
-:v
-#give array
-#y
+#if any 33 text 0 0 z
+#runwith 11 :darr
+#set obj4
+#a
 'space
 #play s86
-#if array is 6 if obj1 v
+#if not any 33 text 0 0 b
+#if not obj1 b
+#if obj6 give obj6
+#else set obj6
+#v
+:b
 #zap up
 #zap down
 #zap left
 #zap right
 #zap space
 #run :wipe
-#shove player at 11 15
+#shove player at 11 17
+#put under player empty
 #pset i char 232
-#shove i at 13 15
+#shove i at 13 17
+#set tickspeed 5
 #color i 3 0
 $
 /i#step msgtxt i
@@ -77,126 +87,279 @@ $
 #restore touch
 #end
 'left
+#if not obj1 z
+:def
 #clear obj1
-#x
+#write to pfind 33 text 0 0 by 3 -1 12 0 **  END DIALOGUE
+#if not obj6 write to pfind 33 text 0 0 by 27 -1 4 0     BONUS SECTION
+#else write to pfind 33 text 0 0 by 27 -1 4 0     KEEP GOING
+#z
 'right
-#if array is 6 set obj1
-:x
-#if array is 6 run :deci
-#u
-
-:pg1
-#write by 1 0 15 0                      Welcome!                    
-#write by 1 1 7 0                                                   
-#write by 1 2 7 0   This is the first in a series of pages that     
-#write by 1 3 7 0 demonstrate bottom-of-screen text boxes with a    
-#write by 1 4 7 0 visual-novel style presentation. Press DOWN.      
-#write by 40 4 11 0 DOWN
-#end
-:pg2
-#write by 1 0 7 0   Using the @INPUT object and capturing UP, DOWN, 
-#write by 13 0 14 0 @INPUT
-#write by 41 0 11 0 UP
-#write by 45 0 11 0 DOWN
-#write by 1 1 7 0 and SPACE inputs, the main moving parts are as    
-#write by 5 1 11 0 SPACE
-#write by 1 2 7 0 follows:                                          
-#write by 1 3 7 0                                                   
-#write by 1 4 7 0                                                   
-#end
-:pg3
-#write by 1 0 7 0        * ARRAY, to check which page we're on.     
-#write by 10 0 5 0 ARRAY
-#write by 1 1 7 0        * UP and DOWN to manipulate ARRAY.         
-#write by 10 1 11 0 UP
-#write by 17 1 11 0 DOWN
-#write by 36 1 5 0 ARRAY
-#write by 1 2 7 0        * SPACE to end session.                    
-#write by 10 2 11 0 SPACE
-#write by 1 3 7 0        * Some method of constraining the player.  
-#write by 1 4 7 0        * Visual indicator of key response.        
-#end
-:pg4
-#write by 1 0 7 0   While this method is easier to edit, the impact 
-#write by 1 1 7 0 is not as refined as the "smooth scrolling" method
-#write by 27 1 11 0 smooth scrolling
-#write by 1 2 7 0 included in this unit. Pagination is rigid, which 
-#write by 1 3 7 0 can lead to awkward gaps in the text.             
-#write by 1 4 7 0                                                   
-#end
-:pg5
-#write by 1 0 7 0   Still, if you don't want to set up something too
-#write by 1 1 7 0 complicated, this can be a great way to present a 
-#write by 1 2 7 0 visual novel, or an animated cutscene, without    
-#write by 1 3 7 0 resorting to single lines of text or opening a    
-#write by 1 4 7 0 large, obtrusive text window.                     
-#end
-:pg6
-#write by 1 0 15 0 Narrator:                                         
-#write by 1 1 7 0   You can present the text in a variety of ways,  
-#write by 1 2 7 0  including branching paths in response to choice: 
-#write by 1 3 8 0           [LEFT/RIGHT to select, SPACE to confirm]
-:deci
-#write by 1 4 4 0       END DIALOGUE            BONUS SECTION       
-#if obj1 is 0 write by 5 4 12 0 * END DIALOGUE *
-#if obj1 is 1 write by 29 4 12 0 * BONUS SECTION *
-#end
-
-:pg7
-'                 xwvutsrqponmlkjihgfedcbaXXabcdefghijklmnopqrstuvwx
-#write by 1 0 15 0        Welcome to the BONUS SECTION, wheee!       
-#write by 1 1 7 0                                                   
-#write by 1 2 7 0   You can use this branching logic to show extra  
-#write by 1 3 7 0    dialogue, or give the player agency over the   
-#write by 1 4 7 0                outcome of the story.              
-#end
-:pg8
-'                 xwvutsrqponmlkjihgfedcbaXXabcdefghijklmnopqrstuvwx
-#write by 1 0 7 0     Be sure to take advantage of the fact that    
-#write by 1 1 7 0  the game is still running while this text box is 
-#write by 1 2 7 0   open. Text can  jitter,  flicker, and glow, or  
-#write by 1 3 7 0     anything you think up that might bring the    
-#write by 1 4 7 0           text to life; it's up to you!           
-#end
+#if obj1 z
+#if any 33 text 0 0 set obj1
+#write to pfind 33 text 0 0 by 3 -1 4 0     END DIALOGUE
+#if not obj6 write to pfind 33 text 0 0 by 27 -1 12 0 **  BONUS SECTION
+#else write to pfind 33 text 0 0 by 27 -1 12 0 **  KEEP GOING
+#z
 
 :effect
-#if rnd write by 18 2 7 0  jitter, 
-#else if rnd write by 18 2 7 0 jitter,  
-#else write by 18 2 7 0   jitter,
-#if rnd if rnd write by 28 2 15 0 flicker
-#else write by 28 2 8 0 flicker
-#take obj6 35 give obj6
-#if obj6 below 8 write by 41 2 8 0 glow
-#if obj6 is 10 write by 41 2 6 0 glow
-#if obj6 is 12 write by 41 2 14 0 glow
-#if obj6 is 14 write by 41 2 15 0 glow
-#if obj6 is 20 write by 39 2 15 0 d glow, 
-#and write by 41 1 15 0 xt b
-#and write by 41 2 0 7 glow
-#and write by 41 3 15 0 ng t
-#if obj6 is 26 write by 39 2 7 0 d glow, 
-#and write by 41 1 7 0 xt b
-#and write by 41 2 15 0 glow
-#and write by 41 3 7 0 ng t
-#if obj6 is 32 write by 41 2 14 0 glow
-#if obj6 is 34 write by 41 2 6 0 glow
-#if rnd if rnd set obj4 random 9 15
-#take obj5 give obj5 3
-#if obj5 is 3 put by 19 4 text obj4 0
-#if obj5 is 3 put by 22 4 text 7 0
-#if obj5 is 2 put by 20 4 text obj4 0
-#if obj5 is 2 put by 19 4 text 7 0
-#if obj5 is 1 put by 21 4 text obj4 0
-#if obj5 is 1 put by 20 4 text 7 0
-#if obj5 is 0 put by 22 4 text obj4 0
-#if obj5 is 0 put by 21 4 text 7 0
+#change 255 text 9 0 255 text 7 0
+#change 255 text 10 0 255 text 7 0
+#change 255 text 12 0 255 text 7 0
+#if rnd write pfind 255 text 7 0 9 0 ÿcolors
+#else if rnd write pfind 255 text 7 0 12 0 ÿcolors
+#else write pfind 255 text 7 0 10 0 ÿcolors
+#if not any 255 text 7 0 end
+#if rnd write pfind 255 text 7 0 7 0 ÿ motion 
+#else if rnd write pfind 255 text 7 0 7 0 ÿ  motion
+#else write pfind 255 text 7 0 7 0 ÿmotion  
 #end
 
 :wipe
 #write by 1 0 7 0                                                    
-#write by 0 1 7 0                                                     
-#write by 1 2 7 0                                                   
-#write by 1 3 7 0                                                   
-#write by 0 4 7 0                                                     
-#write by 0 5 7 0                                                     
+#write by 0 -1 7 0                                                     
+#write by 1 -2 7 0                                                   
+#write by 1 -3 7 0                                                   
+#write by 0 -4 7 0                                                     
+#write by 0 -5 7 0                                                     
+#end
+
+:pg
+#SET OBJ2 6
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 15 0          == Smooth Scrolling: A Primer ==         
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    For those interested in a more sophisticated   
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  style of presentation, smooth scrolling is less  
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  complicated to set up than you might think, and  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  can help players track and parse the text better 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  versus presenting whole pages at once.           
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    With your script in hand, you will need two    
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  lines of code for every line in your scroll. The 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  first line sets the conditions for the write:    
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 12 0      #TAKE OBJ1 WRITE OPP BY -1 OBJ2 <color> text 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    And the second terminates the function once all
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  the lines are filled:                            
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 12 0      #IF NOT OBJ1 TAKE OBJ2 END                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    This allows the scrolling text to stay closer  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  together in the code, leading to less confusion. 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  Just like static boxes,ÿcolors andÿ motion  are  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  possible, as well as decision points:            
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 4 0                                                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 !                                                 
+#IF NOT OBJ1 TAKE OBJ2 END
+#IF OBJ2 ABOVE 6 TAKE OBJ2
+:term
+#TAKE OBJ3
+#WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#TAKE OBJ2 END
+#term
+:ex1
+#SET OBJ2 6
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 15 0                == Bonus Section: ==               
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    Paragraph breaks and other special behaviors   
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  (such as the aforementionedÿcolors) are handled  
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  through CONTROL CODES, punctuation marks living  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  in the lines in between text like so:            
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 12 0      #WRITE OPP BY -1 OBJ2 0 0 !!                 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    This object makes use of two of these codes,   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  with ".." representing paragraph breaks and "!!" 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  representing a breakpoint for decision making.   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  As the object scrolls through the text, it will  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  stop immediately when one of these control codes 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  is reached, then depending on the punctuation    
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  detected (using #IF DETECT <dir> CHAR TEXT 0 0)  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  it will display the appropriate text and wait    
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  for player interaction.                          
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 2 0     (Note: "." is char 46 and "!" is char 33.)
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    If you need many breakpoints, you can expand   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  on this idea using #SET ARRAY PGET <dir> CHAR    
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  and then creating numeric destination labels     
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  matching the different characters used.          
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 4 0                                                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 !                                                 
+#IF NOT OBJ1 TAKE OBJ2 END
+#IF OBJ2 ABOVE 5 TAKE OBJ2
+:term2
+#TAKE OBJ3
+#WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#TAKE OBJ2 END
+#term2
+:ex2
+#SET OBJ2 6
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 15 0           == Bonus Section (continued) ==         
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0    By applying control codes and using colors and 
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  left-and-right justification, dialogues between  
+#IF NOT OBJ1 TAKE OBJ2
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0  characters can be simulated:                     
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 14 0 Narrator:                                         
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 6 0  "This isn't particularly new."                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 11 0                                            Player:
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0                                     "That's true."
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 6 0 "But you know what is?"                           
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0                                            "What?"
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 6 0 "Adding a third participant."                     
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0                               "How do we do that?"
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 13 0                   Comic Relief:                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 5 0              "Hey fellas, I'm ba-ack!"            
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0            (AUDIENCE whoops and cheers.)          
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 5 0                  "What'd I miss?"                 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0                           "No, this doesn't work."
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0                 (AUDIENCE laughs.)                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 6 0 "What do you mean? Seems fine to me."             
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0                   "I mean, as a narrative device."
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0                   "Things will get too confusing."
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 5 0        "No kidding! I'm gettin' LOST here!"       
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0           (AUDIENCE laughs uproariously.)         
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 6 0 "I see. Add too many elements..."                 
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0         "...and no one's sure who's who. Exactly."
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 6 0 "So stick to short dialogues only?"               
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 3 0                   "Or tag the speakers each time."
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 6 0 "Got it."                                         
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0            (NARRATOR and PLAYER depart.)          
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 5 0                   "Um... Hello?"                  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0            (AUDIENCE laughs nervously.)           
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 5 0   "I'm scared... When this dialogue ends, do I d  
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0                                                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0                                                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0                                                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 7 0                                                   
+#IF NOT OBJ1 TAKE OBJ2 END
+#TAKE OBJ1 WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#IF NOT OBJ1 TAKE OBJ2 END
+#IF OBJ2 ABOVE 5 TAKE OBJ2
+:term2
+#TAKE OBJ3
+#WRITE OPP BY -1 OBJ2 0 0 ..                                                
+#TAKE OBJ2 END
+#term2
+
+:uarr
+#put at 5 20 30 text arg 0
+#put at 5 21 30 text arg 0
+#put at 56 20 30 text arg 0
+#put at 56 21 30 text arg 0
+#end
+
+:darr
+#color i arg 0
+#put at 56 24 31 text arg 0
+#put at 56 25 31 text arg 0
+#put n 31 text arg 0
 #end

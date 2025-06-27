@@ -74,7 +74,7 @@ function BulletMove(var ix, iy: integer; var iElem: byte; statId: integer): inte
 				end;
 				iElem := Board.Tiles[ix][iy].Element;
 
-				if XDat.EDefs[Enum(iElem)].Walkable or (iElem = E_WATER) then begin
+				if XDat.EDefs[Enum(iElem)].Walkable or XDat.EDefs[Enum(iElem)].CanPut then begin
 					BulletMove := 3;
 					exit;
 				end;
@@ -1453,6 +1453,28 @@ procedure GamePromptEndPlay;
 		InputKeyPressed := #0;
 	end;
 
+procedure ElementMessageDec;
+	var
+		i, x, y: integer;
+	begin
+		with Board.Stats[0] do begin
+			if P3 > 0 then begin
+				if TickSpeed < 3 then
+					i := 9 + ((P3 - 1) div 2) mod 7
+				else
+					i := 9 + (P3 - 1) mod 7;
+				
+				VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i,
+					' '+Board.Info.Message+' ');
+				if GameMove then
+					Dec(P3);
+			end else if Board.Info.Message <> '' then begin
+				Board.Info.Message := '';
+				BoardDrawRow(BOARD_HEIGHT + StepY);
+			end;
+		end;
+	end;
+
 procedure ElementCustomInput(inputC: char);
 	var
 		i: integer;	
@@ -1467,9 +1489,9 @@ procedure ElementCustomInput(inputC: char);
 				i := KeyLimit + 1;
 			end;
 			Inc(i);
-			if i = KeyLimit then
-				if OopSend(0, 'INPUT:KEYBOARD' + InputC, false) then begin end;
 		end;
+		if OopSend(0, 'INPUT:KEYBOARD' + InputC, false) then
+			GameMove := true;
 	end;
 
 procedure ElementCustomDir(shiftPressed: boolean);
@@ -1662,7 +1684,7 @@ procedure ElementTruePlayerTick;
 				and (World.Info.Health > 0))
 			then
 				GamePaused := true
-			else if HasINI and (KeyLimit > 0) then
+			else if HasINI then
 				ElementCustomInput(inputC);
 
 			if World.Info.TorchTicks > 0 then begin
@@ -1697,19 +1719,7 @@ procedure ElementTruePlayerTick;
 					GameUpdateSidebar;
 				end;
 
-			if P3 > 0 then begin
-				if TickSpeed < 3 then
-					i := 9 + ((P3 - 1) div 2) mod 7
-				else
-					i := 9 + (P3 - 1) mod 7;
-				VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i,
-					' '+Board.Info.Message+' ');
-				if GameMove then
-					Dec(P3);
-			end else if Board.Info.Message <> '' then begin
-				Board.Info.Message := '';
-				BoardDrawRow(BOARD_HEIGHT + StepY);
-			end;
+			ElementMessageDec;
 
 			if HearingImpaired then begin
 				if TopTimer > 0 then begin
@@ -1833,6 +1843,7 @@ procedure ElementMonitorTick(statId: integer);
 			ElementCustomInput(inputC);
 			ElementCustomDir(InputShiftPressed);
 		end;
+		ElementMessageDec;
 	end;
 
 procedure ResetMessageNotShownFlags;

@@ -1,0 +1,121 @@
+@Machine
+:enter
+#restore welcome
+:halt
+#zap stop1
+#zap stop2
+#zap stop3
+#restore start
+#send welcome
+#write by 0 5 yellow dkpurple TRY AGAIN
+#end
+'welcome
+#zap welcome
+#write by 0 5 white dkpurple GOOD LUCK
+#end
+'start
+#zap start
+#write by 0 5 white dkpurple GOOD LUCK
+#if local2 is local4 give local2 random 1 2
+#else give local2 random 0 random 0 1
+#if local4 is local6 give local4 random 3 4 
+#else give local4 random 0 random 0 1
+#if local6 is local2 give local6 random 5 6
+#else give local6 random 0 random 0 1
+#restore stop1
+#restore stop2
+#restore stop3
+#restore main
+:main
+#take local2 7 give local2
+#runwith 2 :spin
+:main
+#take local4 7 give local4
+#runwith 4 :spin
+:main
+#take local6 7 give local6
+#runwith 6 :spin
+/i#main
+:stop1
+#zap stop1
+#bgplay --d#++d#
+#if not local2 is 1 if not local2 is 3 if not local2 is 5 if not local2 is 7
+#else take local2 7 give local2
+#else runwith 2 :spin
+:off2
+#else take local4 7 give local4
+#else runwith 4 :spin
+:off3
+#else take local6 7 give local6
+#else runwith 6 :spin
+#else /i
+#zap main
+#send main
+#set array local2
+#if not local4 is array fail
+#if not local6 is array fail
+#if not array give array 8
+#send success^
+:fail
+#bgplay --sgtxs.c#
+#halt
+:success4
+Won with hearts!
+#payout
+:success2
+Won with diamonds!
+#payout
+:success6
+Won with clubs!
+#payout
+:success8
+Won with spades!
+:payout
+#bgplay d-df#a+s.d
+#write by 0 5 green dkpurple  WIN! ^ 
+#give gems array
+#restore start
+#end
+:stop2
+#zap stop2
+#bgplay --e++e
+#if not local4 is 1 if not local4 is 3 if not local4 is 5 if not local4 is 7
+#off2
+:stop3
+#zap stop3
+#bgplay --f++f
+#if not local6 is 1 if not local6 is 3 if not local6 is 5 if not local6 is 7
+#off3
+
+:spin
+#set array arg
+#set array local^
+#set obj3 4
+#send reel^
+:reel0
+:reel8
+#put by arg obj3 5 0 text 1 7 
+#take obj3 end
+:reel1
+:reel9
+#put by arg obj3 219 text 7 0
+#take obj3 end
+:reel2
+#put by arg obj3 6 0 text 8 7 
+#take obj3 end
+:reel3
+#put by arg obj3 219 text 7 0
+#take obj3 end
+:reel4
+#put by arg obj3 4 0 text 6 7 
+#take obj3 end
+:reel5
+#put by arg obj3 219 text 7 0
+#take obj3 end
+:reel6
+#put by arg obj3 3 0 text 4 7 
+#take obj3 end
+:reel7
+#put by arg obj3 219 text 7 0
+#take obj3 end
+#reel0

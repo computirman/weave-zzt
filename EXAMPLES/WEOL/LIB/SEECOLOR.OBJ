@@ -1,0 +1,28 @@
+@SeeColor
+#set obj5 51
+#set obj6 2
+:checkcolor
+#set array pget n fg
+#if array is obj1 /i#checkcolor
+#set obj1 array
+#send fg^
+#write at obj5 obj6 purple black OTHER
+#checkcolor
+:fg9
+#write at obj5 obj6 purple black BLUE 
+#checkcolor
+:fg10
+#write at obj5 obj6 purple black GREEN
+#waitpush
+:fg12
+#write at obj5 obj6 purple black RED  
+#waitpush
+:fg15
+#write at obj5 obj6 purple black WHITE
+#checkcolor
+:waitpush
+/i#give obj2
+#take obj2 30 waitpush
+#shove by -3 -1 e
+#shove by 3 -1 w
+#checkcolor

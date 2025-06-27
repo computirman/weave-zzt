@@ -1,0 +1,9 @@
+@Reticle
+#if not obj1 set obj1 -1
+#set obj2 pget i p1
+:check
+#color i 15 13
+#if not any text 0 7 pset i char 32
+#and ?at 29 thisy#check
+#pset i char obj2
+?to pfind text 0 7 by 0 obj1#check

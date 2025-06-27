@@ -1,0 +1,176 @@
+@INPUT
+#walk i
+#if at 60 1 put under i black solid
+#and active
+#restore touch
+:getpulled
+#if detect n white object set obj1
+#else clear obj1
+#if detect s white object set obj2
+#else clear obj2
+#if detect w white object set obj4
+#else clear obj4
+#if detect e white object set obj5
+#else clear obj5
+/i#if obj1 if not detect n white object shove i n
+#and bgplay 0
+#if obj2 if not detect s white object shove i s
+#and bgplay 0
+#if obj4 if not detect w white object shove i w
+#and bgplay 0
+#if obj5 if not detect e white object shove i e
+#and bgplay 0
+#if not contact getpulled
+#docollect
+
+:active
+/i#if local1 active
+#pset i char 32
+#color i 15 0
+#zap shiftup
+#zap shiftdown
+#zap shiftleft
+#zap shiftright
+:inactive
+/i#if not local1 inactive
+:reset
+#walk i
+#char 32
+#if not at 60 1 shove i at 60 1
+/i#restore shiftup
+#restore shiftdown
+#restore shiftleft
+#restore shiftright
+#clear obj1
+#clear obj2
+#active
+
+'shiftup
+#set obj2 -1
+#doboom
+'shiftdown
+#set obj2
+#doboom
+'shiftleft
+#set obj1 -1
+#doboom
+'shiftright
+#set obj1
+:doboom
+#clear obj3
+#clear obj6
+#give obj1 playerx
+#give obj2 playery
+#walk at obj1 obj2
+#set array run :check
+#if not array reset
+#zap shiftup
+#zap shiftdown
+#zap shiftleft
+#zap shiftright
+#bgplay -fa#+d#
+#send start^
+#reset
+
+:start1
+#if rnd pset i char 60
+#else pset i char 62
+#shove i flow
+:main
+#give obj6 4
+#if not thisy is playery give obj6 3
+#if obj6 above 31 pull
+#walk i
+/i#walk opp seek
+#set array run :check
+#send start^
+:start3
+#if array is 3 shoot flow
+#bgplay 9
+:pull
+#walk seek
+#if contact reset
+#if rnd pset i char 60
+#else pset i char 62
+#if not canput flow walk seek
+#if canput flow shove i flow
+#if array is 2 if detect opp flow empty if pushable to opp flow opp flow shove to opp flow opp flow flow
+#and bgplay 0
+#walk i
+/i#pull
+:grab
+#walk opp flow
+#reset
+
+:start7
+:start6
+:start5
+:start4
+#if at 60 1 walk at obj1 obj2
+#shove flow at 60 2
+#put at 60 2 black solid
+#duplicate i flow
+#runwith array :makecollect
+#play 4
+#walk i
+#char 60
+/i#char 62
+#pull
+
+:erase
+#lock
+#if obj3 is 256 if pushable under i die item
+#if not contact shove i seek
+/i#die
+'touch
+#set obj3 256
+:docollect
+#send collect^
+#erase
+:collect4
+#bgplay bf#d#
+#give gems gem.p1
+#give health gem.p2
+#give score gem.scorevalue
+#erase
+:collect5
+#if color i blue give bluekey
+#else if color i green give greenkey
+#else if color i cyan give cyankey
+#else if color i red give redkey
+#else if color i purple give purplekey
+#else if color i yellow give yellowkey
+#else if color i white give whitekey
+#else erase
+#bgplay b+d#-f#
+#erase
+:collect6
+#bgplay cc#d
+#give ammo ammo.p1
+#erase
+:collect7
+#bgplay ebsg
+#give torches
+#erase
+
+:check
+#if canput flow end 1
+#set obj3 pget flow color
+#if detect flow gem end 4
+#if detect flow key end 5
+#if detect flow ammo end 6
+#if detect flow torch end 7
+#clear obj3
+#if canshoot flow end 3
+#if pushable flow end 2
+#end 0
+
+:makecollect
+#if arg is 4 pset flow char 4
+#if arg is 5 pset flow char 11
+#if arg is 6 pset flow char 132
+#if arg is 7 pset flow char 157
+#color flow obj3
+#pset flow obj3 obj3
+#pset flow array arg
+#end

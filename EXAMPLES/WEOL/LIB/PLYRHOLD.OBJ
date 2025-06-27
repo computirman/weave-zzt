@@ -1,0 +1,28 @@
+@INPUT
+#set obj5 51
+#set obj6 2
+#set maxbullets 0
+#clear cantshoot.msg
+#end
+:touch
+#zap touch
+#lock player
+#color i 0 5
+#write at obj5 obj6 purple black ACTIVE  
+:status
+#bgplay 00s00i00
+Player is locked. (Press Space to unlock.)
+/i/i/i/i/i/i/i/i/i/i/i/i/i/i/i/i
+/i/i/i/i/i/i/i/i/i/i/i/i/i/i/i/i#status
+:space
+#set obj1 pget player locked
+#if obj1 is false deactivate
+#bgplay 55xx5
+Player is unlocked.
+#write at obj5 obj6 purple black INACTIVE
+#unlock player
+:deactivate
+/i/i#restore touch
+#color i 0 13
+/i/i/i/i/i/i/i/i/i/i/i
+$

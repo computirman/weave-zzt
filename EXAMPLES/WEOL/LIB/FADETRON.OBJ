@@ -1,0 +1,45 @@
+@Fadetron
+#set obj1 13
+#set obj2 0
+#set obj5 16
+#set obj6 1
+#end
+:touch
+#lock player
+#others:deactivate
+#color i 0 5
+/i
+#write at obj5 obj6 purple black ACTIVE  
+#if not obj1 fadeup
+:newbg
+#set obj2 random 1 7
+#if obj2 is obj1 newbg
+#change 219 text obj1 0 178 text obj1 obj2
+/i
+#change 178 text obj1 obj2 177 text obj1 obj2
+/i
+#change line 0 obj2 line
+#change 177 text obj1 obj2 176 text obj1 obj2
+/i
+#change 176 text obj1 obj2 32 text 0 obj2
+/i
+#clear obj1
+:deactivate
+#write at obj5 obj6 purple black INACTIVE
+#color i 0 13
+#unlock player
+#end
+:fadeup
+#set obj1 random 1 15
+#if obj1 is obj2 fadeup
+#change 32 text 0 obj2 176 text obj1 obj2
+/i
+#change 176 text obj1 obj2 177 text obj1 obj2
+/i
+#change line 0 obj1 line
+#change 177 text obj1 obj2 178 text obj1 obj2
+/i
+#change 178 text obj1 obj2 219 text obj1 0
+/i
+#clear obj2
+#deactivate

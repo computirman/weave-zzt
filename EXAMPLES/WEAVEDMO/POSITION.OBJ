@@ -1,0 +1,5 @@
+'Position
+#set array playerx
+#write to n e cyan dkred ^ 
+#set array playery
+#write e purple dkred ^ 

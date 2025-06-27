@@ -1,0 +1,21 @@
+@Wonky Bullet
+#char 248
+:z
+/i#if rnd if rnd ?rndp flow
+#z
+:thud
+#if detect flow breakable put flow empty
+#walk opp flow
+#set obj1 random 3 6
+#if rnd y
+:x
+?rnd#char 24
+#take obj1 1 die
+/i#char 26
+#take obj1 1 die
+:y
+?rnd#char 25
+#take obj1 1 die
+/i#char 27
+#take obj1 1 die
+#x

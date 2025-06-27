@@ -1,0 +1,236 @@
+@INPUT
+#set obj5 14
+#set obj6 2
+#end
+:touch
+#lock player
+Becoming a racecar. Press W to leave.
+#write at obj5 obj6 purple black ACTIVE  
+#shove player at 42 20
+#set tickspeed 2
+#run :init
+#unlock player
+#clean
+:skid
+#play 11
+#set local3 playerx
+#set local4 playery
+#set obj3 40
+#set obj4 70
+/i
+:clean
+#clear scrleft
+#clear scrright
+#clear scrdown
+:return
+#run :pos
+#if local5 is 0 set obj3 40
+#and set obj4 70
+#and end
+#run :sub
+#if not blocked at local3 local4 shove player at local3 local4
+#if playerx is local3 if playery is local4 /i#clean
+#if not blocked at local3 playery shove player at local3 playery
+#and skid
+#if not blocked at playerx local4 shove player at playerx local4
+#and skid
+#if local5 is -1 clear local5
+#and /i#clean
+#play 222
+#clear local5
+#lock player
+#player 12 0 15
+#if local3 below playerx if not blocked to player w shove player w
+#else if local3 above playerx if not blocked to player e shove player e
+#if local4 below playery if not blocked to player n shove player n
+#else if local4 above playery if not blocked to player s shove player s
+/i/i/i#set local3 playerx
+#set local4 playery
+#unlock player
+#clean
+
+'left
+#if not blocked at local3 local4 shove player at local3 local4
+#if scrright clear scrright
+#and clear scrleft
+#if scrleft if local5 above 3 play -aa#b
+#and if rnd take local5
+#take array
+#if not array set array 16
+#if rnd set scrleft
+#return
+'right
+#if not blocked at local3 local4 shove player at local3 local4
+#if scrleft clear scrleft
+#and clear scrright
+#if scrright if local5 above 3 play -aa#b
+#and if rnd take local5
+#give array
+#if array above 16 set array
+#if rnd set scrleft
+#return
+'up
+#if not blocked at local3 local4 shove player at local3 local4
+#give local5
+#return
+'down
+#if not blocked at local3 local4 shove player at local3 local4
+#if local5 is -1 return
+#if local5 clear scrdown
+#if scrdown set local5 -1
+#take local5
+#if local5 is 4 play ff#
+#if local5 is 3 play f#g
+#if local5 is 2 play gg#
+#if local5 is 1 play g#a
+#if local5 is 0 if rnd if rnd set scrdown
+#return
+
+'weapon
+#lock player
+#run :cut
+#shove player at 47 12
+#set tickspeed 5
+$
+/i#unlock player
+#write at obj5 obj6 purple black INACTIVE  
+#end
+
+:sub
+#if local5 is -1 take obj3 obj1
+#and take obj4 obj2
+#if local5 give obj3 obj1
+#and give obj4 obj2
+#if local5 above 1 give obj3 obj1
+#and give obj4 obj2
+#if local5 above 2 give obj3 obj1
+#and give obj4 obj2
+#if local5 above 3 give obj3 obj1
+#and give obj4 obj2
+#if local5 above 4 give obj3 obj1
+#and give obj4 obj2
+#and set local5 5
+#if obj3 below 26 give obj3 20
+#and take local3
+#if obj3 above 54 take obj3 20
+#and give local3
+#if obj4 below 56 give obj4 34
+#and take local4
+#if obj4 above 94 take obj4 34
+#and give local4
+#end
+
+:init
+#set obj3 40
+#set obj4 70
+#set local3 42
+#set local4 20
+#clear local5
+#restore up
+#restore down
+#restore left
+#restore right
+#restore weapon
+#set array
+#end
+
+:cut
+#clear local3
+#clear local4
+#clear local5
+#zap up
+#zap down
+#zap left
+#zap right
+#player 0 0 0
+#end
+
+:pos
+#send ang^
+#set array
+:ang1
+#set obj2 -4
+#spr1
+:ang9
+#set obj2 4
+:spr1
+#clear obj1
+#player 15 0 179
+#end
+:ang2
+#set obj1 1
+#set obj2 -3
+#spr2
+:ang10
+#set obj1 -1
+#set obj2 3
+:spr2
+#player 15 0 244
+'#if rnd player 15 0 179
+'#else player 15 0 47
+#end
+:ang3
+#set obj1 2
+#set obj2 -2
+#spr3
+:ang11
+#set obj1 -1
+#set obj2 2
+:spr3
+#player 15 0 47
+#end
+:ang4
+#set obj1 3
+#set obj2 -1
+#spr4
+:ang12
+#set obj1 -3
+#set obj2 1
+:spr4
+#player 15 0 170
+'#if rnd player 15 0 47
+'#else player 15 0 45
+#end
+:ang5
+#set obj1 4
+#spr5
+:ang13
+#set obj1 -4
+:spr5
+#clear obj2
+#player 15 0 45
+#end
+:ang6
+#set obj1 3
+#set obj2 1
+#spr6
+:ang14
+#set obj1 -3
+#set obj2 -1
+:spr6
+#player 15 0 28
+'#if rnd player 15 0 45
+'#else player 15 0 92
+#end
+:ang7
+#set obj1 2
+#set obj2 2
+#spr7
+:ang15
+#set obj1 -2
+#set obj2 -2
+:spr7
+#player 15 0 92
+#end
+:ang8
+#set obj1 1
+#set obj2 3
+#spr8
+:ang16
+#set obj1 -1
+#set obj2 -3
+:spr8
+#player 15 0 245
+'#if rnd player 15 0 92
+'#else player 15 0 179
+#end

@@ -1,0 +1,166 @@
+@INPUT
+#lock
+#set obj5 18
+#set obj6 1
+/i
+:enter
+#lock
+#set counter.keys   Bombs:
+#set maxbullets 0
+#clear cantshoot.msg
+#set hideline17
+#set key.char 11
+#set key.msg.touch2  bomb.
+#set key.snd.touch t+ceg
+#set key.msg.fail2  bomb!
+#set outofammo.msg You're out of bullets!
+#set ammo.msg.touch Box of 20 bullets.
+#set ammo.p1 20
+#deactivate
+
+'touch
+#zap touch
+#clear hideline17
+#others:deactivate
+#write at obj5 obj6 purple black ACTIVE  
+#color i 0 5
+#restore weapon
+Press W to choose weapon
+#end
+'touch
+:deactivate
+#zap shiftup
+#zap shiftdown
+#zap shiftleft
+#zap shiftright
+#zap weapon 3
+#restore touch
+#color i 0 13
+#write at obj5 obj6 purple black INACTIVE
+#unlock
+#end
+
+'weapon
+#zap weapon
+#zap shiftup
+#zap shiftdown
+#zap shiftleft
+#zap shiftright
+* SWORD *
+#set bullet.p1 true
+#set bullet.p2 1
+#set maxbullets 3
+#if not ammo set obj2
+#and set ammo
+:swordcheck
+#set obj1 ammo
+/i#if ammo below obj1 set ammo obj1
+#if ammo above obj1 if obj2 clear obj2
+#and take ammo
+#swordcheck
+
+'weapon
+#zap weapon
+* GUN *
+#if obj2 take ammo
+#and clear obj2
+#set bullet.p1 false
+#set bullet.p2 50
+#set maxbullets 2
+#if not ammo if not blocked e put e purple black ammo
+#end
+
+'weapon
+#restore weapon
+* BOMB *
+#set maxbullets 0
+#set bomb.p1 6
+'#set bomb.p3 3
+'#set bomb.cycle 2
+#restore shiftup
+#restore shiftdown
+#restore shiftleft
+#restore shiftright
+#end
+
+'shiftup
+#if blocked to player n end
+#if any bomb end
+#if not run :havebomb "You don't have any bombs!"
+#and bgplay -c-f
+#and end
+#set obj3 run :takebomb
+#put to player n obj3 0 bomb
+'#step to player n n
+#end
+'shiftdown
+#if blocked to player s end
+#if any bomb end
+#if not run :havebomb "You don't have any bombs!"
+#and bgplay -c-f
+#and end
+#set obj3 run :takebomb
+#put to player s obj3 0 bomb
+'#step to player s s
+#end
+'shiftleft
+#if blocked to player w end
+#if any bomb end
+#if not run :havebomb "You don't have any bombs!"
+#and bgplay -c-f
+#and end
+#set obj3 run :takebomb
+#put to player w obj3 0 bomb
+'#step to player w w
+#end
+'shiftright
+#if blocked to player e end
+#if any bomb end
+#if not run :havebomb "You don't have any bombs!"
+#and bgplay -c-f
+#and end
+#set obj3 run :takebomb
+#put to player e obj3 0 bomb
+'#step to player e e
+#end
+
+:havebomb
+#if not bluekey if not greenkey if not cyankey if not redkey if not purplekey if not yellowkey if not whitekey end false
+#end true
+
+:takebomb
+#bgplay cf+cf
+#set array random 1 7
+#send bomb^
+:bomb1
+#if not array set other.bombsize 5
+#and end 8
+#clear array
+#if bluekey take bluekey
+#and set other.bombsize 20
+#and end 9
+:bomb2
+#if greenkey take greenkey
+#and set other.bombsize 35
+#and end 10
+:bomb3
+#if cyankey take cyankey
+#and set other.bombsize 50
+#and end 11
+:bomb4
+#if redkey take redkey
+#and set other.bombsize 70
+#and end 12
+:bomb5
+#if purplekey take purplekey
+#and set other.bombsize 90
+#and end 13
+:bomb6
+#if yellowkey take yellowkey
+#and set other.bombsize 115
+#and end 14
+:bomb7
+#if whitekey take whitekey
+#and set other.bombsize 145
+#and end 15
+#bomb1

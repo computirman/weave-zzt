@@ -1,0 +1,27 @@
+@INPUT
+#set obj5 13
+#set obj6 2
+:enter
+#set hideline17
+#set maxbullets 0
+#clear cantshoot.msg
+#set bullet.p3 0
+#set objectshoot.snd 4
+:deactivate
+#color i 0 13
+#write at obj5 obj6 purple black INACTIVE
+#restore touch
+#clear local1
+#end
+
+'touch
+#if detect to s e object bgplay i--bf
+#and "Pick up the Kylie first."
+#and end
+#zap touch
+#bgplay eff#ba#a
+#set local1
+#color i 0 5
+#write at obj5 obj6 purple black ACTIVE  
+Kylie acquired. Press Shift+Dir to throw.
+#end

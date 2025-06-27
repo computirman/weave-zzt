@@ -1,0 +1,14 @@
+@Example Object
+$This is the example object!
+
+You either loaded me with #load,
+Are running me with #run,
+Or are using me in an #if run.
+
+(I will return TRUE, if you're
+using me in an #if run.)
+
+#give gems 5
+Also, I just gave you 5 gems.
+!;Thanks!
+#end true

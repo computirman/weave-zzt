@@ -1,0 +1,15 @@
+@Returner
+#set hideline17
+:enter
+#set purpletext.fg dkpurple
+#set purpletext.bg black
+#set purpletext.walkable true
+:wait
+/i
+#if detect under player purpletext wait
+:ok
+/i
+#if not detect under player purpletext ok
+#bgplay 3311
+#if playerx below 10 board main 26 25
+#else board main 35 25

@@ -1,0 +1,18 @@
+@ArgumentRunner
+#set array arg
+Who I am:
+$I am @ArgumentRunner.
+
+Where is the Player:
+#if playery is 22 $The player is at position ^, 22.
+#else if playery is 21 $The player is at position ^, 21.
+#else if playery is 20 $The player is at position ^, 20.
+#else $The player's X position is ^.
+
+What will I do next:
+$I will move.
+
+:a
+#set obj1 random 30 50
+#if playerx is obj1 a
+#shove i at obj1 21

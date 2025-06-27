@@ -495,19 +495,19 @@ procedure InputUpdate;
 		end;
 
 		case InputKeyPressed of
-			KEY_UP, '8': begin
+			KEY_UP: begin
 				InputDeltaX := 0;
 				InputDeltaY := -1;
 			end;
-			KEY_LEFT, '4': begin
+			KEY_LEFT: begin
 				InputDeltaX := -1;
 				InputDeltaY := 0;
 			end;
-			KEY_RIGHT, '6': begin
+			KEY_RIGHT: begin
 				InputDeltaX := 1;
 				InputDeltaY := 0;
 			end;
-			KEY_DOWN, '2': begin
+			KEY_DOWN: begin
 				InputDeltaX := 0;
 				InputDeltaY := 1;
 			end;

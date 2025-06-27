@@ -1,0 +1,56 @@
+@INPUT
+#set obj5 16
+#set obj6 1
+:enter
+#set gem.canshoot false
+#set maxbullets 1
+:deactivate
+'#unlock player
+#write at obj5 obj6 purple black INACTIVE
+#color i 0 13
+#zap up
+#zap left
+#zap right
+:inactive
+/i#if detect under player 0 0 fake inactive
+'#lock player
+#write at obj5 obj6 purple black ACTIVE  
+#color i 0 5
+#restore up
+#restore left
+#restore right
+#clear obj1
+:active
+#if detect under player 0 0 fake deactivate
+#if not obj1 if not detect to player s solid if not detect to player s object shove player s
+#if obj1 above 3 if not obj1 is 7 if not detect to player n solid if not detect to player n object shove player n
+#take obj1
+#if detect under player torch bgplay ebsg
+#and give torches
+#and put under player 11 11 fake
+#if detect under player ammo bgplay cc#d
+#and give ammo ammo.p1
+#and put under player 11 11 fake
+#if detect under player gem bgplay bf#d#
+#and give gems gem.p1
+#and give health gem.p2
+#and give score gem.scorevalue
+#and put under player 11 11 fake
+#if detect under player empty put under player 11 11 fake
+#change empty 11 11 fake
+/i#if not detect under player 0 0 fake active
+#deactivate
+'left
+#if blocked to player w if not blocked to to player n w if not detect to player n solid if not detect to player n object shove player n
+#and /i#if not detect to player w solid if not detect to player w object shove player w
+#active
+'right
+#if blocked to player e if not blocked to to player n e if not detect to player n solid if not detect to player n object shove player n
+#and /i#if not detect to player e solid if not detect to player e object shove player e
+#active
+'up
+#shove player s
+#if obj1 active
+#if not detect to player s solid if not detect to player s object active
+#set obj1 7
+#active

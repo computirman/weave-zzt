@@ -1,0 +1,27 @@
+@KeepBG
+#set obj1 thisx
+#set obj2 thisy
+#set obj5 49
+#set obj6 1
+#end
+:touch
+#lock player
+#all:deactivate
+#restore deactivate
+#color i 0 5
+/i
+#write at obj5 obj6 purple black ACTIVE  
+#set object.bg true
+:keepbgloop
+?rnd#if contact /i/i/i
+#keepbgloop
+'deactivate
+#lock player
+#zap deactivate
+#if detect at obj1 obj2 player shove player s
+#shove i at obj1 obj2
+#set object.bg false
+#write at obj5 obj6 purple black INACTIVE
+#color i 0 13
+#unlock player
+#end

@@ -1,0 +1,124 @@
+@INPUT
+#set obj5 13
+#set obj6 1
+:enter
+#run :init
+#run :cut
+:inact
+#write at obj5 obj6 purple black INACTIVE  
+#color i 0 13
+:waitstep
+/i#if not detect under player 1 0 yellowtext waitstep
+#run :boot
+#write at obj5 obj6 purple black ACTIVE  
+#color i 0 5
+Armor active; press W to deactivate.
+#end
+
+'shiftup
+#clear obj1
+#set obj2 -1
+#doshoot
+'shiftdown
+#clear obj1
+#set obj2
+#doshoot
+'shiftleft
+#set obj1 -1
+#clear obj2
+#doshoot
+'shiftright
+#set obj1
+#clear obj2
+:doshoot
+#if any bullet end
+#if canshoot to to player by obj1 obj2 by obj1 obj2 shoot to to player by obj1 obj2 by obj1 obj2
+#else if canput to to player by obj1 obj2 by obj1 obj2 put to to player by obj1 obj2 by obj1 obj2 8 0 bullet
+#and step to to player by obj1 obj2 by obj1 obj2 by obj1 obj2
+#if canshoot to to player cw by obj1 obj2 by obj1 obj2 shoot to to player cw by obj1 obj2 by obj1 obj2
+#else if canput to to player cw by obj1 obj2 by obj1 obj2 put to to player cw by obj1 obj2 by obj1 obj2 8 0 bullet
+#and step to to player cw by obj1 obj2 by obj1 obj2 by obj1 obj2
+#if canshoot to to player ccw by obj1 obj2 by obj1 obj2 shoot to to player ccw by obj1 obj2 by obj1 obj2
+#else if canput to to player ccw by obj1 obj2 by obj1 obj2 put to to player ccw by obj1 obj2 by obj1 obj2 8 0 bullet
+#and step to to player ccw by obj1 obj2 by obj1 obj2 by obj1 obj2
+#if any bullet bgplay 7
+#and end
+#end
+
+'up
+#clear obj1
+#set obj2 -1
+#dostep
+'down
+#clear obj1
+#set obj2
+#dostep
+'left
+#set obj1 -1
+#clear obj2
+#dostep
+'right
+#set obj1
+#clear obj2
+:dostep
+#if blocked to to player by obj1 obj2 by obj1 obj2 send /to to player by obj1 obj2 by obj1 obj2 armortouch
+#and end
+#if blocked to to player cw by obj1 obj2 by obj1 obj2 send /to to player cw by obj1 obj2 by obj1 obj2 armortouch
+#and end
+#if blocked to to player ccw by obj1 obj2 by obj1 obj2 send /to to player ccw by obj1 obj2 by obj1 obj2 armortouch
+#and end
+#shove to player by obj1 obj2 by obj1 obj2
+#shove to player cw by obj1 obj2 by obj1 obj2
+#shove to player ccw by obj1 obj2 by obj1 obj2
+#shove player by obj1 obj2
+#shove to to player opp by obj1 obj2 opp by obj1 obj2 by obj1 obj2
+#put under player 1 0 yellowtext
+#end
+
+'weapon
+#run :cut
+:waitoff
+/i#if detect under player yellowtext waitoff
+#inact
+
+:cut
+#zap up
+#zap down
+#zap left
+#zap right
+#zap shiftup
+#zap shiftdown
+#zap shiftleft
+#zap shiftright
+#zap weapon
+#set hideline17
+#set yellowtext.walkable true
+#change breakable empty
+#end
+
+:init
+#set maxbullets 0
+#clear cantshoot.msg
+#set bullet.p3 0
+#set bullet.p2 10
+#set bullet.p1 true
+#set objectshoot.snd 4
+#set yellowtext.canshoot false
+#set yellowtext.fg gray
+#set yellowtext.bg black
+#end
+
+:boot
+#set yellowtext.walkable false
+#restore up
+#restore down
+#restore left
+#restore right
+#restore shiftup
+#restore shiftdown
+#restore shiftleft
+#restore shiftright
+#restore weapon
+#clear hideline17
+#change empty 13 0 breakable
+#end

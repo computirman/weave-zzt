@@ -1,0 +1,38 @@
+@Matches
+#set obj5 50
+#set obj6 1
+:enter
+#lock
+#restore touch
+#clear torches
+#clear wick
+#clear isdark
+#color i 0 13
+#write at obj5 obj6 purple black INACTIVE
+#set keys.torch.label Torch
+#set other.torchsize 50
+#clear fake.msg.touch
+#change 42 text 0 0 empty
+#unlock
+#end
+'touch
+#zap touch
+#set keys.torch.label Match
+#write at obj5 obj6 purple black ACTIVE  
+#color i 0 5
+#change empty 42 text 0 0
+#set torches
+#set isdark
+#set obj1 50
+:waitfortorch
+/i#if torches waitfortorch
+:drain
+#take wick 3
+#take obj1
+#set other.torchsize obj1
+#if rnd if rnd bgplay 0
+#if wick above 8 /i#drain
+#set other.torchsize 1
+:darkness
+/i#if wick darkness
+/i/i/i/i/i/i/i/i/i/i/i/i#enter

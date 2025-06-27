@@ -1,0 +1,29 @@
+@Hookshot
+#lock
+#set obj5 19
+#set obj6 2
+/i
+:enter
+#lock
+#set bullet.p3 0
+#set objectshoot.snd 4
+#deactivate
+
+'touch
+#zap touch
+#others:deactivate
+#write at obj5 obj6 purple black ACTIVE  
+#color i 0 5
+#set local1
+Hookshot engaged. Use Shift+Dir to shoot.
+#end
+
+'touch
+:deactivate
+#restore touch
+#clear local1
+#color i 0 13
+#write at obj5 obj6 purple black INACTIVE
+#set tickspeed 5
+#unlock
+#end

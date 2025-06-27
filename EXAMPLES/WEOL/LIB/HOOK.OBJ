@@ -1,0 +1,191 @@
+@INPUT
+:active
+/i#if local1 active
+#pset i char 32
+#color i 7 0
+#zap shiftup
+#zap shiftdown
+#zap shiftleft
+#zap shiftright
+:inactive
+/i#if not local1 inactive
+:reset
+#set tickspeed 5
+#pset i char 32
+#restore shiftup
+#restore shiftdown
+#restore shiftleft
+#restore shiftright
+#unlock player
+#clear obj1
+#clear obj2
+#active
+
+'shiftup
+#pset i char 30
+#set obj2 -1
+#dohook
+'shiftdown
+#pset i char 31
+#set obj2
+#dohook
+'shiftleft
+#pset i char 17
+#set obj1 -1
+#dohook
+'shiftright
+#pset i char 16
+#set obj1
+:dohook
+#set tickspeed 2
+#clear obj6
+#give obj1 playerx
+#give obj2 playery
+#set array run :starthook
+#if not array reset
+#lock player
+#zap shiftup
+#zap shiftdown
+#zap shiftleft
+#zap shiftright
+#send start^
+#reset
+
+:start3
+#if at 1 1 shoot at obj1 obj2
+#else shoot opp seek
+:start1
+#if at 1 1 shove i at obj1 obj2
+#else shove i opp seek
+#bgplay 9
+#if contact near
+#set obj3 pget seek canput
+#if not obj3 if detect under i water pullnone
+#if not obj3 pullme
+#put seek object
+#if thisx is playerx pset seek char 186
+#else pset seek char 205
+#color seek 7 0
+:near
+#if not canshoot opp seek /i
+:main
+#give obj6
+#if obj6 is 5 if thisx is playerx pullnone
+#if obj6 is 8 pullnone
+#set array run :checkhook
+#if not array if detect under i water pullnone
+#if not array pullme
+#send start^
+:pullnone
+#if contact pset i char 32
+#and shove i at 1 1
+#and reset
+#shove seek at 1 2
+#put at 1 2 empty
+#shove i seek
+#bgplay 0
+/i#pullnone
+:pullme
+#if contact pulldone
+#bgplay 8
+#shove to player opp seek at 1 2
+#put at 1 2 empty
+#shove player opp seek
+/i#pullme
+:pulldone
+#pset i char 32
+#set obj1 thisx
+#set obj2 thisy
+#shove i at 1 1
+#shove player at obj1 obj2
+#bgplay 2
+#reset
+
+:start7
+#give array 24
+:start6
+#give array 120
+:start5
+#give array 6
+:start4
+#if at 1 1 shove at obj1 obj2 at 1 2
+#else shove opp seek at 1 2
+#put at 1 2 empty
+#if not at 1 1 put opp seek object
+#and pset opp seek char array
+#and color opp seek obj3
+:pullyou
+#if at 1 1 grab
+#if not contact shove seek at 1 2
+#and put at 1 2 empty
+#and shove i seek
+#and shove to opp seek opp seek seek
+#and bgplay 6
+#and /i#pullyou
+#pset i char 32
+#set obj1 thisx
+#set obj2 thisy
+#shove i at 1 1
+#if playerx above obj1 shove to to player w w e
+#if playerx below obj1 shove to to player e e w
+#if playery above obj2 shove to to player n n s
+#if playery below obj2 shove to to player s s n
+#bgplay 4
+/i#pullyou
+
+:grab
+#if detect at obj1 obj2 object set array pget at obj1 obj2 char
+#send item^
+:erase
+#pset at obj1 obj2 char 32
+#shove at obj1 obj2 at 1 2
+#put at 1 2 empty
+#reset
+:item4
+#bgplay bf#d#
+#give gems gem.p1
+#give health gem.p2
+#give score gem.scorevalue
+#erase
+:item11
+#if color at obj1 obj2 9 give bluekey
+#if color at obj1 obj2 10 give greenkey
+#if color at obj1 obj2 11 give cyankey
+#if color at obj1 obj2 12 give redkey
+#if color at obj1 obj2 13 give purplekey
+#if color at obj1 obj2 14 give yellowkey
+#if color at obj1 obj2 15 give whitekey
+#bgplay b+d#-f#
+#erase
+:item132
+#bgplay cc#d
+#give ammo ammo.p1
+#erase
+:item157
+#bgplay ebsg
+#give torches
+#erase
+
+:starthook
+#if canput at obj1 obj2 end 1
+#if detect at obj1 obj2 breakable if thisy is playery if obj6 is 7 end 0
+#if detect at obj1 obj2 breakable if thisx is playerx if obj6 is 4 end 0
+#set obj3 pget at obj1 obj2 color
+#if detect at obj1 obj2 gem end 4
+#if detect at obj1 obj2 key end 5
+#if detect at obj1 obj2 ammo end 6
+#if detect at obj1 obj2 torch end 7
+#if canshoot at obj1 obj2 end 3
+#end 0
+
+:checkhook
+#if canput opp seek end 1
+#if detect opp seek breakable if thisy is playery if obj6 is 7 end 0
+#if detect opp seek breakable if thisx is playerx if obj6 is 4 end 0
+#set obj3 pget opp seek color
+#if detect opp seek gem end 4
+#if detect opp seek key end 5
+#if detect opp seek ammo end 6
+#if detect opp seek torch end 7
+#if canshoot opp seek end 3
+#end 0

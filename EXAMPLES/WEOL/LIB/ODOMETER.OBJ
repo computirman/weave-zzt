@@ -1,0 +1,21 @@
+@Odometer
+#set obj5 16
+#set obj6 2
+:watch
+#set obj1 playerx
+#set obj2 playery
+/i#if obj1 is playerx if obj2 is playery watch
+#if obj3 below 1000 give obj3
+#set obj4 2
+#set array obj3
+#if array is 1000 write at obj5 obj6 purple black *** 
+#else write at obj5 obj6 purple black ^ 
+#if obj3 above 9 give obj4
+#if obj3 above 99 give obj4
+#set array obj1
+#else write to at obj5 obj6 by obj4 0 purple black (^,
+#give obj4 3
+#if array above 9 give obj4
+#set array obj2
+#write to at obj5 obj6 by obj4 0 purple black ^)
+#watch

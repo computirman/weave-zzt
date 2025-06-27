@@ -1,0 +1,29 @@
+@WhoKnows
+#set obj5 51
+#set obj6 1
+#end
+:touch
+#lock player
+#color i 0 5
+#write at obj5 obj6 purple black ACTIVE  
+#bgplay +c-c-c-cxxxc+c+c
+#player 15 1 254
+/i
+#player 1 0 219
+/i
+#player 1 0 7
+/i
+:findspot
+#set obj1 random 3 58
+#set obj2 random 11 13
+#if not detect at obj1 obj2 empty findspot
+#shove player at obj1 obj2
+#player 1 9 254
+/i
+#player 15 1 254
+/i
+#player 15 1 2
+#write at obj5 obj6 purple black INACTIVE
+#color i 0 13
+#unlock player
+#end

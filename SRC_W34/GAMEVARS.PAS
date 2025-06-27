@@ -124,7 +124,7 @@ interface
 			Under: TTile;
 			ObjArray: integer;
 			elseCheck: boolean;
-			Unused: byte;
+			doStack: byte;
 			DataPos: integer;
 			DataLen: integer;
 			ObjLocal: array[1 .. 4] of integer;

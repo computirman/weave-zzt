@@ -8,6 +8,7 @@ Foo object is loaded!
 #restore !dest
 #end
 :touch
+#color i red
 I am Foo, the object loaded from FOO.OBJ!
 
 $What you want Foo to do?
@@ -18,6 +19,7 @@ $What you want Foo to do?
 !;Nothing do.
 #end
 :make
+#put n empty
 #put n object
 #pset n char 71
 #color n purple black

@@ -1,0 +1,29 @@
+@SamePass
+#set obj1 thisx
+#set obj2 thisy
+#set obj5 16
+#set obj6 3
+:enter
+#set cyantext.walkable true
+#set cyantext.fg white
+#set cyantext.bg dkcyan
+:reset
+#color i 0 5
+#write at obj5 obj6 purple black ACTIVE  
+#put under i 69 text 0 5
+:waitpass
+/i#if not detect under player 240 cyantext waitpass
+#lock player
+/i/i
+#shove i to player e
+#shove player to pfind 240 cyantext e
+#shove i at obj1 obj2
+#color i 0 13
+#set obj3 60
+#write at obj5 obj6 purple black INACTIVE
+#bgplay --d+d+da
+#unlock player
+:waitreset
+#take obj3 reset
+/i#if detect under player 240 cyantext waitreset
+#reset

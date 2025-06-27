@@ -1,0 +1,43 @@
+@Slots
+#lock
+#set obj5 48
+#set obj6 1
+' The reel positions are set using
+' local2, local4, and local6.
+' an object called MACHINE, located
+' on the slot device itself ("O"),
+' draws the reels.
+#set local2 4
+#clear local4
+#set local6 6
+:enter
+#restore touch
+#color i 0 13
+#write at obj5 obj6 purple black INACTIVE
+#char 68
+#unlock
+#end
+'touch
+#lock
+#zap touch
+#clear array
+#write at obj5 obj6 purple black ACTIVE  
+#color i 0 5
+#bgplay --f+cg+da
+#Machine:start
+/i#unlock
+:watch
+/i#if within 7 watch
+#deactivate
+'touch
+#lock
+#char 33
+#give array
+#Machine:stop^
+/i/i/i/i#unlock
+#char 68
+#take array 3 watch
+:deactivate
+#lock
+#char 33
+/i/i/i/i#enter

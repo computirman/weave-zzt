@@ -1,5 +1,5 @@
 Weave Extended ZZT-OOP Quick Reference
-v0.11
+v0.12
 For Weave v3.4
 
 === INDEX ===

@@ -1,0 +1,17 @@
+@LitBomb
+#set obj5 15
+#set obj6 1
+#end
+:touch
+#zap touch
+#color i 0 5
+#write at obj5 obj6 purple black ACTIVE  
+#bgplay --f+g+a#
+#put s purple black bomb
+#pset s p1 9
+:waitexplode
+/i#if any bomb waitexplode
+#write at obj5 obj6 purple black INACTIVE
+#color i 0 13
+#restore touch
+#end

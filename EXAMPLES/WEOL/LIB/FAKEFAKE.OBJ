@@ -1,0 +1,20 @@
+@FakeFake
+#set obj1 thisx
+#set obj2 thisy
+#set obj5 51
+#set obj6 2
+:reset
+#color i 0 5
+#write at obj5 obj6 purple black ACTIVE  
+#put under i 69 text 0 5
+:waitfake
+/i#if not detect under player red fake waitfake
+#shove i to player e
+#shove player to pfind red fake e
+#shove i at obj1 obj2
+#color i 0 13
+#write at obj5 obj6 purple black INACTIVE
+#bgplay --d+d+da
+:waitempty
+/i#if detect under player red fake waitempty
+#reset

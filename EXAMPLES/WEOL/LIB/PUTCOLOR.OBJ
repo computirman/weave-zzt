@@ -1,0 +1,153 @@
+@PutColor
+#set obj1 23
+#set obj2 20
+#set obj5 16
+#set obj6 3
+#end
+:touch
+#lock player
+#all:deactivate
+#restore deactivate
+#color i 0 5
+/i
+#write at obj5 obj6 purple black ACTIVE  
+#clear obj3
+#clear obj4
+#clear array
+:askfgcolor
+$WHAT FOREGROUND COLOR?
+
+!fg1;Dark Blue
+!fg2;Dark Green
+!fg3;Dark Cyan
+!fg4;Dark Red
+!fg5;Dark Purple
+!fg6;Brown
+!fg7;Gray
+!fg8;Dark Gray
+!fg9;Blue
+!fg10;Green
+!fg11;Cyan
+!fg12;Red
+!fg13;Purple
+!fg14;Yellow
+!fg15;White
+!;Random (default)
+/i#set obj3 random 1 15
+:askbgcolor
+#set array obj3
+#zap !bg^
+/i
+$WHAT BACKGROUND COLOR?
+
+!bg1;Dark Blue
+!bg2;Dark Green
+!bg3;Dark Cyan
+!bg4;Dark Red
+!bg5;Dark Purple
+!bg6;Brown
+!bg7;Gray
+!bg8;Dark Gray
+!bg9;Blue
+!bg10;Green
+!bg11;Cyan
+!bg12;Red
+!bg13;Purple
+!bg14;Yellow
+!bg15;White
+!;Random (default)
+/i
+:spin
+#set array random 1 15
+#if array is obj3 spin
+#send bg^
+ERROR
+#deactivate
+:fg15
+#give obj3
+:fg14
+#give obj3
+:fg13
+#give obj3
+:fg12
+#give obj3
+:fg11
+#give obj3
+:fg10
+#give obj3
+:fg9
+#give obj3
+:fg8
+#give obj3
+:fg7
+#give obj3
+:fg6
+#give obj3
+:fg5
+#give obj3
+:fg4
+#give obj3
+:fg3
+#give obj3
+:fg2
+#give obj3
+:fg1
+#if not obj3 set obj3
+#else give obj3
+#askbgcolor
+:bg15
+#give obj3 16
+:bg14
+#give obj3 16
+:bg13
+#give obj3 16
+:bg12
+#give obj3 16
+:bg11
+#give obj3 16
+:bg10
+#give obj3 16
+:bg9
+#give obj3 16
+:bg8
+#give obj3 16
+:bg7
+#give obj3 16
+:bg6
+#give obj3 16
+:bg5
+#give obj3 16
+:bg4
+#give obj3 16
+:bg3
+#give obj3 16
+:bg2
+#give obj3 16
+:bg1
+#give obj3 16
+#clear array
+#unlock player
+:putloop
+/i#if rnd if rnd put to at obj1 obj2 by obj4 array obj3 breakable
+#else if rnd put to at obj1 obj2 by obj4 array obj3 water
+#else put to at obj1 obj2 by obj4 array obj3 normal
+#give obj4
+#take obj4 5 putloop
+#give array
+#take array 5 putloop
+#end
+'deactivate
+#lock player
+#zap deactivate
+#change obj3 normal empty
+#change obj3 breakable empty
+#change obj3 water empty
+#set array
+:unzapbgoptions
+#restore bg^
+#give array
+#take array 16 unzapbgoptions
+#write at obj5 obj6 purple black INACTIVE
+#color i 0 13
+#unlock player
+#end

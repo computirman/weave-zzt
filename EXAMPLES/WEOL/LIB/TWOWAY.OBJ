@@ -1,0 +1,36 @@
+@TwoWay
+#if not local1 set local1 thisx
+#else set local2 thisx
+#set obj1 thisy
+#give obj1
+#set obj5 14
+#set obj6 2
+#end
+:touch
+#lock player
+#color i 0 5
+#write at obj5 obj6 purple black ACTIVE  
+#bgplay +c-c-c-cxxxxxc+c+c+c
+#player 15 1 254
+/i
+#player 1 0 219
+/i
+#player 1 0 254
+/i
+#player 1 0 7
+/i
+#player 0 0 32
+#if thisx is local1 shove player at local2 obj1
+#else shove player at local1 obj1
+/i
+#player 1 0 254
+/i
+#player 1 0 219
+/i
+#player 15 1 254
+/i
+#player 15 1 2
+#write at obj5 obj6 purple black INACTIVE
+#color i 0 13
+#unlock player
+#end
