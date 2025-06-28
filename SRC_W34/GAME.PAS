@@ -946,7 +946,6 @@ procedure WorldCreate;
 			XDat.Flags[i] := '';
 		BoardChange(0);
 		Board.Name := 'Title screen';
-		LoadedGameFileName := '';
 
 		for i := 1 to CUSTOM_COUNTER_COUNT do
 			World.Info.CustomCounters[i] := 0;
@@ -1239,6 +1238,24 @@ function DisplayIOError(filename: TString50): boolean;
 			DisplayIOError := true;
 	end;
 
+procedure GoToDirectory(var input: string);
+	var
+		s, k: string;
+		i: integer;
+	begin
+		s := '';
+		k := '';
+		for i := 1 to Length(input) do begin
+			if Input[i] = '\' then
+				s := k;
+			k := k + Input[i];
+		end;
+		if Length(s) <> 0 then begin
+			Chdir(s);
+			input := Copy(input, Length(s) + 2, 12);
+		end;
+	end;
+
 procedure WorldUnload;
 	var
 		i: integer;
@@ -1251,12 +1268,29 @@ procedure WorldUnload;
 function WorldLoad(filename, extension: TString50): boolean;
 	var
 		f: file;
+		fname: string;
 		ptr: pointer;
 		boardId: integer;
 	label OnError;
 	begin
 		WorldLoad := false;
-		if not FileExists(filename + extension) then begin
+		if filename[length(filename) - 3] = '.' then begin
+			fname := filename;
+			GoToDirectory(fname);
+			extension := 'RELOAD';
+			if GameStateElement = E_MONITOR then begin
+				GameStateElement := E_PLAYER;
+				GameDrawTheme;
+			end else
+				JustStarted := true;
+		end else
+			fname := filename + extension;
+
+		if not FileExists(fname) then begin
+			exit;
+		end;
+
+		if not FileExists(fname) then begin
 			exit;
 		end;
 		SidebarClearLine(4);
@@ -1264,14 +1298,14 @@ function WorldLoad(filename, extension: TString50): boolean;
 		VideoWriteText(62, 5, AsColor(XDat.Params[THEME_START + 1],
 			XDat.Params[THEME_START]), 'Loading.....');
 
-		AssignFSys(f, filename + extension);
+		AssignFSys(f, fname);
 		Reset(f, 1);
 
-		if not DisplayIOError(filename + extension) then begin
+		if not DisplayIOError(fname) then begin
 			WorldUnload;
 			BlockRead(f, IoTmpBuf^, WORLD_FILE_HEADER_SIZE);
 
-			if not DisplayIOError(filename + extension) then begin
+			if not DisplayIOError(fname) then begin
 				ptr := IoTmpBuf;
 				Move(ptr^, World.BoardCount, SizeOf(World.BoardCount));
 				AdvancePointer(ptr, SizeOf(World.BoardCount));
@@ -1333,6 +1367,12 @@ function WorldLoad(filename, extension: TString50): boolean;
 					GameDrawTheme;
 				end else
 					InitElementsGame;
+				if extension = 'RELOAD' then begin
+					LoadPalette;
+					GameDrawTheme;
+					extension := '.ZZT';
+				end;
+
 				SetPalette(false);
 				CurrentBlink := (XDat.Params[THEME_BLINK] = 0);
 				SetBlink(CurrentBlink);
@@ -1342,7 +1382,6 @@ function WorldLoad(filename, extension: TString50): boolean;
 					World.Info.CurrentBoard := XDat.Params[21];
 				BoardOpen(World.Info.CurrentBoard);
 				BoardDrawBottom;
-				LoadedGameFileName := filename;
 				WorldLoad := true;
 
 				CustomOOPLoad;
@@ -2758,24 +2797,6 @@ procedure GameDrawCustomSidebar;
 		end;
 	end;
 
-procedure GoToDirectory(var input: string);
-	var
-		s, k: string;
-		i: integer;
-	begin
-		s := '';
-		k := '';
-		for i := 1 to Length(input) do begin
-			if Input[i] = '\' then
-				s := k;
-			k := k + Input[i];
-		end;
-		if Length(s) <> 0 then begin
-			Chdir(s);
-			input := Copy(input, Length(s) + 2, 12);
-		end;
-	end;
-
 procedure GameDrawTheme;
 	begin
 		if CurrentBlink <> (XDat.Params[THEME_BLINK] = 0) then begin
@@ -3028,7 +3049,7 @@ procedure GamePlayLoop(boardChanged: boolean);
 					TimerSysIdle(IMUntilPit);
 				end;
 			end;
-		until (exitLoop or GamePlayExitRequested) and GamePlayExitRequested;
+		until (exitLoop or GamePlayExitRequested) and (GamePlayExitRequested or JustStarted);
 
 		SoundClearQueue;
 

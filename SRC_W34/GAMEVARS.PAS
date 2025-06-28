@@ -214,7 +214,6 @@ interface
 		PMouseX, PMouseY, TickSpeed, TickTimeDuration: shortint;
 		PMouseButL, PMouseButR: boolean;
 
-		LoadedGameFileName: TString50;
 		SavedGameFileName: TString50;
 		StartupWorldFileName: TString50;
 		Board: TBoard;
