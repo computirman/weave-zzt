@@ -1268,26 +1268,27 @@ procedure WorldUnload;
 function WorldLoad(filename, extension: TString50): boolean;
 	var
 		f: file;
-		fname: string;
+		fname: string[50];
 		ptr: pointer;
 		boardId: integer;
+		reTheme: boolean;
 	label OnError;
 	begin
 		WorldLoad := false;
-		if filename[length(filename) - 3] = '.' then begin
+
+		if filename[length(filename) - 3] <> '.' then
+			fname := filename + extension		
+		else begin
 			fname := filename;
 			GoToDirectory(fname);
 			extension := 'RELOAD';
 			if GameStateElement = E_MONITOR then begin
 				GameStateElement := E_PLAYER;
-				GameDrawTheme;
-			end else
+				reTheme := true;
+			end else begin
 				JustStarted := true;
-		end else
-			fname := filename + extension;
-
-		if not FileExists(fname) then begin
-			exit;
+				reTheme := false;
+			end;
 		end;
 
 		if not FileExists(fname) then begin
@@ -1387,6 +1388,9 @@ function WorldLoad(filename, extension: TString50): boolean;
 				CustomOOPLoad;
 				CustomSidebarLoad;
 				CustomCharsetLoad(World.Info.Name);
+
+				if reTheme then
+					GameDrawTheme;
 
 				HighScoresLoad;
 				SidebarClearLine(5);
