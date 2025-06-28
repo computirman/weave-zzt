@@ -239,12 +239,11 @@ interface
 		GameMove: boolean;
 		CurrentBlink: boolean;
 		HasCustomSidebar: boolean;
-		HasCHR: boolean;
-		LastLoadedCHR: TString8;
 		SelUnder: boolean;
 		QuickStart: boolean;
 		QuickQuit: boolean;
 		QStartBoard: integer;
+		QuickSwap: TString50;
 		IoTmpBufSize: word;
 		FileWorldCachedLinePos: integer; 
 		FileSaveCachedLinePos: integer;

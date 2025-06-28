@@ -1831,6 +1831,7 @@ procedure ElementMonitorTick(statId: integer);
 		if (Board.Info.BoardTicks > 420) then
 			Board.Info.BoardTicks := 1;
 		if QuickStart then GamePlayExitRequested := true;
+		if QuickSwap <> '' then GamePlayExitRequested := true;
 		if inputC in [#27, 'A', 'E', 'H', 'N', 'P', 'Q', 'R', 'S', 'W', '|'] then
 			GamePlayExitRequested := true;
 		if (statId = 0) and not (Board.Stats[0].P1 = 1) then begin

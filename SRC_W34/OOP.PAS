@@ -2028,7 +2028,13 @@ procedure OopExecute(statId: integer; name: TString50);
 									end;
 								end else begin
 									textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
-									if WorldLoad(textLine, '.SAV') then begin
+									if textLine[length(textLine) - 3] = '.' then begin
+										QuickSwap := textLine;
+										QuickQuit := true;
+										World.Info.Health := 0;
+										World.Info.Score := 0;
+										World.Info.GracePeriod := XDat.Params[11];
+									end else if WorldLoad(textLine, '.SAV') then begin
 										ReturnBoardId := World.Info.CurrentBoard;
 										BoardChange(ReturnBoardId);
 										TransitionDrawToBoard;

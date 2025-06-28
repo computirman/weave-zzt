@@ -315,29 +315,21 @@ function OopConfigs (i: integer): string;
 		else OopConfigs := '_nil' end;
 	end;
 
-procedure CustomCharsetLoad(chrfile: string);
+procedure CustomCharsetLoad;
 	var
 		f: file;
 		ch: TCharsetData;
 	begin
-		if LastLoadedCHR <> chrfile then begin
-			LastLoadedCHR := chrfile;
-			HasCHR := false;
-			if (chrfile <> '') and FileExists(chrfile + '.CHR') then begin
-				AssignFSys(f, chrfile + '.CHR');
-				Reset(f, 1);
-				if IOResult = 0 then begin
-					HasCHR := true;
-					BlockRead(f, ch, 3584);
-					Close(f);
-					if VideoSetCharset(@ch, 14) then exit;
-				end;
+		if FileExists(World.Info.Name + '.CHR') then begin
+			AssignFSys(f, World.Info.Name + '.CHR');
+			Reset(f, 1);
+			if IOResult = 0 then begin
+				BlockRead(f, ch, 3584);
+				Close(f);
+				if VideoSetCharset(@ch, 14) then exit;
 			end;
-			{ Load default charset if failure/no charset }
-			if chrfile = World.Info.Name then
-				if VideoSetCharset(nil, 0) then begin end;
+			if VideoSetCharset(nil, 0) then begin end;
 		end;
-
 	end;
 
 function Locals(i: integer): string;
@@ -837,32 +829,12 @@ procedure BoardOpen(boardId: integer);
 procedure BoardChange(boardId: integer);
 	var
 		iy: integer;
-		lstring: string;
 	begin
 		if World.Info.CurrentBoard <> boardId then begin
 			BoardClose;
 			BoardOpen(boardId);
 			If HasCustomSidebar and (boardId <> 0) then GameDrawCustomSidebar;
 		end;
-		if HasCHR then
-			if (Board.Name[1] = ':') then begin
-				iy := 1;
-				lstring := '';
-				while iy < 9 do begin
-					if ((Board.Name[iy + 1] >= 'A') and (Board.Name[iy + 1] <= 'Z'))
-						or ((Board.Name[iy + 1] >= 'a') and (Board.Name[iy + 1] <= 'z'))
-						or ((Board.Name[iy + 1] >= '0') and (Board.Name[iy + 1] <= '9'))
-					then begin
-						lstring[0] := Chr(iy);
-						lstring[iy] := Board.Name[iy + 1];
-					end else
-						iy := 8;
-					inc(iy);
-				end;
-				if lstring <> '' then
-					CustomCharsetLoad(lstring);
-			end else
-				CustomCharsetLoad(World.Info.Name);
 	end;
 
 procedure BoardCreate;
@@ -950,7 +922,6 @@ procedure WorldCreate;
 		for i := 1 to CUSTOM_COUNTER_COUNT do
 			World.Info.CustomCounters[i] := 0;
 		CustomOOPLoad;
-		HasCHR := false;
 	end;
 
 procedure TransitionDrawToFill(chr: char; color: integer);
@@ -1268,30 +1239,13 @@ procedure WorldUnload;
 function WorldLoad(filename, extension: TString50): boolean;
 	var
 		f: file;
-		fname: string[50];
 		ptr: pointer;
 		boardId: integer;
-		reTheme: boolean;
 	label OnError;
 	begin
 		WorldLoad := false;
 
-		if filename[length(filename) - 3] <> '.' then
-			fname := filename + extension		
-		else begin
-			fname := filename;
-			GoToDirectory(fname);
-			extension := 'RELOAD';
-			if GameStateElement = E_MONITOR then begin
-				GameStateElement := E_PLAYER;
-				reTheme := true;
-			end else begin
-				JustStarted := true;
-				reTheme := false;
-			end;
-		end;
-
-		if not FileExists(fname) then begin
+		if not FileExists(filename + extension) then begin
 			exit;
 		end;
 		SidebarClearLine(4);
@@ -1299,14 +1253,14 @@ function WorldLoad(filename, extension: TString50): boolean;
 		VideoWriteText(62, 5, AsColor(XDat.Params[THEME_START + 1],
 			XDat.Params[THEME_START]), 'Loading.....');
 
-		AssignFSys(f, fname);
+		AssignFSys(f, filename + extension);
 		Reset(f, 1);
 
-		if not DisplayIOError(fname) then begin
+		if not DisplayIOError(filename + extension) then begin
 			WorldUnload;
 			BlockRead(f, IoTmpBuf^, WORLD_FILE_HEADER_SIZE);
 
-			if not DisplayIOError(fname) then begin
+			if not DisplayIOError(filename + extension) then begin
 				ptr := IoTmpBuf;
 				Move(ptr^, World.BoardCount, SizeOf(World.BoardCount));
 				AdvancePointer(ptr, SizeOf(World.BoardCount));
@@ -1368,11 +1322,6 @@ function WorldLoad(filename, extension: TString50): boolean;
 					GameDrawTheme;
 				end else
 					InitElementsGame;
-				if extension = 'RELOAD' then begin
-					LoadPalette;
-					GameDrawTheme;
-					extension := '.ZZT';
-				end;
 
 				SetPalette(false);
 				CurrentBlink := (XDat.Params[THEME_BLINK] = 0);
@@ -1387,10 +1336,7 @@ function WorldLoad(filename, extension: TString50): boolean;
 
 				CustomOOPLoad;
 				CustomSidebarLoad;
-				CustomCharsetLoad(World.Info.Name);
-
-				if reTheme then
-					GameDrawTheme;
+				CustomCharsetLoad;
 
 				HighScoresLoad;
 				SidebarClearLine(5);
@@ -3053,7 +2999,7 @@ procedure GamePlayLoop(boardChanged: boolean);
 					TimerSysIdle(IMUntilPit);
 				end;
 			end;
-		until (exitLoop or GamePlayExitRequested) and (GamePlayExitRequested or JustStarted);
+		until GamePlayExitRequested;
 
 		SoundClearQueue;
 
@@ -3085,13 +3031,26 @@ procedure GameTitleLoop;
 		ReturnBoardId := 0;
 		boardChanged := true;
 		repeat
+			if QuickSwap <> '' then begin
+				GoToDirectory(QuickSwap);
+				WorldLoad(QuickSwap,'');
+				ReturnBoardId := World.Info.CurrentBoard;
+				boardChanged := true;
+				QuickSwap := '';
+				QuickStart := true;
+				QStartBoard := -1;
+			end;
 			BoardChange(0);
 			repeat
 				GameStateElement := E_MONITOR;
 				startPlay := false;
 				GamePaused := false;
 				GamePlayLoop(boardChanged);
-				boardChanged := false;
+				if QuickSwap <> '' then begin
+					boardChanged := true;
+					QuickQuit := false;
+				end else
+					boardChanged := false;
 				inputC := UpCase(InputKeyPressed);
 				if inputC = 'W' then inputC := WorldMenuChar;
 				if inputC = 'S' then inputC := SpeedMenuChar;

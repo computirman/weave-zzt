@@ -158,10 +158,10 @@ begin
 
 	GameTitleExitRequested := false;
 	GameConfigure;
-	LastLoadedCHR := #0;
 	JustStarted := true;
 	QuickStart := false;
 	QuickQuit := false;
+	QuickSwap := '';
 	WorldMenuChar := 'W';
 	SpeedMenuChar := 'S';
 	HighScoreChar := 'H';
