@@ -1,0 +1,47 @@
+name: Build CI-specific versions
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-22.04
+    env:
+      FPC_LIBRARY_PATH: /usr/lib/x86_64-linux-gnu
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Update Ubuntu packages
+        run: sudo apt-get update
+      - name: Set up Ubuntu packages
+        run: sudo apt-get install -y fp-compiler-3.2.2 fp-units-base-3.2.2 fp-units-fcl-3.2.2 fp-units-net-3.2.2 fp-units-rtl-3.2.2 fp-utils-3.2.2 git zip libsdl2-dev
+      - name: Build
+        run: ./UNIX_BUILD34.sh _Linux_x64
+      - name: Archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Weave (Linux, x86_64)
+          path: W34UNIX/**
+
+  build_linux_aarch64:
+    runs-on: ubuntu-22.04-arm
+    env:
+      FPC_LIBRARY_PATH: /usr/lib/aarch64-linux-gnu
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Update Ubuntu packages
+        run: sudo apt-get update
+      - name: Set up Ubuntu packages
+        run: sudo apt-get install -y fp-compiler-3.2.2 fp-units-base-3.2.2 fp-units-fcl-3.2.2 fp-units-net-3.2.2 fp-units-rtl-3.2.2 fp-utils-3.2.2 git zip libsdl2-dev
+      - name: Build
+        run: ./UNIX_BUILD34.sh _Linux_aarch64
+      - name: Archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Weave (Linux, AArch64)
+          path: W34UNIX/**
