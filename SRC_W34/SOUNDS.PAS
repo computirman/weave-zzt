@@ -154,6 +154,11 @@ procedure SoundInitDrumTable;
 			SoundDrumTable[8].Data[i] := (i * 20 + 1200) - Random(i * 40);
 		for i := 1 to 14 do
 			SoundDrumTable[9].Data[i] := Random(440) + 220;
+		SoundDrumTable[10].Len := 48;
+		for i:= 1 to 24 do begin
+			SoundDrumTable[10].Data[i * 2 - 1] := 173 - (i mod 6);
+			SoundDrumTable[10].Data[i * 2] := 341 - (i mod 6);
+		end;		
 	end;
 
 function SoundHasTimeElapsed(var counter: integer; duration: shortint): boolean;
@@ -262,7 +267,7 @@ function SoundParse(input: string): string;
 				end;
 				'X': begin
 					Inc(outPos);
-					output[outPos] := #0;
+					output[outPos] := #255;
 					if outPos = 255 then goto SoundParseFinish;
 					Inc(outPos);
 					output[outPos] := Chr(noteDuration);
@@ -273,6 +278,15 @@ function SoundParse(input: string): string;
 				'0'..'2','4'..'9': begin
 					Inc(outPos);
 					output[outPos] := Chr(Ord(input[inPos]) + $F0 - Ord('0'));
+					if outPos = 255 then goto SoundParseFinish;
+					Inc(outPos);
+					output[outPos] := Chr(noteDuration);
+
+					Inc(inPos);
+				end;
+				#154: begin
+					Inc(outPos);
+					output[outPos] := #250;
 					if outPos = 255 then goto SoundParseFinish;
 					Inc(outPos);
 					output[outPos] := Chr(noteDuration);

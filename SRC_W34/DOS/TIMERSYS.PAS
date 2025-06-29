@@ -189,8 +189,10 @@ procedure SoundTimerHandler;
 				end else begin
 					if (SoundBuffer[SoundBufferPos] >= #0) and (SoundBuffer[SoundBufferPos] < #240) then
 						Sound(SoundFreqTable[Ord(SoundBuffer[SoundBufferPos])])
-					else if (SoundBuffer[SoundBufferPos] >= #240) and (SoundBuffer[SoundBufferPos] < #250) then
-						SoundPlayDrum(SoundDrumTable[Ord(SoundBuffer[SoundBufferPos]) - 240]);
+					else if (SoundBuffer[SoundBufferPos] >= #240) and (SoundBuffer[SoundBufferPos] < #251) then
+						SoundPlayDrum(SoundDrumTable[Ord(SoundBuffer[SoundBufferPos]) - 240])
+					else if SoundBuffer[SoundBufferPos] = #255 then
+						NoSound;
 					Inc(SoundBufferPos);
 
 					SoundDurationCounter := SoundDurationMultiplier * Ord(SoundBuffer[SoundBufferPos]);
