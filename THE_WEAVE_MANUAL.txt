@@ -89,7 +89,7 @@ The ".13" in the above entry refers to line 13, where the counter is displayed. 
     - These are textfiles containing ZZT-OOP. You can load them into objects with the #load command, replacing the existing code, or run them once with the #run command, returning the object to its original code when complete.
 
  * CHARACTER SETS (GAME.CHR)
-    - These are pure binary character sets that the game will load on startup. By naming a .CHR file the same as a board label (e.g. BOARD1.CHR for a board named ":board1;Board One") it will load that character set for that board only.
+    - These are pure binary character sets that the game will load on startup.
     - Only 8x14 character sets are supported.
     - Legacy tools, such as Font Mania (REXXCOM Systems, 1992) or MegaZeux (Unknown origin) can be used to create these files. More information on creating them, refer to the manuals for those applications.
 

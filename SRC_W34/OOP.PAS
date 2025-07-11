@@ -263,6 +263,8 @@ function OopRunFunc(statId: integer; var position: integer): integer;
 		labelPtr: pointer;
 		tmpcond: boolean;
 	begin
+		if GlobalArg = -31999 then
+			GlobalArg := -31998;
 		OopReadWord(statId, position);
 		OopFuncReturn := -1;
 		with TrackPushStat(statId)^ do begin
@@ -293,16 +295,7 @@ function OopRunFunc(statId: integer; var position: integer): integer;
 		TrackPopStat;
 		GameUpdateSidebar;
 		OopRunFunc := OopFuncReturn;
-	end;
-
-function OopRunFuncWith(statId: integer; var position: integer; var arg: integer): integer;
-	var
-		tempArg: integer;
-	begin
-		tempArg := GlobalArg;
-		GlobalArg := arg;
-		OopRunFuncWith := OopRunFunc(statId, position);
-		GlobalArg := tempArg;
+		GlobalArg := -31999;
 	end;
 
 function MatchTiles(sourceTile: TTile; searchTile: TMatchTile): boolean;
@@ -650,16 +643,28 @@ procedure OopReadValue(statId: integer; var position: integer);
 		s: string[20];
 		wordPos: byte;
 		t: string;
-		ix, iy, code: integer;
-		isNumeric: boolean;
+		ix, iy, iz, code: integer;
+		isNumeric, isDiv: boolean;
 		counter: TCounter;
 		tmpCond: boolean;
 		tile: TMatchTile;
 	begin
 		wordPos := 0;
+		iz := 1;
+		isDiv := false;
 		repeat
 			OopReadChar(statId, position)
 		until OopChar <> ' ';
+		while (OopChar > #170) and (OopChar < #174) do begin
+			isDiv := true;
+			if OopChar = #171 then
+				iz := iz * 2
+			else if OopChar = #172 then
+				iz := iz * 3
+			else
+				iz := iz * 10;
+			OopReadChar(statId, position);
+		end;
 
 		OopChar := UpCase(OopChar);
 		isNumeric := true;
@@ -727,21 +732,28 @@ procedure OopReadValue(statId: integer; var position: integer);
 				while FindTileOnBoard(ix, iy, tile) do Inc(OopValue);
 			end else if s = 'RUN' then begin
 				s := OopWord;
-				OopValue := OopRunFunc(statId, position);
+				if GlobalArg = -31999 then
+					OopValue := OopRunFunc(statId, position)
+				else
+					OopError(statId,position, 'Attempted to nest function ' + OopWord);
 				OopWord := s;
 			end else if s = 'RUNWITH' then begin
 				s := OopWord;
-				OopReadValue(statId, position);
-				if OopValue <> -32767 then begin
-					ix := OopValue;
-					OopValue := OopRunFuncWith(statId, position, ix);
-				end;
+				if GlobalArg = -31999 then begin
+					OopReadValue(statId, position);
+					if OopValue <> -32767 then begin
+						GlobalArg := OopValue;
+						OopValue := OopRunFunc(statId, position);
+					end;
+				end else
+					OopError(statId,position, 'Attempted to nest function ' + OopWord);
 				OopWord := s;
 			end else if CounterFromWord(counter, statId, s) then begin
 				CounterReadValue(counter);
 				OopValue := counter.Value;
 			end else OopValue := ColorNumber(s, -1);
 		end;
+		if isDiv and (OopValue > -32000) then OopValue := OopValue div iz;
 	end;
 
 procedure OopSkipLine(statId: integer; var position: integer);
@@ -1149,14 +1161,21 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 						OopCheckCondition := (X = ix) and (Y = iy)
 					else
 						OopError(statId,position, 'Bad condition');
-				end else if OopWord = 'RUN' then
-					OopCheckCondition := OopRunFunc(statId, position) > 0
-				else if OopWord = 'RUNWITH' then begin
-					OopReadValue(statId, position);
-					if OopValue <> -32767 then 
-						OopCheckCondition := OopRunFuncWith(statId, position, OopValue) > 0
+				end else if OopWord = 'RUN' then begin
+					if GlobalArg = -31999 then
+						OopCheckCondition := OopRunFunc(statId, position) > 0
 					else
-						OopError(statId,position, 'Could not read ' + OopWord + ' value');
+						OopError(statId,position, 'Attempted to nest function ' + OopWord);
+				end else if OopWord = 'RUNWITH' then begin
+					if GlobalArg = -31999 then begin
+						OopReadValue(statId, position);
+						if OopValue <> -32767 then begin
+							GlobalArg := OopValue;
+							OopCheckCondition := OopRunFunc(statId, position) > 0
+						end else
+							OopError(statId,position, 'Could not read ' + OopWord + ' value');
+					end else
+						OopError(statId,position, 'Attempted to nest function ' + OopWord);
 				end else if OopWord = 'WITHIN' then begin
 					OopReadValue(statId, position);
 					OopCheckCondition := ((Sqr(Board.Stats[0].X - x) + Sqr(Board.Stats[0].Y - y) * 7 / 4) <= (Sqr(OopValue)));
@@ -1481,7 +1500,10 @@ procedure OopExecute(statId: integer; name: TString50);
 					OopReadWord(Index, Stat^.DataPos);
 					if OopWord = 'THEN' then OopReadWord(Index, Stat^.DataPos);
 					if Length(OopWord) = 0 then goto ReadInstruction;
-					if name <> '%%Function' then Inc(insCount);
+					if name <> '%%Function' then begin
+						Inc(insCount);
+						GlobalArg := -31999;
+					end;
 					if Length(OopWord) <> 0 then begin
 						if OopWord = 'GO' then begin
 							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
@@ -1852,13 +1874,20 @@ procedure OopExecute(statId: integer; name: TString50);
 							end else if (OopWord = 'ELSEDO') then begin
 								if not Stat^.elseCheck then Inc(Stat^.doStack);
 							end else if (OopWord = 'RUN') then begin
-								ix := OopRunFunc(Index, Stat^.DataPos);
-							end else if OopWord = 'RUNWITH' then begin
-								OopReadValue(Index, Stat^.DataPos);
-								if OopValue <> -32767 then
-									ix := OopRunFuncWith(Index, Stat^.DataPos, OopValue)
+								if GlobalArg = -31999 then
+									ix := OopRunFunc(Index, Stat^.DataPos)
 								else
-									OopError(Index, Stat^.DataPos, 'Could not read ' + OopWord + ' value');
+									OopError(Index, Stat^.DataPos, 'Attempted to nest function ' + OopWord);
+							end else if OopWord = 'RUNWITH' then begin
+								if GlobalArg = -31999 then begin
+									OopReadValue(Index, Stat^.DataPos);
+									if OopValue <> -32767 then begin
+										GlobalArg := OopValue;
+										ix := OopRunFunc(Index, Stat^.DataPos);
+									end else
+										OopError(Index, Stat^.DataPos, 'Could not read ' + OopWord + ' value');
+								end else
+									OopError(Index, Stat^.DataPos, 'Attempted to nest function ' + OopWord);
 							end else if OopWord = 'SOUT' then begin {OUTPUT}
 								ix := Stat^.DataPos;
 								OopReadWord(Index, Stat^.DataPos);
