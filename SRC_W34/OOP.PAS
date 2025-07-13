@@ -1876,6 +1876,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								Dec(Stat^.DataPos);
 							if lastPosition = Stat^.DataPos then
 								stopRunning := true;
+							lineFinished := false;
 						end else if (OopWord = 'RUN') then begin
 							if GlobalArg = -31999 then
 								ix := OopRunFunc(Index, Stat^.DataPos)

@@ -311,13 +311,13 @@ Recolors a tile to the given color. For example, "#COLOR I Red DkRed" will make 
 
 Note: Custom counters can store color data. For more information on this, see Appendix C: "Color Substitution".
 
-== #DO / #DONE ==
+== #RETRY ==
 
-Similar to #AND, if the last #IF statement evaluated to TRUE, the lines of code between #DO and #DONE will be executed.
+Returns to the beginning of the line and starts again.
 
-Multiple #DO and #DONE blocks can be nested in one another.
+If the beginning of the line is a /dir or ?dir movement, it will try to move immediately.
 
-Additionally, see the entry for #ELSEDO below.
+Otherwise it will wait and try again next tick.
 
 == #DIE ITEM ==
 
@@ -382,27 +382,6 @@ Keeping in mind the above, you can use #IF, #AND and #ELSE to evaluate many diff
     #loop
 
 Test the above code for yourself to see how it works.
-
-== #ELSEDO ==
-
-You can place #ELSEDO inside a #DO / #DONE block:
-
-    @EitherOr
-    #IF THISX ABOVE 30 DO
-    #WALK W
-    /i/i/i#WALK I
-    #SHOOT W
-    #ELSEDO
-    #WALK E
-    /i/i/i#WALK I
-    #SHOOT S
-    #DONE
-
-If the last #IF statement evaluated to TRUE, then the code between #DO and #ELSEDO will be run.
-
-If the last #IF statement evaluated to FALSE, the code between #ELSEDO and #DONE will be run.
-
-Multiple #DO / #ELSEDO / #DONE blocks can be nested in one another.
 
 == #FGPLAY <notes> ==
 
@@ -472,9 +451,21 @@ In addition to ANY, BLOCKED, and similar from Vanilla ZZT, Weave adds the follow
 
     - Evaluates true if <counter> is either above, below, or equal to a given number, respectively.
 
+ * #IF <condition> OR <condition>
+    - Evaluates true if either condition evaluates to true.
+
+ * #IF <condition> OR <condition> OR <condition>
+    - OR can be stacked multiple times. If any of them are true, evaluates to true.
+
 == #LOADGAME [file] ==
 
-Loads [file].SAV and immediately begins playing it. Unlike restoring a save from the title screen, the Player does not pause, making the file loading seamless. If no [file] is specified, will open the game restore dialog.
+Loads [file].SAV and immediately begins playing it.
+
+Unlike restoring a save from the title screen, the Player does not pause, making the file loading seamless.
+
+If no [file] is specified, will open the game restore dialog.
+
+If a .ZZT file is specified, will open that ZZT file and immediately begin playing it.
 
 See also #SAVEGAME.
 
