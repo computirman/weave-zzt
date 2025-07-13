@@ -121,7 +121,7 @@ interface
 			Under: TTile;
 			ObjArray: integer;
 			elseCheck: boolean;
-			doStack: byte;
+			unused: byte;
 			DataPos: integer;
 			DataLen: integer;
 			ObjLocal: array[1 .. 4] of integer;
@@ -256,6 +256,9 @@ interface
 		GameStateElement: integer;
 		ReturnBoardId: integer;
 		GlobalArg: integer;
+		GlobalWriteX: integer;
+		GlobalWriteY: integer;
+		GlobalWriteChar: byte;
 
 		IoTmpBuf: pointer;
 		ObjTmpBuf: pointer;

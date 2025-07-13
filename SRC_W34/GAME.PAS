@@ -2355,6 +2355,7 @@ procedure BoardEnter;
 			MessageHintTorchNotShown := false;
 		end;
 
+		GlobalWriteChar := 0;
 		World.Info.BoardTimeSec := 0;
 		GameUpdateSidebar;
 	end;
