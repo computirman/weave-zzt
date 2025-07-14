@@ -201,7 +201,7 @@ procedure OopOutputTile(x, y, dx, dy: integer; tile: TTile);
 				r := s
 			else
 				r := s + ' 0';
-			t := t + ' ';
+			t := t + ' ' + r;
 			if tile.Element > MAX_ELEMENT then
 				t := t + ' ' + Chr(tile.Color)
 			else begin
@@ -905,7 +905,7 @@ function OopFindLabel(
 		if foundStat then begin
 			if objectMessage = 'RESTART' then begin
 				iDataPos := 0;
-			end else if (objectMessage = 'END') then
+			end else if objectMessage = 'END' then
 				iDataPos := Board.Stats[iStat].DataLen
 			else begin
 				iDataPos := OopFindString(iStat, searchDir, labelPrefix + objectMessage);
@@ -1407,7 +1407,10 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 				if iStat = statId then
 					OopSend := true;
 
-				Board.Stats[iStat].DataPos := iDataPos + 1;
+				if iDataPos = 0 then
+					Board.Stats[iStat].DataPos := 0
+				else
+					Board.Stats[iStat].DataPos := iDataPos + 1;
 			end;
 		end;
 	end;
