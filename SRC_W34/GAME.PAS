@@ -1214,6 +1214,8 @@ procedure GoToDirectory(var input: string);
 		s, k: string;
 		i: integer;
 	begin
+		{ This procedure would be much simpler with certain routines from sysutils,
+		  namely ExpandFileName(), ExtractFileDir(), and ExtractFileName(). }
 		s := '';
 		k := '';
 		for i := 1 to Length(input) do begin
