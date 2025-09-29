@@ -1219,15 +1219,15 @@ procedure GoToDirectory(var input: string);
 		s := '';
 		k := '';
 		for i := 1 to Length(input) do begin
-				if Input[i] = '\' then begin
-					s:= k;
+			if Input[i] = '\' then begin
+				s:= k;
 {$IFDEF UNIX}
-					k := k + '/';
+				k := k + '/';
 {$ELSE}
-					k := k + '\';
+				k := k + '\';
 {$ENDIF}
-				end else
-					k := k + Input[i];
+			end else
+				k := k + Input[i];
 		end;
 		if Length(s) <> 0 then begin
 			Chdir(s);
