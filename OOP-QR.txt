@@ -1,3 +1,8 @@
+[   Note: This guide is for version 3.4 - information
+          is accurate but entries on new features such
+          as #retry may be missing. See the Weave Manual
+          included in this download for complete info.   ]
+
 Weave Extended ZZT-OOP Quick Reference
 v0.12
 For Weave v3.4
