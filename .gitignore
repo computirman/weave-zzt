@@ -1,7 +1,9 @@
+/BIN
 /BUILD
 /DIST
+/W34UNIX
 /fpc-cross
 *.TPL
-/BIN
 *.dll
 *.exe
+/SRC_W34/ZZT
