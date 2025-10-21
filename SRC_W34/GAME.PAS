@@ -196,6 +196,9 @@ function ParamConfigs(i: integer): string;
 			20: ParamConfigs := 'THEME.BLINKING';
 			21: ParamConfigs := 'OTHER.STARTBOARD';
 			22: ParamConfigs := 'OTHER.HIGHSCORES';
+			23: ParamConfigs := 'OTHER.STRICTLOCK';
+			24: ParamConfigs := 'OTHER.TEXTWINDOW';
+			25: ParamConfigs := 'OTHER.STRICTARRAY';
 		else ParamConfigs := '_nil' end;
 	end;
 
@@ -262,25 +265,32 @@ procedure LoadPalette;
 	end;
 
 function DefaultParamList(i: integer): integer;
+	var
+		p: integer;
 	begin
-		case i of
-			1,9,11,16,23,24,25,26,27,29,31,32,36,37,39,43: DefaultParamList := 0;
-			2: DefaultParamList := 10;
-			3,6,12,13,20: DefaultParamList := 1;
-			4,7: DefaultParamList := 2;
-			5,8: DefaultParamList := 50;
-			10: DefaultParamList := 33;
-			14: DefaultParamList := 15;
-			15: DefaultParamList := 14;
-			17: DefaultParamList := 7;
-			18: DefaultParamList := 3;
-			19: DefaultParamList := 12;
-			21: DefaultParamList := -1;
-			22: DefaultParamList := 30;
-			28,30,33,34,35,38,40,41,44,45,46: DefaultParamList := 42;
-			42,47,48,49,50,51,53,55,56,60,61,63,67: DefaultParamList := 21;
-			52,54,57,58,59,62,64,65,66,68,69,70: DefaultParamList := 63;
-		else DefaultParamList := -32767 end;
+		if i > (PALETTE_START - 1) then begin
+			p := (i - PALETTE_START);
+			case p of
+				0,1,2,3,4,6,8,9,13,14,16,20: DefaultParamList := 0;
+				5,7,10,11,12,15,17,18,21,22,23: DefaultParamList := 42;
+				19,24,25,26,27,28,30,32,33,37,38,40,44: DefaultParamList := 21;
+				29,31,34,35,36,39,41,42,43,45,46,47: DefaultParamList := 63;
+			else DefaultParamList := -32767 end;
+		end else case i of
+				1,9,11,16: DefaultParamList := 0;
+				2: DefaultParamList := 10;
+				3,6,12,13,20,23,24: DefaultParamList := 1;
+				4,7: DefaultParamList := 2;
+				5,8: DefaultParamList := 50;
+				10: DefaultParamList := 33;
+				14: DefaultParamList := 15;
+				15: DefaultParamList := 14;
+				17: DefaultParamList := 7;
+				18: DefaultParamList := 3;
+				19: DefaultParamList := 12;
+				21: DefaultParamList := -1;
+				22: DefaultParamList := 30;
+			else DefaultParamList := -32767 end;
 	end;
 
 function OopConfigs (i: integer): string;
@@ -2835,7 +2845,6 @@ procedure GameDrawTheme;
 procedure GamePlayLoop(boardChanged: boolean);
 	var
 		f: file;
-		exitLoop: boolean;
 		pauseBlink: boolean;
 	begin
 		GameDrawTheme;
@@ -2882,7 +2891,6 @@ procedure GamePlayLoop(boardChanged: boolean);
 		else
 			TickTimeDuration := TickSpeed * 4;
 		GamePlayExitRequested := false;
-		exitLoop := false;
 
 		CurrentTick := Board.Info.BoardTicks;
 		CurrentStatTicked := Board.StatCount + 1;
@@ -3034,12 +3042,13 @@ procedure GameTitleLoop;
 		repeat
 			if QuickSwap <> '' then begin
 				GoToDirectory(QuickSwap);
-				WorldLoad(QuickSwap,'');
-				ReturnBoardId := World.Info.CurrentBoard;
-				boardChanged := true;
+				if WorldLoad(QuickSwap,'') then begin
+					ReturnBoardId := World.Info.CurrentBoard;
+					boardChanged := true;
+					QuickStart := true;
+					QStartBoard := -1;
+				end;				
 				QuickSwap := '';
-				QuickStart := true;
-				QStartBoard := -1;
 			end;
 			BoardChange(0);
 			repeat

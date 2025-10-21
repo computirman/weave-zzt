@@ -1,3 +1,27 @@
+10/20/2025: Weave 4.0d
+ * Native executables for Windows (32 and 64 bit) and Linux (86_64 and AArch64).
+ * Three new tutorial and example worlds.
+ * Removed existing examples and tutorials related to emulating Weave.
+ * Specifying a .ZZT file with #loadgame automatically plays that ZZT file (skips title screen)
+ * All configurations previously in GAMENAME.INI moved to GAMENAME.CFG.
+ * GAMENAME.INI no longer used.
+ * Per-board .CHR support removed.
+ * If you attempt to nest #run functions in each other, will throw an OOP error rather than crash.
+ * Weave now operates at a PIT tick speed of approximately 22.5ms (twice the prior speed).
+ * sixty-fourth notes (#play y) now supported.
+ * Tick speed now allows for more variations in game speed.
+ * #do and #done removed.
+ * Added combining two conditions with OR: #if <condition> OR <condition> [action].
+ * Added #retry, which retries the entire line.
+ * Modified #out to use #write commands wherever possible.
+ * Modified #sout to include flags as well as counters.
+ * Added other.textwindow to allow/suppress objects being able to create text windows.
+ * Added other.strictlock to allow/suppress @INPUT from receiving keypresses when the player is #lock-ed.
+ * Added other.strictarray to force the '^' character to be substituted for the value of ARRAY when ARRAY is 0.
+ * #put <dir> <char> <color>TEXT no longer produces undesirable results for chars < 16.
+ * #put <dir> <char> TEXT <color> no longer produces undesirable results for chars < 16.
+
+
 2/25/2025: Weave 3.3x
  * New Command: #FGPLAY (special case of #PLAY)
     - The #PLAY command will add notes to the sound queue until the queue reaches 255 notes in length, but will not feed back that it has reached the limit in any meaningful way.

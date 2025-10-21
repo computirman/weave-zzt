@@ -160,7 +160,11 @@ procedure OopOutputVar(s: string; v: integer);
 		j: integer;
 	begin
 		Str(v, q);
-		t := '#SET ' + s + ' ' + q + #13;
+		if v = 0 then
+			t := '#CLEAR ' + s + #13
+		else if v = 1 then
+			t := '#SET ' + s + #13
+		else t := '#SET ' + s + ' ' + q + #13;
 		for j := 1 to Length(t) do begin
 			Char(OutTmpPos^) := t[j];
 			AdvancePointer(OutTmpPos, 1);
@@ -179,6 +183,7 @@ procedure OopOutputTile(x, y, dx, dy: integer; tile: TTile);
 		then begin
 			AdvancePointer(OutTmpPos, -1);
 			t := '' + Chr(tile.Color);
+			Inc(GlobalWriteX);
 		end else begin
 			Str(x, s);
 			q := s + ' ';
@@ -1228,7 +1233,10 @@ function OopReadLineToEnd(statId: integer; var position: integer; upcased: boole
 		s := '';
 		OopReadChar(statId, position);
 		while (OopChar <> #0) and (OopChar <> #13) do begin
-			if (OopChar <> '^') or (Board.Stats[statId].ObjArray = 0) then
+			if (OopChar <> '^')
+				or ((XDat.Params[25] < 1)
+				and (Board.Stats[statId].ObjArray = 0))
+			then
 				if upcased then
 					s := s + UpCase(OopChar)
 				else
@@ -1755,7 +1763,7 @@ procedure OopExecute(statId: integer; name: TString50);
 										Board.Stats[ix].Under.Color := argTile.Color
 									else if argtile.setFG = true then
 										Board.Stats[ix].Under.Color := argTile.Color and $0F
-									else if XDat.EDefs[Enum(argTile.Element)].Color > 15 then
+									else if (XDat.EDefs[Enum(argTile.Element)].Color > 15) or (argTile.Element >= E_TEXT_MIN) then
 										Board.Stats[ix].Under.Color := XDat.EDefs[Enum(argTile.Element)].Color
 									else if XDat.EDefs[Enum(argTile.Element)].Color > 0 then
 										Board.Stats[ix].Under.Color := AsColor(XDat.EDefs[Enum(argTile.Element)].Color,
@@ -1900,7 +1908,13 @@ procedure OopExecute(statId: integer; name: TString50);
 							OopReadWord(Index, Stat^.DataPos);
 							Stat^.DataPos := ix;
 							OopReadValue(Index, Stat^.DataPos);
-							OopOutputVar(OopWord, OopValue);
+							iy := OopValue;
+							if iy = -32767 then begin
+								iy := 0;
+								if GetCustomFlag(OopWord) OR (WorldGetFlagPosition(OopWord) > 0) THEN
+									iy := 1;
+							end;
+							OopOutputVar(OopWord, iy);
 						end else if OopWord = 'OUT' then begin {OUTPUT}
 							OopReadValue(Index, Stat^.DataPos);
 							deltaX := OopValue;
@@ -1919,6 +1933,7 @@ procedure OopExecute(statId: integer; name: TString50);
 							textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
 							XOut(textLine);
 							Dec(Stat^.DataPos);
+							GlobalWriteChar := 0;
 						end else if OopWord = 'LOAD' then begin
 							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
 							if ((Stat^.X + deltaX) > 0)
@@ -2222,14 +2237,15 @@ procedure OopExecute(statId: integer; name: TString50);
 						OopSkipLine(Index, Stat^.DataPos);
 
 				end else if OopChar = #13 then begin
-					if textWindow.LineCount > 0 then
+					if (textWindow.LineCount > 0) and (XDat.Params[24] > 0) then
 						TextWindowAppend(textWindow, '');
 				end else if OopChar = #0 then begin
 					endOfProgram := true;
 				end else begin
 					textLine := OopChar;
 					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos, false);
-					TextWindowAppend(textWindow, textLine);
+					if (XDat.Params[24] > 0) then
+						TextWindowAppend(textWindow, textLine);
 				end;
 
 			until endOfProgram or stopRunning or repeatInsNextTick or replaceStat or (insCount > XDat.Params[10]);

@@ -1532,6 +1532,8 @@ procedure ElementTruePlayerTick;
 		with Board.Stats[0] do begin
 
 			if P2 = 1 then begin
+				if XDat.Params[23] < 1 then
+					ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
 				InputDeltaX := 0;
 				InputDeltaY := 0;
 				InputShiftPressed := false;
@@ -1628,14 +1630,18 @@ procedure ElementTruePlayerTick;
 			ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
 
 			inputC := UpCase(InputKeyPressed);
-			if (P2 = 1) {Locked players have limited input options}
-				and (inputC <> #27) and (inputC <> 'Q')
-				and (inputC <> UpCase(XDat.Configs[72][1]))
-				and (inputC <> UpCase(XDat.Configs[75][1]))
-				and (inputC <> UpCase(XDat.Configs[77][1]))
-				and (inputC <> UpCase(XDat.Configs[83][1]))
-			then
-				inputC := #0;
+			if (P2 = 1) then begin {Locked players have limited input options}
+				if XDat.Params[23] < 1 then
+					ElementCustomInput(inputC);
+				if (inputC <> #27) and (inputC <> 'Q')
+					and (inputC <> UpCase(XDat.Configs[72][1]))
+					and (inputC <> UpCase(XDat.Configs[75][1]))
+					and (inputC <> UpCase(XDat.Configs[77][1]))
+					and (inputC <> UpCase(XDat.Configs[83][1]))
+				then
+					inputC := #0;
+			end;
+
 			if ((inputC = #27) or (inputC = 'Q')) or QuickQuit then
 				GamePromptEndPlay
 			else if inputC = UpCase(XDat.Configs[70][1]) then begin {'T' Torch hotkey}

@@ -606,7 +606,7 @@ This will shove whatever it finds at <dir1> in the direction of <dir2>. Dependin
 
 == #SOUT <counter> ==
 
-Captures the value and name of <counter>, and adds a "#SET <counter> <value>" command to the output buffer.
+Captures the value and name of <counter> or <flag>, and adds either "#SET <counter> <value>", "#SET <flag>" or "#CLEAR <flag>" command to the output buffer.
 
 !! Warning: The output buffer is used when loading ANY file - if you run #SOUT/#XOUT in a function from an external file, save and restore your game, or attempt to #Load another object with code while building the output buffer - the operation WILL fail. !!
 
@@ -1307,9 +1307,21 @@ There are some internal counters labeled "other" that don't otherwise fall into 
    - Sets the # of high scores to save (Default is 30, Maximum is 30)
    - Set to False to eliminate the use of high scores entirely.
 
+ * other.textwindow
+   - Permits objects to create text windows. If set to FALSE, objects and scrolls will NEVER create text windows, only bottom-of-screen messages.
+   - Defaults to True.
+
  * other.strictwindow
    - Restricts the closing of text windows to ENTER, as in vanilla ZZT, as opposed to allowing both ENTER and SPACE, as in previous versions of Weave.
    - Defaults to False.
+
+ * other.strictarray
+   - Forces the ^ character to always represent the value of ARRAY, not just when ARRAY is nonzero.
+   - Defaults to False.
+
+ * other.strictlock
+   - Restricts @INPUT to recognize only system keypresses (Q, T, S etc.) while the player is #lock-ed. If set to FALSE, @INPUT functions regardless.
+   - Defaults to True.
 
 == Internal Counters: Theme ==
 

@@ -32,7 +32,7 @@ unit GameVars;
 interface
 	uses ExtMem;
 	const
-		FOOTER_VERSION = 3401;
+		FOOTER_VERSION = 3402;
 		MAX_STAT = 254;
 		TSTAT_OFFSET = 33;
 		MAX_ELEMENT = 53;
@@ -58,8 +58,8 @@ interface
 		CONFIG_FILE_COUNT = 88;
 		THEME_START = 13;
 		THEME_BLINK = 20;
-		PALETTE_START = 23;
-		PARAM_FILE_COUNT = 70;
+		PALETTE_START = 26;
+		PARAM_FILE_COUNT = PALETTE_START + 47;
 		CUSTOM_KEY_COUNT = 24;
 		CUSTOM_COUNTER_OFFSET = CUSTOM_KEY_COUNT + 1;
 		CUSTOM_FLAG_OFFSET = CUSTOM_COUNTER_OFFSET + 1;
@@ -121,7 +121,7 @@ interface
 			Under: TTile;
 			ObjArray: integer;
 			elseCheck: boolean;
-			unused: byte;
+			unused: shortint;
 			DataPos: integer;
 			DataLen: integer;
 			ObjLocal: array[1 .. 4] of integer;
