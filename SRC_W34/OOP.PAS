@@ -2244,7 +2244,7 @@ procedure OopExecute(statId: integer; name: TString50);
 				end else begin
 					textLine := OopChar;
 					textLine := textLine + OopReadLineToEnd(Index, Stat^.DataPos, false);
-					if (XDat.Params[24] > 0) then
+					if (XDat.Params[24] > 0) or (textWindow.LineCount = 0) then
 						TextWindowAppend(textWindow, textLine);
 				end;
 
