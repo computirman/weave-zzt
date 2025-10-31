@@ -1088,7 +1088,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 			else if OopWord = 'CONTACT' then
 				OopCheckCondition := (Sqr(X - Board.Stats[0].X) + Sqr(Y - Board.Stats[0].Y)) = 1
 			else if OopWord = 'SENT' then
-				OopCheckCondition := GlobalSent
+				OopCheckCondition := sentCheck
 			else if (OopWord = 'BLOCKED')
 				or (OopWord = 'CANSHOOT') or (OopWord = 'PUSHABLE')
 				or (OopWord = 'CANPUT') or (OopWord = 'SEEDARK')				
@@ -1361,6 +1361,8 @@ procedure InspectObjectCode(statId, PointPos: integer; ErrMsg: string);
 				TextWindowAppend(textWindow, Locals(13) + ': ' + s);
 				Str(ObjArray,s);
 				TextWindowAppend(textWindow, 'Array: ' + s);
+				if elseCheck then TextWindowAppend(textWindow, 'elseCheck is present');
+				if sentCheck then TextWindowAppend(textWindow, 'sentCheck is present');
 				s := '';
 				TextWindowAppend(textWindow, '$** Object Data: **');
 			end;
@@ -1414,7 +1416,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 
 		while OopFindLabel(statId, 1, sendLabel, iStat, iDataPos, #13':') do begin
 			if ((Board.Stats[iStat].P2 = 0) or (ignoreLock)) or ((statId = iStat) and not ignoreSelfLock) then begin
-				GlobalSent := true;
+				Board.Stats[statId].sentCheck = true;
 				if iStat = statId then
 					OopSend := true;
 
@@ -1718,7 +1720,7 @@ procedure OopExecute(statId: integer; name: TString50);
 									Board.Stats[ix].P2 := iy;
 							end;
 						end else if OopWord = 'SEND' then begin
-							GlobalSent := false;
+							Stat^.sentCheck = false;
 							repeat
 								OopReadChar(Index, Stat^.DataPos);
 							until OopChar <> ' ';
