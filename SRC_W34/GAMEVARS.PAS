@@ -256,6 +256,7 @@ interface
 		GameStateElement: integer;
 		ReturnBoardId: integer;
 		GlobalArg: integer;
+		GlobalSent: boolean;
 		GlobalWriteX: integer;
 		GlobalWriteY: integer;
 		GlobalWriteChar: byte;

@@ -237,7 +237,12 @@ EDGES           -- The board link to the South.
 EDGEW           -- The board link to the West.
 EDGEE           -- The board link to the East.
 
-You can also #STEP MSGTEXT <x> <y> to shift the origin of the message "ticker" from (30, 25) to wherever you like on the screen. If you want to get the current origin, you can use:
+You can #STEP MSGTXT by <x> <y> to shift the origin of the message "ticker" from (30, 25) to wherever you like on the screen:
+    #STEP MSGTXT BY <x> <y>
+    #PSET MSGTXT ORIGIN BY <x> <y>
+These will shift the origin of message text (normally columns 30 and 31 on row 25) to a different location on the screen.
+
+If you want to capture the current X and Y origin offsets in a couple of counters, you can use:
     #SET <counter> PGET MSGTXT ORIGINX
     #SET <othercounter> PGET MSGTXT ORIGINY
 

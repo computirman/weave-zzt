@@ -428,6 +428,9 @@ In addition to ANY, BLOCKED, and similar from Vanilla ZZT, Weave adds the follow
  * #IF SEEDARK <dir>
     - Evaluates true if the element in the given direction can be seen on a dark board, such as passages and torches.
 
+ * #IF SENT
+    - Evaluates true if the last message sent with #send found a recipient, and false if that message did not find a recipient.
+
  * #IF RND
     - Evaluates true 50% of the time.
 
@@ -534,7 +537,8 @@ Changes the attributes of a stat found at <dir>. Below are the list of attribute
  * P1/P2/P3 <#>
     - Sets the P1/P2/P3 value of any stat.
  * ORIGIN <dir>
-    - "#PSET MSGTEXT ORIGIN <dir>" modifies the origin of "ticker" message text.
+    - "#PSET MSGTXT ORIGIN <dir>" modifies the origin of "ticker" message text.
+    - "#STEP MSGTXT BY <x> <y>" is also valid.
     - On a Duplicator, sets the direction of the origin tile.
  * RATE <#>
     - On Spinning Gun and Tiger, sets the firing rate

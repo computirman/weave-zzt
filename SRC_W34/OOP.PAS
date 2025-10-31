@@ -1087,6 +1087,8 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 				OopCheckCondition := (X = Board.Stats[0].X) or (Y = Board.Stats[0].Y)
 			else if OopWord = 'CONTACT' then
 				OopCheckCondition := (Sqr(X - Board.Stats[0].X) + Sqr(Y - Board.Stats[0].Y)) = 1
+			else if OopWord = 'SENT' then
+				OopCheckCondition := GlobalSent
 			else if (OopWord = 'BLOCKED')
 				or (OopWord = 'CANSHOOT') or (OopWord = 'PUSHABLE')
 				or (OopWord = 'CANPUT') or (OopWord = 'SEEDARK')				
@@ -1412,6 +1414,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 
 		while OopFindLabel(statId, 1, sendLabel, iStat, iDataPos, #13':') do begin
 			if ((Board.Stats[iStat].P2 = 0) or (ignoreLock)) or ((statId = iStat) and not ignoreSelfLock) then begin
+				GlobalSent := true;
 				if iStat = statId then
 					OopSend := true;
 
@@ -1715,6 +1718,7 @@ procedure OopExecute(statId: integer; name: TString50);
 									Board.Stats[ix].P2 := iy;
 							end;
 						end else if OopWord = 'SEND' then begin
+							GlobalSent := false;
 							repeat
 								OopReadChar(Index, Stat^.DataPos);
 							until OopChar <> ' ';
