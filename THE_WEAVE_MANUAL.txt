@@ -6,7 +6,7 @@ This document assumes you are familiar with creating ZZT games, and expects you 
 
 == Version ==
 
-The version of this manual is 0.6. It covers Weave versions 3.4 and later.
+The version of this manual is 1.0. It covers Weave version 4.0.
 
 == Using this Manual ==
 
@@ -58,17 +58,13 @@ These configuration values can be used to alter the standard behavior of ZZT. Al
 
     theme.bg.sidebar = "DkGreen"
 
-
-== The INI file (GAME.INI) ==
-These entries extend the functionality of ZZT. Weave will expect a .INI file, even an empty one, if Weave's full functionality is to be used in-game. These entries can only be set in the .INI file, not modified in real-time. Here are some additional things that can be added:
-
  * Additional keybinds can be added. These entries add a keybind for the 'I' key that sends the :INVENTORY label to all objects named @INPUT.
 
     input.1.keybind = "I"
     input.1.label = "Inventory"
     input.1.sidebar.row = "19"
 
- * New world flags can be added. These entries allow objects to track these flags with #set, #clear, and #if, but without using one of your flag slots:
+ * New world flags can be added. These entries allow objects to track these flags with #set, #clear, and #if, but WITHOUT using one of your 99 flag slots:
 
     world.flag = "CROWBAR"
 
@@ -156,14 +152,14 @@ The following are special built-in labels that only apply to objects named @INPU
    :left
    :right
 
-Triggered on player movement. Players that are #LOCKed do not move and so do not trigger these.
+Triggered on player movement. Players that are #LOCKed do not move and so do not trigger these, unless you set "other.strictlock = FALSE" in the .CFG.
 
    :shiftup
    :shiftdown
    :shiftleft
    :shiftright
 
-Triggered on player attempting to shoot, either with SHIFT or SPACE. Players that are #LOCKed cannot shoot and so do not trigger these.
+Triggered on player attempting to shoot, either with SHIFT or SPACE. Players that are #LOCKed cannot shoot and so do not trigger these, unless you set "other.strictlock = FALSE" in the .CFG.
 
    :keyboarda
    :keyboardb
@@ -175,17 +171,18 @@ Triggered on player attempting to shoot, either with SHIFT or SPACE. Players tha
    (...)
    :keyboard9
 
-Triggered when the corresponding key on the keyboard is pressed. Still triggers when the player is #LOCKed as it registers on keypress, not player movement.  Take special note that ":keyboardq" will never be triggered as the player Quit prompt will come up instead.
+Triggered when the corresponding key on the keyboard is pressed. Players that are #LOCKed do not trigger these, unless you set "other.strictlock = FALSE" in the .CFG.
+Take special note that ":keyboardq" will never be triggered as the player Quit prompt will come up instead.
 
    :space
 
-Triggered when SPACE is pressed on the keyboard. Still triggers when the player is #LOCKed as it registers on keypress, not player movement.
+Triggered when SPACE is pressed on the keyboard. Players that are #LOCKed do not trigger this, unless you set "other.strictlock = FALSE" in the .CFG.
 
 == Custom Labels ==
 
 A couple things to note about custom labels: 
  * Using numbers in labels works just fine in Weave, unlike vanilla ZZT. There is no strange behavior.
- * Items in the .INI file beginning with "input.#" send all objects named @INPUT to the label defined in "input.#.label".
+ * Items in the .CFG file beginning with "input.#" send all objects named @INPUT to the label defined in "input.#.label".
 
 ####################
      PART FOUR:
@@ -282,7 +279,7 @@ If a board has a valid board connection, this can be referenced in #BOARD and ot
  * A stored BoardID
     - A BoardID stored in a custom counter, such as 'ReturnTo'
 
-If a custom counter has been defined in the game's INI file, for example:
+If a custom counter has been defined in the game's CFG file, for example:
 
     world.counter = "ReturnTo"
 
@@ -480,7 +477,7 @@ Importantly:
 
     #LOCK PLAYER
 
-Will suppress all player movement and standard keyboard input such as [P]ause. Nonstandard keyboard input (Defined in the .INI) and mouse input still work.
+Will suppress all player movement and standard keyboard input such as [P]ause. Nonstandard keyboard input (Defined in the .CFG) and mouse input still work.
 
 See also #UNLOCK.
 
@@ -761,7 +758,7 @@ For more information on defining and using custom counters, see the "Custom Coun
 
 == Custom Counters ==
 
-As mentioned in Part One above, additional counters can be added to the game by defining them in the game's .INI file:
+As mentioned in Part One above, additional counters can be added to the game by defining them in the game's .CFG file:
 
     world.counter = "apples"
     world.counter = "pears"
@@ -800,7 +797,7 @@ And use those values later:
     #CHAR pears
     #BOARD foo
 
-Up to 99 of these counters can be defined in the .INI file.
+Up to 99 of these counters can be defined in the .CFG file.
 
 Note: Custom counters can store color data. For more information on using counters to represent colors, see Appendix C: "Color Substitution". For information on storing existing color data as counters, see the entry for #PGET.
 
@@ -1421,7 +1418,7 @@ If a board has a valid board connection, this can be referenced in #BOARD and ot
  * A stored BoardID
     - A BoardID stored in a custom counter, such as 'ReturnTo'
 
-If a custom counter has been defined in the game's INI file, for example:
+If a custom counter has been defined in the game's CFG file, for example:
 
     world.counter = "ReturnTo"
 

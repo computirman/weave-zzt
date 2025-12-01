@@ -1531,9 +1531,10 @@ procedure ElementTruePlayerTick;
 		if NeuromotorAssist then GameMove := false else GameMove := true;
 		with Board.Stats[0] do begin
 
-			if P2 = 1 then begin
-				if XDat.Params[23] < 1 then
+				if XDat.Params[23] = 0 then
 					ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
+
+			if P2 = 1 then begin
 				InputDeltaX := 0;
 				InputDeltaY := 0;
 				InputShiftPressed := false;
@@ -1627,7 +1628,8 @@ procedure ElementTruePlayerTick;
 					end;
 				end;
 			end;
-			ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
+			if XDat.Params[23] <> 0 then
+						ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
 
 			inputC := UpCase(InputKeyPressed);
 			if (P2 = 1) then begin {Locked players have limited input options}
@@ -1644,31 +1646,6 @@ procedure ElementTruePlayerTick;
 
 			if ((inputC = #27) or (inputC = 'Q')) or QuickQuit then
 				GamePromptEndPlay
-			else if inputC = UpCase(XDat.Configs[70][1]) then begin {'T' Torch hotkey}
-				GameMove := true;
-				if World.Info.TorchTicks = 0 then begin
-					if World.Info.Torches > 0 then begin
-						if Board.Info.IsDark > 0 then begin
-							World.Info.Torches := World.Info.Torches - Board.Info.IsDark;
-							World.Info.TorchTicks := XDat.EDefs[E_TORCH].P2;
-
-							TransitionDrawToBoard;
-							GameUpdateSidebar;
-						end else begin
-							if MessageRoomNotDarkNotShown then begin
-								DisplayMessage(200, XDat.Configs[44]); {"Don't need torch - room is not dark!"}
-								MessageRoomNotDarkNotShown := false;
-							end;
-						end;
-					end else begin
-						if MessageOutOfTorchesNotShown then begin
-							DisplayMessage(200, XDat.Configs[45]); {"You don't have any torches!"}
-							MessageOutOfTorchesNotShown := false;
-						end;
-					end;
-				end;
-			end else if inputC = UpCase(XDat.Configs[77][1]) then {'S' Save game hotkey }
-				GameWorldSave(XDat.Configs[78] + ':', SavedGameFileName, '.SAV')
 			else if inputC = UpCase(XDat.Configs[72][1]) then begin {'B' Sound toggle hotkey}
 				SoundEnabled := not SoundEnabled;
 				SoundClearQueue;
@@ -1691,18 +1668,6 @@ procedure ElementTruePlayerTick;
 				GamePaused := true
 			else
 				ElementCustomInput(inputC);
-
-			if World.Info.TorchTicks > 0 then begin
-				if GameMove then
-					Dec(World.Info.TorchTicks);
-				if World.Info.TorchTicks = 0 then begin
-					TransitionDrawToBoard;
-					SoundQueue(3, SoundParse(XDat.Configs[30])); {Torch extinguish sound}
-				end;
-				if XDat.EDefs[E_TORCH].P2 > 10 then {Torch duration}
-					if (World.Info.TorchTicks mod (XDat.EDefs[E_TORCH].P2 div 5)) = 0 then
-						GameUpdateSidebar;
-			end;
 
 			if World.Info.EnergizerTicks > 0 then begin
 				if GameMove then
@@ -1798,9 +1763,6 @@ procedure ElementCloneTick(statId: integer);
 						MoveStat(0, X + InputDeltaX, Y + InputDeltaY);
 				end;
 			end;
-
-			if World.Info.TorchTicks > 1 then
-				Dec(World.Info.TorchTicks);
 
 			if World.Info.EnergizerTicks > 11 then
 				Dec(World.Info.EnergizerTicks);

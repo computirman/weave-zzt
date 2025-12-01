@@ -277,7 +277,7 @@ function DefaultParamList(i: integer): integer;
 				29,31,34,35,36,39,41,42,43,45,46,47: DefaultParamList := 63;
 			else DefaultParamList := -32767 end;
 		end else case i of
-				1,9,11,16: DefaultParamList := 0;
+				1,9,11,16,25: DefaultParamList := 0;
 				2: DefaultParamList := 10;
 				3,6,12,13,20,23,24: DefaultParamList := 1;
 				4,7: DefaultParamList := 2;
@@ -566,7 +566,7 @@ procedure HighScoresInitTextWindow(var state: TTextWindowState);
 		i: integer;
 		scoreStr: string;
 	begin
-		TextWindowInitState(state);
+		TextWindowInitState(state,1);
 		TextWindowAppend(state, 'Score  Name');
 		TextWindowAppend(state, '-----  ----------------------------------');
 		for i := 1 to XDat.Params[22] do begin
@@ -633,15 +633,182 @@ function LFSR11UpdateSeed(var seed: word; var tx, ty: byte): boolean;
 	end;
 
 procedure SidebarClearLine(y: integer);
+	var
+		i: integer;
 	begin
-		if XDat.Params[THEME_START] < 16 then
-			VideoWriteText(60, y, XDat.Params[THEME_START], #219)
-		else
-			VideoWriteText(60, y, AsColor(XDat.Params[THEME_START] div 16 mod 16,
-				XDat.Params[THEME_START] mod 16), #179);
-		VideoWriteText(61, y, AsColor(XDat.Params[THEME_START] mod 16,
-			XDat.Params[THEME_START] div 16 mod 16),
-			#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219);
+		if (y > 9)
+			and (y < 17)
+			and (GameStateElement = E_PLAYER)
+			and (WorldGetFlagPosition('PREDRIVE') < 0)
+		then with World.Info do begin
+			case y of
+				10: begin
+					if WorldGetFlagPosition('ISNIGHT') >= 0 then i := 115
+						else i := 123;
+					VideoWriteText(61, y, i, #219#219#219#219#219#219#219#219#219#219#219#220#220);
+					if WorldGetFlagPosition('FRESH') >= 0 then begin
+						VideoWriteText(74, y, 114, #220);
+						VideoWriteText(75, y, i, #220#220#219#219);
+					end else
+						VideoWriteText(74, y, i, #220#220#220#219#219);
+				end;
+				11: begin
+					if Ammo > 6249 then
+						VideoWriteText(61, y, 6, #219#219#177#178)
+					else if Ammo > 3124 then
+						VideoWriteText(61, y, 6, #219#219#178#177)
+					else
+						VideoWriteText(61, y, 6, #219#219#178#178);
+					if Score < 2 then begin
+						VideoWriteText(65, y, 104, #220#220);
+						VideoWriteText(67, y, 142, #220#32);
+					end else
+						VideoWriteText(65, y, 104, #220#220#219#219);
+					if Ammo mod 5 > 1 then
+						VideoWriteText(69, y, 6, #177#219#219#219#219)
+					else
+						VideoWriteText(69, y, 6, #178#219#219#219#219);
+					if WorldGetFlagPosition('FRESH') >= 0 then
+						VideoWriteText(74, y, Health, Chr(Torches))
+					else
+						VideoWriteText(74, y, 6, #219);
+					VideoWriteText(75, y, 6, #219#219#219#219);
+				end;
+				12: begin
+					if Ammo > 9374 then
+						VideoWriteText(61, y, 6, #177)
+					else
+						VideoWriteText(61, y, 6, #178);
+					VideoWriteText(62, y, 104, #220#219#219);
+					if (Score = 1) then
+						VideoWriteText(65, y, 142, #32#223#32#32#32)
+					else if (Score = 2) then
+						VideoWriteText(65, y, 142, #220#223#32#32#32)
+					else
+						VideoWriteText(65, y, 142, #220#32#32#32#32);
+					i := (Ammo mod 25) div 5;
+					if i > 2 then
+						VideoWriteText(70, y, 6, #178#177#219#219#219#219#219#219#219)
+					else if i > 0 then
+						VideoWriteText(70, y, 6, #177#178#219#219#219#219#219#219#219)
+					else
+						VideoWriteText(70, y, 6, #178#178#219#219#219#219#219#219#219);
+				end;
+				13: begin
+					if (Score = 1) then
+						VideoWriteText(61, y, 142, #32#32#220#223#32#32#32#32#32#32)
+					else if (Score = 2) then
+						VideoWriteText(61, y, 142, #32#32#220#32#32#32#32#32#32#32)
+					else
+						VideoWriteText(61, y, 142, #32#32#32#223#32#32#32#32#32#32);
+					i := (Ammo mod 125) div 25;
+					if i > 3 then
+						VideoWriteText(71, y, 6, #178#178#177#219#219#219#219#219)
+					else if i > 1 then
+						VideoWriteText(71, y, 6, #178#177#178#219#219#219#219#219)
+					else if i > 0 then
+						VideoWriteText(71, y, 6, #177#178#178#219#219#219#219#219)
+					else
+						VideoWriteText(71, y, 6, #178#178#178#219#219#219#219#219);
+				end;
+				14: begin
+					if (Score = 1) then
+						VideoWriteText(61, y, 142, #220#32#32)
+					else if (Score = 2) then
+						VideoWriteText(61, y, 142, #32#223#32)
+					else
+						VideoWriteText(61, y, 142, #220#223#32);
+					VideoWriteText(64, y, 72, #223#223#223#223#219#219#219#219);
+					i := (Ammo mod 625) div 125;
+					if i > 3 then
+						VideoWriteText(72, y, 6, #178#178#178#177#219#219#219)
+					else if i > 2 then
+						VideoWriteText(72, y, 6, #178#178#177#178#219#219#219)
+					else if i > 1 then
+						VideoWriteText(72, y, 6, #178#177#178#178#219#219#219)
+					else if i > 0 then
+						VideoWriteText(72, y, 6, #177#178#178#178#219#219#219)
+					else
+						VideoWriteText(72, y, 6, #178#178#178#178#219#219#219);						
+				end;
+				15: begin
+					VideoWriteText(61, y, 72, #223#32);
+					case TorchTicks of
+						0: VideoWriteText(63, y, 116, #223#223#32#220#223#223#219);
+						1: VideoWriteText(63, y, 116, #223#223#145#220#223#223#219);
+						9: VideoWriteText(63, y, 116, #223#223#220#144#223#223#219);
+						10: VideoWriteText(63, y, 116, #223#223#220#32#223#223#219);
+						11: VideoWriteText(63, y, 116, #223#223#144#145#223#223#219);
+					else
+						VideoWriteText(63, y, 116, #223#223#220#220#223#223#219);
+					end;
+					VideoWriteText(70, y, 72, #223#219#219);
+					i := (Ammo mod 3125) div 625;
+					if i > 3 then
+						VideoWriteText(73, y, 6, #178#178#178#177)
+					else if i > 2 then
+						VideoWriteText(73, y, 6, #178#178#177#178)
+					else if i > 1 then
+						VideoWriteText(73, y, 6, #178#177#178#178)
+					else if i > 0 then
+						VideoWriteText(73, y, 6, #177#178#178#178)
+					else
+						VideoWriteText(73, y, 6, #178#178#178#178);	
+					VideoWriteText(77, y, 103, #243);
+					VideoWriteText(78, y, 100, #220);
+				end;
+				16: begin
+					case TorchTicks of
+						0: VideoWriteText(61, y, 71,
+							#32#219#32#32#219#32#32#32#219#32#32#32#214#170#32#32#152#223);
+						1: begin
+							VideoWriteText(61, y, 71, #32#219#32#146);
+							VideoWriteText(65, y, 116, #146);
+							VideoWriteText(66, y, 71, 
+								#32#32#32#219#32#32#32#214#170#32#32#152#223);
+						end;
+						3: begin
+							VideoWriteText(61, y, 71, #32#219#146);
+							VideoWriteText(64, y, 116, #148);
+							VideoWriteText(65, y, 71, 
+								#220#32#32#32#219#32#32#32#214#170#32#32#152#223);
+						end;
+						4: VideoWriteText(61, y, 71,
+							#32#219#220#220#220#32#32#32#219#32#32#32#214#170#32#32#152#223);
+						5: VideoWriteText(61, y, 71,
+							#32#219#32#32#32#32#32#32#219#32#32#32#214#170#32#32#152#223);
+						6: VideoWriteText(61, y, 71,
+							#32#219#32#32#32#220#220#220#219#32#32#32#214#170#32#32#152#223);
+						7: VideoWriteText(61, y, 71,
+							#32#219#32#32#32#220#148#147#219#32#32#32#214#170#32#32#152#223);
+						8: VideoWriteText(61, y, 71,
+							#32#219#32#32#32#220#223#32#219#32#32#32#214#170#32#32#152#223);
+						9: begin
+							VideoWriteText(61, y, 71, #32#219#32#32#32);
+							VideoWriteText(66, y, 116, #147);
+							VideoWriteText(67, y, 71, 
+								#147#32#219#32#32#32#214#170#32#32#152#223);
+						end;
+						10: VideoWriteText(61, y, 71,
+							#32#219#32#32#32#219#32#32#219#32#32#32#214#170#32#32#152#223);
+						11: VideoWriteText(61, y, 71,
+							#32#219#32#32#222#221#32#32#219#32#32#32#214#170#32#32#152#223);
+						else
+							VideoWriteText(61, y, 71,
+							#32#219#32#223#220#32#32#32#219#32#32#32#214#170#32#32#152#223);
+					end;
+				end;
+			end;
+		end else begin
+			if XDat.Params[THEME_START] < 16 then
+				VideoWriteText(60, y, XDat.Params[THEME_START], #219)
+			else
+				VideoWriteText(60, y, AsColor(XDat.Params[THEME_START] div 16 mod 16,
+					XDat.Params[THEME_START] mod 16), #179);
+			VideoWriteText(61, y, AsColor(XDat.Params[THEME_START] mod 16,
+				XDat.Params[THEME_START] div 16 mod 16),
+				#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219#219);
+		end;
 	end;
 
 procedure SidebarClear;
@@ -764,7 +931,7 @@ procedure BoardClose;
 
 procedure BoardOpen(boardId: integer);
 	var
-		ptr: pointer;
+		ptr, path: pointer;
 		ix, iy: integer;
 		rle: TRleTile;
 	begin
@@ -780,10 +947,12 @@ procedure BoardOpen(boardId: integer);
 
 		ExtMemRead(World.BoardData[boardId], IoTmpBuf^, World.BoardLen[boardId]);
 
+		path := PathTmpBuf;
 		ptr := IoTmpBuf;
 
 		Move(ptr^, Board.Name, SizeOf(Board.Name));
 		AdvancePointer(ptr, SizeOf(Board.Name));
+
 
 		ix := 1;
 		iy := 1;
@@ -794,6 +963,18 @@ procedure BoardOpen(boardId: integer);
 				AdvancePointer(ptr, SizeOf(rle));
 			end;
 			Board.Tiles[ix][iy] := rle.Tile;
+			if Board.Tiles[ix][iy].Element = E_EMPTY then
+				Byte(path^) := 0
+			else if (Board.Tiles[ix][iy].Element = E_SOLID) or (Board.Tiles[ix][iy].Element = E_NORMAL) then
+				Byte(path^) := Board.Tiles[ix][iy].Color and $0F
+			else if Board.Tiles[ix][iy].Element > 127 then
+				if (Board.Tiles[ix][iy].Color <> 219) and (Board.Tiles[ix][iy].Color <> 178) then
+					Byte(path^) := (Board.Tiles[ix][iy].Element - 128) div 16
+				else
+					Byte(path^) := Board.Tiles[ix][iy].Element and $0F
+			else
+				Byte(path^) := Board.Tiles[ix][iy].Color div 16;
+			AdvancePointer(path, 1);
 			Inc(ix);
 			if ix > BOARD_WIDTH then begin
 				ix := 1;
@@ -962,31 +1143,17 @@ procedure BoardDrawTile(x, y: integer);
 			if (x < 1) or (x > BOARD_WIDTH) or (y < 1) or (y > BOARD_HEIGHT) then exit;
 			with Board.Tiles[x][y] do begin
 				e := Enum(Element);
-				if ((Board.Info.IsDark < 1) or XDat.EDefs[e].SeeDark)
-					or (
-						(World.Info.TorchTicks <> 0)
-						and (
-							(Sqr(Board.Stats[0].X-x)*XDat.Params[3])
-							+ (Sqr(Board.Stats[0].Y-y)*XDat.Params[4])
-							< XDat.Params[5]
-						)
-					) {Torch Radius}
-				then begin
-					if Element = E_EMPTY then
-						VideoWriteText(x - 1, y - 1, $0F, ' ')
-					else if XDat.EDefs[e].HasDrawProc then begin
-						XDat.EDefs[e].DrawProc(x, y, ch);
-						VideoWriteText(x - 1, y - 1, Color, Chr(ch));
-					end else if Element < E_TEXT_MIN then
-						VideoWriteText(x - 1, y - 1, Color, XDat.EDefs[e].Character)
-					else if Element > 127 then
-						VideoWriteText(x - 1, y - 1, Element - 128, Chr(Board.Tiles[x][y].Color))
-					else
-						VideoWriteText(x - 1, y - 1, XDat.EDefs[e].Color, Chr(Board.Tiles[x][y].Color));
-				end else begin
-					{ Darkness }
-					VideoWriteText(x - 1, y - 1, XDat.EDefs[E_DARKNESS].Color, XDat.EDefs[E_DARKNESS].Character); {Darkness}
-				end;
+				if Element = E_EMPTY then
+					VideoWriteText(x - 1, y - 1, $0F, ' ')
+				else if XDat.EDefs[e].HasDrawProc then begin
+					XDat.EDefs[e].DrawProc(x, y, ch);
+					VideoWriteText(x - 1, y - 1, Color, Chr(ch));
+				end else if Element < E_TEXT_MIN then
+					VideoWriteText(x - 1, y - 1, Color, XDat.EDefs[e].Character)
+				else if Element > 127 then
+					VideoWriteText(x - 1, y - 1, Element - 128, Chr(Board.Tiles[x][y].Color))
+				else
+					VideoWriteText(x - 1, y - 1, XDat.EDefs[e].Color, Chr(Board.Tiles[x][y].Color));
 			end;
 		end;
 	end;
@@ -1800,15 +1967,10 @@ procedure MoveStat(statId: integer; newX, newY: integer);
 		ix, iy: integer;
 		oldX, oldY: integer;
 		oldBgColor: integer;
-		ptr: pointer;
 	begin
 		if statId = 0 then begin
 			if (newX < 0) or (newX > (BOARD_WIDTH + 1)) then exit;
 			if (newY < 0) or (newY > (BOARD_HEIGHT + 1)) then exit;
-			ptr := PathTmpBuf;
-			AdvancePointer(ptr, (newY - 1) * 60);
-			AdvancePointer(ptr, newX - 1);
-			Char(ptr^) := Chr(Board.Info.BoardTicks mod 255);
 		end else begin
 			if (newX < 1) or (newX > BOARD_WIDTH) then exit;
 			if (newY < 1) or (newY > BOARD_HEIGHT) then exit;
@@ -1844,12 +2006,6 @@ procedure MoveStat(statId: integer; newX, newY: integer);
 
 			BoardDrawTile(X, Y);
 			BoardDrawTile(oldX, oldY);
-
-			if (statId = 0)
-				and (Board.Info.IsDark > 0)
-				and (World.Info.TorchTicks <> 0)
-			then
-				TransitionDrawToBoard;
 
 		end;
 	end;
@@ -1901,113 +2057,8 @@ procedure GameUpdateSidebar;
 				World.Info.Health := 0;
 			for j := 1 to 9 do begin
 				y := MainSidebarList[j];
-				if ((CFlagPos[8 + y] and World.Info.CustomFlags[3]) = 0) then begin
-					case y of
-						6: if XDat.Configs[69] <> '' then {Time Sidebar}
-							if Board.Info.TimeLimitSec > 0 then begin
-								VideoWriteText(64, 6, AsColor(XDat.Params[THEME_START + 2],
-									XDat.Params[THEME_START]), XDat.Configs[69]);
-								Str(Board.Info.TimeLimitSec - World.Info.BoardTimeSec, numStr);
-								VideoWriteText(72, 6, AsColor(XDat.Params[THEME_START + 2],
-									XDat.Params[THEME_START]), numStr + ' ');
-							end else SidebarClearLine(6);
-						7: begin
-							Str(World.Info.Health, numStr);
-							if XDat.Configs[63] <> '' then {Health Sidebar}
-								VideoWriteText(72, 7, AsColor(XDat.Params[THEME_START + 2],
-									XDat.Params[THEME_START]), numStr + ' ');
-						end;
-						8: begin
-							Str(World.Info.Ammo, numStr);
-							if XDat.Configs[64] <> '' then {Ammo Sidebar}
-								VideoWriteText(72, 8, AsColor(XDat.Params[THEME_START + 2],
-									XDat.Params[THEME_START]), numStr + '  ');
-						end;
-						9: begin
-							if XDat.Configs[65] <> '' then begin {Torches Sidebar}
-								Str(World.Info.Torches, numStr);
-								VideoWriteText(72, 9, AsColor(XDat.Params[THEME_START + 2],
-									XDat.Params[THEME_START]), numStr + ' ');
-								if World.Info.TorchTicks <= 0 then
-									VideoWriteText(75, 9, AsColor(XDat.EDefs[E_TORCH].Color and $0F,
-										XDat.Params[THEME_START]), '    ')
-								else begin
-									for i := 2 to 5 do begin
-										if i <= ((World.Info.TorchTicks * 5) div XDat.EDefs[E_TORCH].P2) then
-											VideoWriteText(
-												73 + i,
-												9,
-												AsColor(XDat.EDefs[E_TORCH].Color and $0F,
-												XDat.Params[THEME_START]),
-												#177
-											)
-										else
-											VideoWriteText(
-												73 + i,
-												9,
-												AsColor(XDat.EDefs[E_TORCH].Color and $0F,
-												XDat.Params[THEME_START]),
-												#176
-											);
-									end;
-								end;
-							end;
-						end;
-						10: begin
-							Str(World.Info.Gems, numStr);
-							if XDat.Configs[66] <> '' then {Gems Sidebar}
-								VideoWriteText(72, 10, AsColor(XDat.Params[THEME_START + 2],
-									XDat.Params[THEME_START]), numStr + ' ');
-						end;
-						11: begin
-							Str(World.Info.Score, numStr);
-							if XDat.Configs[67] <> '' then {Score Sidebar}
-								VideoWriteText(72, 11, AsColor(XDat.Params[THEME_START + 2],
-									XDat.Params[THEME_START]), numStr + ' ');
-						end;
-						12: if XDat.Configs[68] <> '' then {Keys Sidebar}
-								for i := 1 to 7 do begin
-									if Diffkeys then
-										keyChar := Chr(139 + i)
-									else
-										keyChar := Chr(Ord(XDat.EDefs[E_KEY].Character) + (i * XDat.EDefs[E_KEY].P2));
-									if World.Info.Keys[i] > 0 then begin
-										if World.Info.Keys[i] = 1 then
-											VideoWriteText(71 + i, 12, AsColor(8 + i,XDat.Params[THEME_START]), keyChar)
-										else if World.Info.Keys[i] < 10 then
-											VideoWriteText(71 + i, 12, AsColor(8 + i,XDat.Params[THEME_START]), Chr(World.Info.Keys[i] + 48))
-										else 
-											VideoWriteText(71 + i, 12, AsColor(8 + i,XDat.Params[THEME_START]), '*')
-									end else
-										VideoWriteText(71 + i, 12, AsColor(XDat.Params[THEME_START + 1],
-											XDat.Params[THEME_START]), ' ');
-								end;
-						15: if XDat.Configs[72] <> '' then begin {Sound toggle sidebar}
-								if SoundEnabled then
-									VideoWriteText(65, 15, AsColor(XDat.Params[THEME_START + 1],
-										XDat.Params[THEME_START]), ' ' + XDat.Configs[73])
-								else
-									VideoWriteText(65, 15, AsColor(XDat.Params[THEME_START + 1],
-										XDat.Params[THEME_START]), ' ' + XDat.Configs[74]);
-							end;
-					end;
-				end else SideBarClearLine(y);
+				SideBarClearLine(y);
 			end;
-
-{$IFDEF MSDOS}
-			if DebugEnabled then begin
-				Str(MemAvail, numStr);
-				VideoWriteText(62, 0, $1E, 'm' + numStr + ' ');
-				if ExtMemEmsActive then begin
-					Str(ExtMemEmsAvailPages, numstr);
-					VideoWriteText(62, 1, $1E, 'e' + numStr + 'p ');
-				end;
-				if ExtMemXmsActive then begin
-					Str(ExtMemXmsAvail, numStr);
-					VideoWriteText(62, 2, $1E, 'x' + numStr + ' ');
-				end;
-			end;
-{$ENDIF}
 		end;
 	end;
 
@@ -2353,7 +2404,6 @@ procedure TransitionDrawBoardChange;
 
 procedure BoardEnter;
 	begin
-		FillChar(PathTmpBuf^, BOARD_TILE_COUNT, 0);
 
 		with Board.Stats[0] do begin
 			Board.Info.StartPlayerX := X;
@@ -2472,12 +2522,11 @@ procedure GameDebugPrompt;
 		else if (input = 'NOCLIP') or (input = 'CLIP') then begin
 			GamePaused := true;
 			NoClip := not NoClip;
-		end else if input = 'PATH'then begin
+		end else if input = 'PATH' then begin
 			ptr := PathTmpBuf;
 			for j := 0 to 24 do begin
 				for i := 0 to 59 do begin
-					if Byte(ptr^) <> 0 then
-						VideoWriteText(i,j,XDat.EDefs[E_PLAYER].Color, Chr(Byte(ptr^)));
+					VideoWriteText(i,j,Byte(ptr^), #254);
 					AdvancePointer(ptr,1);
 				end;
 			end;
@@ -2485,11 +2534,13 @@ procedure GameDebugPrompt;
 			SidebarPromptSlider(true, 64, 4, 'Game speed:;FS', TickSpeed);
 			if TickSpeed = 8 then
 				TickTimeDuration := 1
+			else if TickSpeed = 0 then
+				TickTimeDuration := 0
 			else
-				TickTimeDuration := TickSpeed * 4;
+				TickTimeDuration := (TickSpeed * 2) + 1;
 			SidebarClearLine(6);
 		end else if input = 'FLAGS' then begin
-			TextWindowInitState(textWindow);
+			TextWindowInitState(textWindow,1);
 			textWindow.Selectable := false;
 			textWindow.Title := 'List of Flags';
 			TextWindowAppend(textWindow, '$** Flags **');
@@ -2520,7 +2571,7 @@ procedure GameDebugPrompt;
 			TextWindowDrawClose(textWindow);
 			TextWindowFree(textWindow);
 		end else if input = 'BOARD' then begin
-			TextWindowInitState(textWindow);
+			TextWindowInitState(textWindow,1);
 			textWindow.Selectable := true;
 			textWindow.Title := 'Warp To Board';
 			for i := 0 to World.BoardCount do
@@ -2597,51 +2648,6 @@ procedure GameDrawMainSidebarElement(y: integer);
 							);
 					end;
 				end;
-				10: begin
-					if XDat.Configs[66] <> '' then begin {Sidebar Gem}
-						if XDat.EDefs[E_GEM].Color = 0 then
-							VideoWriteText(62, 10, AsColor(XDat.Params[THEME_START + 6],
-								XDat.Params[THEME_START]), XDat.EDefs[E_GEM].Character)
-						else if XDat.EDefs[E_GEM].Color and $F0 = 0 then
-							VideoWriteText(62, 10, AsColor(XDat.EDefs[E_GEM].Color and $0F,
-								XDat.Params[THEME_START]), XDat.EDefs[E_GEM].Character)
-						else
-							VideoWriteText(62, 10, XDat.EDefs[E_GEM].Color, XDat.EDefs[E_GEM].Character);
-					end;
-					VideoWriteText(64, 10, AsColor(XDat.Params[THEME_START + 2],
-						XDat.Params[THEME_START]), XDat.Configs[66]); {Gems Sidebar}
-				end;
-				11: VideoWriteText(64, 11, AsColor(XDat.Params[THEME_START + 2],
-					XDat.Params[THEME_START]), XDat.Configs[67]); {Score Sidebar}
-				12: begin
-					VideoWriteText(64, 12, AsColor(XDat.Params[THEME_START + 2],
-						XDat.Params[THEME_START]), XDat.Configs[68]); {Keys Sidebar}
-					if XDat.Configs[68] <> '' then begin {Sidebar key}
-						if XDat.EDefs[E_KEY].Color = 0 then
-							VideoWriteText(62, 12, AsColor(XDat.Params[THEME_START + 1],
-								XDat.Params[THEME_START]), XDat.EDefs[E_KEY].Character)
-						else if XDat.EDefs[E_KEY].Color and $F0 = 0 then
-							VideoWriteText(62, 12, AsColor(XDat.EDefs[E_KEY].Color and $0F,
-								XDat.Params[THEME_START]), XDat.EDefs[E_KEY].Character)
-						else
-							VideoWriteText(62, 12, XDat.EDefs[E_KEY].Color, XDat.EDefs[E_KEY].Character);
-					end;
-				end;
-				14: if XDat.Configs[70] <> '' then begin  {'T' Torch hotkey}
-						VideoWriteText(62, 14, AsColor(XDat.Params[THEME_START + 3],
-							XDat.Params[THEME_START + 5]), ' ' + XDat.Configs[70] + ' ');
-						VideoWriteText(65, 14, AsColor(XDat.Params[THEME_START + 1],
-							XDat.Params[THEME_START]), ' ' + XDat.Configs[71]);
-					end;
-				15: if XDat.Configs[72] <> '' then {'B' Toggle Sounds hotkey}
-						VideoWriteText(62, 15, AsColor(XDat.Params[THEME_START + 3],
-							XDat.Params[THEME_START + 4]), ' ' + XDat.Configs[72] + ' ');
-				16: if XDat.Configs[75] <> '' then begin {'H' Help hotkey}
-						VideoWriteText(62, 16, AsColor(XDat.Params[THEME_START + 3],
-							XDat.Params[THEME_START + 5]), ' ' + XDat.Configs[75] + ' ');
-						VideoWriteText(65, 16, AsColor(XDat.Params[THEME_START + 1],
-							XDat.Params[THEME_START]), ' ' + XDat.Configs[76]);
-					end;
 				18: if XDat.Configs[86] <> '' then begin {' Move'}
 						VideoWriteText(67, 18, AsColor(XDat.Params[THEME_START + 3],
 							XDat.Params[THEME_START + 5]), ' '#24#25#26#27' ');
@@ -2729,7 +2735,7 @@ procedure GameDrawCustomSidebar;
 			end;
 			{ Custom Sidebar Counters }
 			for i := 3 to 24 do
-				with CustomSidebar[i] do begin
+				if ((i < 10) or (i > 16)) then with CustomSidebar[i] do begin
 					if Ident > -8 then begin
 						if ((CFlagPos[i + 8] and World.Info.CustomFlags[3]) = 0) then begin
 							if length(Disp) > 8 then
@@ -2762,7 +2768,8 @@ procedure GameDrawCustomSidebar;
 							end;
 						end else SideBarClearLine(i);
 					end;
-				end;
+				end else
+					SideBarClearLine(i);
 		end;
 	end;
 

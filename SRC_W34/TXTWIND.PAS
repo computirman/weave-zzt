@@ -74,7 +74,7 @@ interface
 		TextWindowStrInnerSep: TVideoLine;
 		TextWindowStrInnerArrows: TVideoLine;
 		TextWindowRejected: boolean;
-	procedure TextWindowInitState(var state: TTextWindowState);
+	procedure TextWindowInitState(var state: TTextWindowState; startline: integer);
 	procedure TextWindowDrawOpen(var state: TTextWindowState);
 	procedure TextWindowDrawClose(var state: TTextWindowState);
 	procedure TextWindowDraw(var state: TTextWindowState; withoutFormatting, viewingFile: boolean);
@@ -95,7 +95,7 @@ procedure GameAboutScreen;
 		textWindow: TTextWindowState;
 		i: integer;
 	begin
-		TextWindowInitState(textWindow);
+		TextWindowInitState(textWindow,0);
 		textWindow.Selectable := false;
 		textWindow.Title := 'License Info';
 		TextWindowAppend(textWindow,'The Reconstruction of ZZT');
@@ -142,11 +142,11 @@ procedure GameAboutScreen;
 		TextWindowFree(textWindow);
 	end;
 
-procedure TextWindowInitState(var state: TTextWindowState);
+procedure TextWindowInitState(var state: TTextWindowState; startline: integer);
 	begin
 		with state do begin
 			LineCount := 0;
-			LinePos := 1;
+			LinePos := startline;
 		end;
 	end;
 
@@ -161,14 +161,25 @@ function AsColor(fg, bg: integer): byte;
 		AsColor := ((bg * 16) + fg) + $00;
 	end;
 
+function PathColor(x, y: integer): byte;
+	var
+		path: pointer;
+	begin
+		path := PathTmpBuf;
+		AdvancePointer(path, (y * 60) + x);
+		PathColor := Byte(path^);
+	end;
+
+
 procedure TextWindowDrawOpen(var state: TTextWindowState);
 	var
-		ix, iy: integer;
+		ix, iy, ic: integer;
 	begin
 		with state do begin
 			for iy := 1 to (TextWindowHeight + 1) do
 				VideoMove(TextWindowX, iy + TextWindowY - 1, TextWindowWidth, @ScreenCopy[iy], false);
 
+{
 			for iy := (TextWindowHeight div 2) downto 0 do begin
 				VideoWriteText(TextWindowX, TextWindowY + iy + 1,
 					AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrText);
@@ -180,10 +191,30 @@ procedure TextWindowDrawOpen(var state: TTextWindowState);
 					AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrBottom);
 				Delay(9);
 			end;
+}
+			for ix := 0 to TextWindowWidth - 2 do begin
+				for iy := 1 to TextWindowHeight - 1 do begin
+					ic := PathColor(TextWindowX + ix, TextWindowY + iy);
+					if TextWindowStrText[ix + 1] <> ' ' then
+						VideoWriteText(TextWindowX + ix, TextWindowY + iy,
+							ic, TextWindowStrText[ix + 1])
+					else
+						VideoWriteText(TextWindowX + ix, TextWindowY + iy,
+							ic, #176);
+				end;
+				ic := PathColor(TextWindowX + ix, TextWindowY);
+				VideoWriteText(TextWindowX + ix, TextWindowY,
+					ic, TextWindowStrTop[ix + 1]);
+				ic := PathColor(TextWindowX + ix, TextWindowY + TextWindowHeight);
+				VideoWriteText(TextWindowX + ix, TextWindowY + TextWindowHeight,
+					ic, TextWindowStrBottom[ix + 1]);
+				ic := PathColor(TextWindowX + ix, TextWindowY + 2);
+				VideoWriteText(TextWindowX + ix, TextWindowY + 2,
+					ic, TextWindowStrSep[ix + 1]);
+			end;
 
-			VideoWriteText(TextWindowX, TextWindowY + 2, AsColor(XDat.Params[THEME_START + 1],0), TextWindowStrSep);
 			TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
-				XDat.Params[THEME_START]), Title);
+				0), Title);
 		end;
 	end;
 
@@ -206,64 +237,78 @@ procedure TextWindowDrawClose(var state: TTextWindowState);
 		end;
 	end;
 
-procedure TextWindowDrawLine(var state: TTextWindowState; lpos: integer; withoutFormatting, viewingFile: boolean);
+function TextWindowDrawLine(var state: TTextWindowState; lpos: integer;
+		withoutFormatting, viewingFile, putNew: boolean): boolean;
 	var
-		lineY: integer;
+		lineY, ix, ic: integer;
 		textOffset, textColor, textX: integer;
 	begin
+		TextWindowDrawLine := true;
 		with state do begin
 			lineY := ((TextWindowY + lpos) - LinePos) + (TextWindowHeight div 2) + 1;
-			if lpos = LinePos then
-				VideoWriteText(TextWindowX + 2, lineY,
-					AsColor(XDat.Params[THEME_START + 6],
-						XDat.Params[THEME_START]), TextWindowStrInnerArrows)
-			else
-				VideoWriteText(TextWindowX + 2, lineY,
-					AsColor(XDat.Params[THEME_START + 2],
-						XDat.Params[THEME_START]), TextWindowStrInnerEmpty);
+			if (lpos >= 0) and (lpos <= LineCount + 1) then begin
+				if lpos = LinePos then
+					VideoWriteText(TextWindowX + 2, lineY,
+						AsColor(XDat.Params[THEME_START + 6],
+							0), TextWindowStrInnerArrows)
+				else
+					VideoWriteText(TextWindowX + 2, lineY,
+						AsColor(XDat.Params[THEME_START + 2],
+						0), TextWindowStrInnerEmpty);
+			end else begin
+				 for ix := 2 to TextWindowWidth - 4 do begin
+					ic := PathColor(TextWindowX + ix, LineY);
+					VideoWriteText(TextWindowX + ix, lineY,
+						ic, #176);
+				end;
+			end;
 			if (lpos > 0) and (lpos <= LineCount) then begin
 				if withoutFormatting then begin
 					VideoWriteText(TextWindowX + 4, lineY,
 						AsColor(XDat.Params[THEME_START + 2],
-							XDat.Params[THEME_START]), Lines[lpos]^);
+							0), Lines[lpos]^);
 				end else begin
 					textOffset := 1;
 					textColor := AsColor(XDat.Params[THEME_START + 2],
-						XDat.Params[THEME_START]);
+						0);
 					textX := TextWindowX + 4;
 					if Length(state.Lines[lpos]^) > 0 then begin
 						case state.Lines[lpos]^[1] of
 							'!': begin
+								if putNew and (LinePos > lpos) then begin
+									LinePos := lpos;
+									TextWindowDrawLine := false;
+								end;
 								textOffset := Pos(';', Lines[lpos]^) + 1;
 								VideoWriteText(textX + 2, lineY,
 									AsColor(XDat.Params[THEME_START + 6],
-										XDat.Params[THEME_START]), #16);
+										0), #16);
 								textX := textX + 5;
 								textColor := AsColor(XDat.Params[THEME_START + 1],
-									XDat.Params[THEME_START]);
+									0);
 							end;
 							':': begin
 								textOffset := Pos(';', Lines[lpos]^) + 1;
 								textColor := AsColor(XDat.Params[THEME_START + 1],
-									XDat.Params[THEME_START]);
+									0);
 							end;
 							'$': begin
 								textOffset := 2;
 								textColor := AsColor(XDat.Params[THEME_START + 1],
-									XDat.Params[THEME_START]);
+									0);
 								textX := (textX - 4) + ((TextWindowWidth - Length(Lines[lpos]^)) div 2);
 							end;
 							'@': begin
 								textColor := AsColor(XDat.Params[THEME_START + 4],
-									XDat.Params[THEME_START]);
+									0);
 							end;
 							#255: begin
 								textOffset := 3;
 								VideoWriteText(textX - 1, lineY,
 									AsColor(XDat.Params[THEME_START + 3],
-										XDat.Params[THEME_START]), state.Lines[lpos]^[2]);
+										0), state.Lines[lpos]^[2]);
 								textColor := AsColor(XDat.Params[THEME_START + 6], 
-									XDat.Params[THEME_START]);
+									0);
 							end;
 						end;
 					end;
@@ -274,27 +319,44 @@ procedure TextWindowDrawLine(var state: TTextWindowState; lpos: integer; without
 				end;
 			end else if (lpos = 0) or (lpos = (state.LineCount + 1)) then begin
 				VideoWriteText(TextWindowX + 2, lineY, AsColor(XDat.Params[THEME_START + 2],
-					XDat.Params[THEME_START]), TextWindowStrInnerSep);
+					0), TextWindowStrInnerSep);
 			end else if (lpos = -4) and viewingFile then begin
 				VideoWriteText(TextWindowX + 2, lineY,
 					AsColor(XDat.Params[THEME_START + 6],
-						XDat.Params[THEME_START]), '   Use            to view text,');
+						0), '   Use            to view text,');
 				VideoWriteText(TextWindowX + 2 + 7, lineY,
 					AsColor(XDat.Params[THEME_START + 1],
-						XDat.Params[THEME_START]), #24' '#25', Enter');
+						0), #24' '#25', Enter');
 			end;
 		end;
 	end;
 
 procedure TextWindowDraw(var state: TTextWindowState; withoutFormatting, viewingFile: boolean);
 	var
-		i: integer;
+		i,k: integer;
+		first: boolean;
 	begin
-		for i := 0 to (TextWindowHeight - 4) do
-			TextWindowDrawLine(state, state.LinePos - (TextWindowHeight div 2) + i + 2,
-				withoutFormatting, viewingFile);
+		i := 0;
+		k := TextWindowHeight - 4;
+		first := false;
+		if state.LinePos < 1 then begin
+			first := true;
+			state.LinePos := (state.LineCount + 1) div 2;
+			if state.LinePos > (TextWindowHeight div 2) - 1 then
+				state.LinePos := (TextWindowHeight div 2) - 1;
+		end;
+		while i <= k do
+			if TextWindowDrawLine(state, state.LinePos - (TextWindowHeight div 2) + i + 2,
+				withoutFormatting, viewingFile, first)
+			then
+				Inc(i)
+			else begin
+				first := false;
+				i := 0;
+			end;
+
 		TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
-			XDat.Params[THEME_START]), state.Title);
+			0), state.Title);
 	end;
 
 procedure TextWindowAppend(var state: TTextWindowState; line: TTextWindowLine);
@@ -414,12 +476,12 @@ procedure TextWindowSelect(var state: TTextWindowState; flags: byte);
 					if (Lines[LinePos]^[1]) = '!' then
 						if (flags and TWS_HYPERLINK_AS_SELECT) <> 0 then
 							TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
-								XDat.Params[THEME_START]),
-								#17'Press ENTER ' + qStr + 'to select'#16)
+								0),
+								#174'Press ENTER ' + qStr + 'to select'#175)
 						else
 							TextWindowDrawTitle(AsColor(XDat.Params[THEME_START + 2],
-								XDat.Params[THEME_START]),
-								#17'Press ENTER for more info'#16);
+								0),
+								#174'Press ENTER for more info'#175);
 				end;
 				if InputJoystickMoved then begin
 					Delay(35);
@@ -508,7 +570,7 @@ procedure TextWindowOpenFile(filename: TFilenameString; var state: TTextWindowSt
 			if filename[1] = '*' then
 				filename := Copy(filename, 2, Length(filename) - 1);
 
-			TextWindowInitState(state);
+			TextWindowInitState(state,0);
 
 			AssignFSysText(tf, filename);
 			Reset(tf);
@@ -544,18 +606,18 @@ procedure TextWindowInit;
 		TextWindowStrInnerLine[0] := Chr(TextWindowWidth - 5);
 		for i := 1 to (TextWindowWidth - 5) do begin
 			TextWindowStrInnerEmpty[i] := ' ';
-			TextWindowStrInnerLine[i] := #205;
+			TextWindowStrInnerLine[i] := #177
 		end;
-		TextWindowStrTop    := #198#209 + TextWindowStrInnerLine  + #209#181;
-		TextWindowStrBottom := #198#207 + TextWindowStrInnerLine  + #207#181;
-		TextWindowStrSep    :=  ' '#198 + TextWindowStrInnerLine  + #181' ';
-		TextWindowStrText   :=  ' '#179 + TextWindowStrInnerEmpty + #179' ';
+		TextWindowStrTop    := #178#177 + TextWindowStrInnerLine  + #177#178;
+		TextWindowStrBottom := #178#177 + TextWindowStrInnerLine  + #177#178;
+		TextWindowStrSep    := #178#177 + TextWindowStrInnerLine  + #177#178;
+		TextWindowStrText   := #178#177 + TextWindowStrInnerEmpty + #177#178;
 		TextWindowStrInnerArrows := TextWindowStrInnerEmpty;
-		TextWindowStrInnerArrows[1] := #16;
-		TextWindowStrInnerArrows[Length(TextWindowStrInnerArrows)] := #17;
+		TextWindowStrInnerArrows[1] := #175;
+		TextWindowStrInnerArrows[Length(TextWindowStrInnerArrows)] := #174;
 		TextWindowStrInnerSep := TextWindowStrInnerEmpty;
 		for i := 1 to (TextWindowWidth div 5) do
-			TextWindowStrInnerSep[i * 5 + ((TextWindowWidth mod 5) shr 1)] := #7;
+			TextWindowStrInnerSep[i * 5 + ((TextWindowWidth mod 5) shr 1)] := #250;
 	end;
 
 begin

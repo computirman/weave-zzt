@@ -56,7 +56,7 @@ uses Sounds, TxtWind, Game, ZVideo, Elements, Counter, ObjTrack, FileSys;
 
 procedure OopError(statId, position: integer; message: string);
 	begin
-		if DebugEnabled then begin
+		if WorldGetFlagPosition('DEBUG') >= 0 then begin
 			SoundQueue(5, SoundParse(XDat.Configs[58])); {Error sound}
 			InspectObjectCode(statId, position, XDat.Configs[57] + message);
 			Board.Stats[statId].DataPos := -1;
@@ -1117,8 +1117,7 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 				ix := 0;
 				iy := 1;
 				OopCheckCondition := FindTileOnBoard(ix, iy, tile);
-			end else begin
-				if OopWord = 'COLOR' then begin
+			end else if OopWord = 'COLOR' then begin
 					OopReadDirection(statId, position, deltaX, deltaY);
 					if ((X + deltaX) > 0)
 						and ((X + deltaX) <= BOARD_WIDTH)
@@ -1219,12 +1218,10 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 						position := ix;
 						OopCheckCondition := (iy > 0);
 					end;
-				end else
-					if GetCustomFlag(OopWord) then
+				end else if GetCustomFlag(OopWord) then
 						OopCheckCondition := true
 					else
 						OopCheckCondition := WorldGetFlagPosition(OopWord) > 0;
-			end;
 		end;
 	end;
 
@@ -1259,7 +1256,7 @@ procedure GetBoardInfo;
 		textWindow: TTextWindowState;
 	begin
 		with Board.Info do begin
-			TextWindowInitState(textWindow);
+			TextWindowInitState(textWindow,1);
 			textWindow.Selectable := false;
 			{ TextWindowAppend(textWindow, '$** Key Binds: **');
 			Str(KeyLimit,s);
@@ -1333,7 +1330,7 @@ procedure InspectObjectCode(statId, PointPos: integer; ErrMsg: string);
 			pos := 0;
 			s := '';
 			isCurLine := false;
-			TextWindowInitState(textWindow);
+			TextWindowInitState(textWindow,1);
 			textWindow.Selectable := false;
 			if ErrMsg <> '' then
 				TextWindowAppend(textWindow, #255#32 + ErrMsg)
@@ -1416,7 +1413,8 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 
 		while OopFindLabel(statId, 1, sendLabel, iStat, iDataPos, #13':') do begin
 			if ((Board.Stats[iStat].P2 = 0) or (ignoreLock)) or ((statId = iStat) and not ignoreSelfLock) then begin
-				Board.Stats[statId].sentCheck = true;
+				Board.Stats[statId].sentCheck := true;
+
 				if iStat = statId then
 					OopSend := true;
 
@@ -1465,7 +1463,7 @@ procedure OopExecute(statId: integer; name: TString50);
 
 		with TrackPushStat(statId)^ do begin
 		StartParsing:
-			TextWindowInitState(textWindow);
+			TextWindowInitState(textWindow,0);
 			textWindow.Selectable := false;
 			stopRunning := false;
 			repeatInsNextTick := false;
@@ -1720,7 +1718,7 @@ procedure OopExecute(statId: integer; name: TString50);
 									Board.Stats[ix].P2 := iy;
 							end;
 						end else if OopWord = 'SEND' then begin
-							Stat^.sentCheck = false;
+							Stat^.sentCheck := false;
 							repeat
 								OopReadChar(Index, Stat^.DataPos);
 							until OopChar <> ' ';
