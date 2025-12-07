@@ -56,7 +56,7 @@ uses Sounds, TxtWind, Game, ZVideo, Elements, Counter, ObjTrack, FileSys;
 
 procedure OopError(statId, position: integer; message: string);
 	begin
-		if DebugEnabled then begin
+		if WorldGetFlagPosition('DEBUG') >= 0 then begin
 			SoundQueue(5, SoundParse(XDat.Configs[58])); {Error sound}
 			InspectObjectCode(statId, position, XDat.Configs[57] + message);
 			Board.Stats[statId].DataPos := -1;
@@ -1117,114 +1117,111 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 				ix := 0;
 				iy := 1;
 				OopCheckCondition := FindTileOnBoard(ix, iy, tile);
-			end else begin
-				if OopWord = 'COLOR' then begin
-					OopReadDirection(statId, position, deltaX, deltaY);
-					if ((X + deltaX) > 0)
-						and ((X + deltaX) <= BOARD_WIDTH)
-						and ((Y + deltaY) > 0)
-						and ((Y + deltaY) <= BOARD_HEIGHT)
-					then begin
-						{read X value}
-						OopReadValue(statId, position);
-						ix := OopValue;
-						if ix = 0 then
-							tile.setFG := true
-						else
-							tile.setFG := false;
-						{read Y value, if present. If not a detected color, reset code position.}
-						code := position;
-						OopReadValue(statId, position);
-						if OopValue = 0 then
-							tile.setBG := true
-						else
-							tile.setBG := false;
-						if OopValue = -32767 then begin
-							position := code;
-							OopValue := 0;
-						end;
-						iy := OopValue;
-						{if it's within range, make the color check.}
-						if (ix + (iy * 16) > -1) and (ix + (iy * 16) < 256) then begin
-							tile.Element := 2;
-							tile.Color := AsColor( ix, iy );
+			end else if OopWord = 'COLOR' then begin
+				OopReadDirection(statId, position, deltaX, deltaY);
+				if ((X + deltaX) > 0)
+					and ((X + deltaX) <= BOARD_WIDTH)
+					and ((Y + deltaY) > 0)
+					and ((Y + deltaY) <= BOARD_HEIGHT)
+				then begin
+					{read X value}
+					OopReadValue(statId, position);
+					ix := OopValue;
+					if ix = 0 then
+						tile.setFG := true
+					else
+						tile.setFG := false;
+					{read Y value, if present. If not a detected color, reset code position.}
+					code := position;
+					OopReadValue(statId, position);
+					if OopValue = 0 then
+						tile.setBG := true
+					else
+						tile.setBG := false;
+					if OopValue = -32767 then begin
+						position := code;
+						OopValue := 0;
+					end;
+					iy := OopValue;
+					{if it's within range, make the color check.}
+					if (ix + (iy * 16) > -1) and (ix + (iy * 16) < 256) then begin
+						tile.Element := 2;
+						tile.Color := AsColor( ix, iy );
 
-							if SelUnder and (GetStatIdAt(X + deltaX,Y + deltaY) > -1) then
-								OopCheckCondition := MatchTiles(Board.Stats[GetStatIdAt(X + deltaX,Y + deltaY)].Under, tile)
-							else
-								OopCheckCondition := MatchTiles(Board.Tiles[X + deltaX][Y + deltaY], tile);
-						end else OopError(statId,position,'Unknown color');
-					end else OopCheckCondition := false;
-				end else if OopWord = 'DETECT' then begin
-					OopReadDirection(statId, position, deltaX, deltaY);
-					if not OopParseTile(statId, position, tile) then
-						OopError(statId,position, 'Bad object kind');
-					if ((X + deltaX) > 0)
-						and ((X + deltaX) <= BOARD_WIDTH)
-						and ((Y + deltaY) > 0)
-						and ((Y + deltaY) <= BOARD_HEIGHT)
-					then begin
 						if SelUnder and (GetStatIdAt(X + deltaX,Y + deltaY) > -1) then
 							OopCheckCondition := MatchTiles(Board.Stats[GetStatIdAt(X + deltaX,Y + deltaY)].Under, tile)
 						else
 							OopCheckCondition := MatchTiles(Board.Tiles[X + deltaX][Y + deltaY], tile);
-					end else OopCheckCondition := false;
-				end else if OopWord = 'RND' then
-					OopCheckCondition := Random(2) = 0
-				else if OopWord = 'AT' then begin
-					OopReadValue(statId, position);
-					ix := OopValue;
-					OopReadValue(statId, position);
-					iy := OopValue;
-					if ((ix <> -32767) and (iy <> -32767)) then
-						OopCheckCondition := (X = ix) and (Y = iy)
+					end else OopError(statId,position,'Unknown color');
+				end else OopCheckCondition := false;
+			end else if OopWord = 'DETECT' then begin
+				OopReadDirection(statId, position, deltaX, deltaY);
+				if not OopParseTile(statId, position, tile) then
+					OopError(statId,position, 'Bad object kind');
+				if ((X + deltaX) > 0)
+					and ((X + deltaX) <= BOARD_WIDTH)
+					and ((Y + deltaY) > 0)
+					and ((Y + deltaY) <= BOARD_HEIGHT)
+				then begin
+					if SelUnder and (GetStatIdAt(X + deltaX,Y + deltaY) > -1) then
+						OopCheckCondition := MatchTiles(Board.Stats[GetStatIdAt(X + deltaX,Y + deltaY)].Under, tile)
 					else
-						OopError(statId,position, 'Bad condition');
-				end else if OopWord = 'RUN' then begin
-					if GlobalArg = -31999 then
+						OopCheckCondition := MatchTiles(Board.Tiles[X + deltaX][Y + deltaY], tile);
+				end else OopCheckCondition := false;
+			end else if OopWord = 'RND' then
+				OopCheckCondition := Random(2) = 0
+			else if OopWord = 'AT' then begin
+				OopReadValue(statId, position);
+				ix := OopValue;
+				OopReadValue(statId, position);
+				iy := OopValue;
+				if ((ix <> -32767) and (iy <> -32767)) then
+					OopCheckCondition := (X = ix) and (Y = iy)
+				else
+					OopError(statId,position, 'Bad condition');
+			end else if OopWord = 'RUN' then begin
+				if GlobalArg = -31999 then
+					OopCheckCondition := OopRunFunc(statId, position) > 0
+				else
+					OopError(statId,position, 'Attempted to nest function ' + OopWord);
+			end else if OopWord = 'RUNWITH' then begin
+				if GlobalArg = -31999 then begin
+					OopReadValue(statId, position);
+					if OopValue <> -32767 then begin
+						GlobalArg := OopValue;
 						OopCheckCondition := OopRunFunc(statId, position) > 0
-					else
-						OopError(statId,position, 'Attempted to nest function ' + OopWord);
-				end else if OopWord = 'RUNWITH' then begin
-					if GlobalArg = -31999 then begin
-						OopReadValue(statId, position);
-						if OopValue <> -32767 then begin
-							GlobalArg := OopValue;
-							OopCheckCondition := OopRunFunc(statId, position) > 0
-						end else
-							OopError(statId,position, 'Could not read ' + OopWord + ' value');
 					end else
-						OopError(statId,position, 'Attempted to nest function ' + OopWord);
-				end else if OopWord = 'WITHIN' then begin
-					OopReadValue(statId, position);
-					OopCheckCondition := ((Sqr(Board.Stats[0].X - x) + Sqr(Board.Stats[0].Y - y) * 7 / 4) <= (Sqr(OopValue)));
-				end else if CounterFromWord(counter, statId, OopWord) then begin
-					CounterReadValue(counter);
-					iy := counter.Value;
-					ix := position;
-					OopReadWord(statId, position);
-					if (OopWord = 'ABOVE') or ((OopWord = 'BELOW') or (OopWord = 'IS')) then begin
-						code := position;
-						OopReadValue(statId, position);
-						if OopValue = -32767 then
-							OopError(statId,position, 'Could not read ' + OopWord + ' value');
-					end;
-					if (OopWord = 'ABOVE') then
-						OopCheckCondition := (iy > OopValue)
-					else if (OopWord = 'BELOW') then
-						OopCheckCondition := (iy < OopValue)
-					else if (OopWord = 'IS') then
-						OopCheckCondition := (iy = OopValue)
-					else begin
-						position := ix;
-						OopCheckCondition := (iy > 0);
-					end;
+						OopError(statId,position, 'Could not read ' + OopWord + ' value');
 				end else
-					if GetCustomFlag(OopWord) then
-						OopCheckCondition := true
-					else
-						OopCheckCondition := WorldGetFlagPosition(OopWord) > 0;
-			end;
+					OopError(statId,position, 'Attempted to nest function ' + OopWord);
+			end else if OopWord = 'WITHIN' then begin
+				OopReadValue(statId, position);
+				OopCheckCondition := ((Sqr(Board.Stats[0].X - x) + Sqr(Board.Stats[0].Y - y) * 7 / 4) <= (Sqr(OopValue)));
+			end else if CounterFromWord(counter, statId, OopWord) then begin
+				CounterReadValue(counter);
+				iy := counter.Value;
+				ix := position;
+				OopReadWord(statId, position);
+				if (OopWord = 'ABOVE') or ((OopWord = 'BELOW') or (OopWord = 'IS')) then begin
+					code := position;
+					OopReadValue(statId, position);
+					if OopValue = -32767 then
+						OopError(statId,position, 'Could not read ' + OopWord + ' value');
+				end;
+				if (OopWord = 'ABOVE') then
+					OopCheckCondition := (iy > OopValue)
+				else if (OopWord = 'BELOW') then
+					OopCheckCondition := (iy < OopValue)
+				else if (OopWord = 'IS') then
+					OopCheckCondition := (iy = OopValue)
+				else begin
+					position := ix;
+					OopCheckCondition := (iy > 0);
+				end;
+			end else if GetCustomFlag(OopWord) then
+				OopCheckCondition := true
+			else
+				OopCheckCondition := WorldGetFlagPosition(OopWord) > 0;
 		end;
 	end;
 
@@ -1416,7 +1413,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 
 		while OopFindLabel(statId, 1, sendLabel, iStat, iDataPos, #13':') do begin
 			if ((Board.Stats[iStat].P2 = 0) or (ignoreLock)) or ((statId = iStat) and not ignoreSelfLock) then begin
-				Board.Stats[statId].sentCheck = true;
+				Board.Stats[statId].sentCheck := true;
 				if iStat = statId then
 					OopSend := true;
 
@@ -1720,7 +1717,7 @@ procedure OopExecute(statId: integer; name: TString50);
 									Board.Stats[ix].P2 := iy;
 							end;
 						end else if OopWord = 'SEND' then begin
-							Stat^.sentCheck = false;
+							Stat^.sentCheck := false;
 							repeat
 								OopReadChar(Index, Stat^.DataPos);
 							until OopChar <> ' ';

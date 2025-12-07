@@ -1531,9 +1531,10 @@ procedure ElementTruePlayerTick;
 		if NeuromotorAssist then GameMove := false else GameMove := true;
 		with Board.Stats[0] do begin
 
+			if XDat.Params[23] = 0 then
+				ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
+
 			if P2 = 1 then begin
-				if XDat.Params[23] < 1 then
-					ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
 				InputDeltaX := 0;
 				InputDeltaY := 0;
 				InputShiftPressed := false;
@@ -1627,7 +1628,8 @@ procedure ElementTruePlayerTick;
 					end;
 				end;
 			end;
-			ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
+			if XDat.Params[23] <> 0 then
+				ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
 
 			inputC := UpCase(InputKeyPressed);
 			if (P2 = 1) then begin {Locked players have limited input options}

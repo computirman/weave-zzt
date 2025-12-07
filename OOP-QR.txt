@@ -1,11 +1,12 @@
-[   Note: This guide is for version 3.4 - information
-          is accurate but entries on new features such
-          as #retry may be missing. See the Weave Manual
-          included in this download for complete info.   ]
+[ Note: This guide is for version 4.0 - information
+        is accurate up to 4.0a but anything from 4.0b
+        or later, such as #retry, may be missing entries.
+        See "The Weave Manual.txt" included in this
+        download for complete info.   ]
 
 Weave Extended ZZT-OOP Quick Reference
-v0.12
-For Weave v3.4
+v0.13
+For Weave v4.0
 
 === INDEX ===
 
@@ -18,7 +19,7 @@ For Weave v3.4
 	6) INPUT READING AND EDITING
 	7) ADVANCED COUNTERS
 	8) EXTERNAL FILES
-	9) A QUICK PRIMER ON COMPANION (.CFG, .INI) FILES
+	9) A QUICK PRIMER ON COMPANION (.CFG) FILES
 	10) LAST BITS
 
 
@@ -237,12 +238,7 @@ EDGES           -- The board link to the South.
 EDGEW           -- The board link to the West.
 EDGEE           -- The board link to the East.
 
-You can #STEP MSGTXT by <x> <y> to shift the origin of the message "ticker" from (30, 25) to wherever you like on the screen:
-    #STEP MSGTXT BY <x> <y>
-    #PSET MSGTXT ORIGIN BY <x> <y>
-These will shift the origin of message text (normally columns 30 and 31 on row 25) to a different location on the screen.
-
-If you want to capture the current X and Y origin offsets in a couple of counters, you can use:
+You can also #STEP MSGTEXT <x> <y> to shift the origin of the message "ticker" from (30, 25) to wherever you like on the screen. If you want to get the current origin, you can use:
     #SET <counter> PGET MSGTXT ORIGINX
     #SET <othercounter> PGET MSGTXT ORIGINY
 
@@ -297,7 +293,7 @@ Notes:
 
 === 6) INPUT READING AND DEFINING ==
 
- -Any object named INPUT will be able to process key inputs. The object has to be named INPUT to get access to these built-in labels. (Or whatever's specified in the world's .INI file.)
+ -Any object named INPUT will be able to process key inputs. The object has to be named @INPUT to get access to these built-in labels.
 
 Labels for input:
 :UP		- When player pushes up.
@@ -312,15 +308,15 @@ Labels for input:
 :RMOUSEB    - When the Right Mouse Button is clicked.
 
 
- -Extra keys can be defined, which, when pressed, will send a specified label to all objects on board. This is something to set up in the world's .INI file, so look there for info on how to do this.
-
+ - Extra keys can be defined, which, when pressed, will send a specified label to all objects on board. This is something to set up in the world's .CFG file, so look there for info on how to do this.
+    -A number of custom labels are available even without definitions. Check THE_WEAVE_MANUAL.TXT for a list of these.
 
 
 === 7) ADVANCED COUNTERS ===
 
  -Many counters have been added to Weave. Many, many more can also be defined on a per-world basis. These counters can also be used as flags.
 
- -World counters: Default type of counter/flag. All base counters are world counters. Up to 99 more static flags and 114 more static counters can be defined in the .INI file for your world.
+ -World counters: Default type of counter/flag. All base counters are world counters. Up to 99 more static flags and 114 more static counters can be defined in the .CFG file for your world.
  -Board counters: Counters tied to the board. There are 7 per board, and are named LOCAL1 through LOCAL7.
  -Object counters: Counters tied to an object. There can be a maximum of 9 per object, though certain counters have different behavior.
 	-OBJ1, OBJ2, OBJ3, and OBJ4 behave as normal and can hold any value ZZT can process.
@@ -426,26 +422,17 @@ IF RUNWITH <value> <function> <cmd>--
 === 9) A QUICK PRIMER ON COMPANION FILES ===
 
  -Weave ZZT worlds can have included companion files that share the same name as the ZZT world.
- -Companion files have the following extensions: .CFG, .INI, .CHR, .PAL, and .HLP.
- -If you want to use them in your game and your game is named MYGAME.ZZT, you would name your companion files MYGAME.INI, MYGAME.CHR, MYGAME.PAL etc.
- -The .CFG files modify the default behavior of built-ins and can change or remove default messages and sounds.
+ -Companion files have the following extensions: .CFG, .CHR, .PAL, and .HLP.
+ -If you want to use them in your game and your game is named MYGAME.ZZT, you would name your companion files MYGAME.CFG, MYGAME.CHR, MYGAME.PAL etc.
+ -The .CFG file modifies the default behavior of built-ins and can change or remove default messages and sounds.
+ -The .CFG file also unlocks Weave's extended ZZT-OOP capability, including local counters, predefined flags (that don't take up a flag slot), key binds, and custom sidebar counters.
  -To use, simply clone TEMPLATE.CFG and rename the copy to the name of your ZZT world. It will be automatically read when Weave loads your world, and will change its look and behavior based on the contents of your .CFG file.
- -The .INI files unlock Weave's extended ZZT-OOP capability, including local counters, predefined flags (that don't take up a flag slot), key binds, and custom sidebar counters.
- -To use, simply clone TEMPLATE.INI and rename the copy to the name of your ZZT world. It will be automatically read when Weave loads your world, and will unlock the extended ZZT-OOP functions as well as the additional counters, flags, and sidebar extensions.
- -A complete explanation of what can be done with .INI files is included in TEMPLATE.INI.
+ -A complete explanation of what can be done with .CFG files is included in "The Weave Manual.txt".
  -The .CHR files apply a custom character set to your ZZT world. You will need to create them using a utility such as Font Mania (Export as BINARY and rename the resulting .BIN file to .CHR) or the Megazeux character editor (exports .CHR natively). You will not need to add any code, it will be displayed automatically.
  -The .PAL files apply a custom palette to your ZZT world. You will need to create them using an external utility such as Megazeux's .PAL editor. Similar to the .CHR file, no additional code is required.
  -The .HLP files add a custom help file to your game, accessible when you hit 'H' during gameplay. Write them similar to how you might write any ZZT object, with maximum line lengths of 42 characters. You can use !Link;Linktext and :label;Labeltext when writing.
 
-=== 10) COMPAT MODE
-
- -Weave worlds without an accompanying .INI file are considered to be in 'Compat Mode'.
- -Compat mode will be indicated during gameplay via a dark cyan '3.2' at the very top of the sidebar.
- -Compat mode is a ZZT 3.2 compatibility mode where all normal ZZT 3.2 behavior is unchanged, but Weave behavior that would simply result in an error in vanilla ZZT is still honored.
- -For a complete rundown of how this mode behaves, check out the COMPAT.ZZT world that came with your download of Weave.
-
-
-=== 11) LAST BITS ===
+=== 10) LAST BITS ===
 
  -The board and object counters can be renamed if you so wish. Look in your world's INI file.
  -For those used to ZZT, you can put numbers in labels now.

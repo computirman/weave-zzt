@@ -277,7 +277,7 @@ function DefaultParamList(i: integer): integer;
 				29,31,34,35,36,39,41,42,43,45,46,47: DefaultParamList := 63;
 			else DefaultParamList := -32767 end;
 		end else case i of
-				1,9,11,16: DefaultParamList := 0;
+				1,9,11,16,25: DefaultParamList := 0;
 				2: DefaultParamList := 10;
 				3,6,12,13,20,23,24: DefaultParamList := 1;
 				4,7: DefaultParamList := 2;
@@ -2472,7 +2472,7 @@ procedure GameDebugPrompt;
 		else if (input = 'NOCLIP') or (input = 'CLIP') then begin
 			GamePaused := true;
 			NoClip := not NoClip;
-		end else if input = 'PATH'then begin
+		end else if input = 'PATH' then begin
 			ptr := PathTmpBuf;
 			for j := 0 to 24 do begin
 				for i := 0 to 59 do begin
