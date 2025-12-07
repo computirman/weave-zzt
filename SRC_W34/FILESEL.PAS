@@ -122,12 +122,12 @@ function FileSelect(title, extension: TString50; var cachedLinePos: integer): TF
 {$ENDIF}
 		startLinePos := cachedLinePos;
 
-		TextWindowInitState(textWindow,0);
+		TextWindowInitState(textWindow);
 		textWindow.Title := '';
 		TextWindowDrawOpen(textWindow);
 
 		while searching do begin
-			TextWindowInitState(textWindow,0);
+			TextWindowInitState(textWindow);
 {$IFNDEF NODIRS}
 			GetDir(0, curPath);
 
@@ -281,7 +281,7 @@ function FileSelect(title, extension: TString50; var cachedLinePos: integer): TF
 			if IOResult <> 0 then begin end;
 		end;
 
-		TextWindowInitState(textWindow,0);
+		TextWindowInitState(textWindow);
 		TextWindowDrawClose(textWindow);
 		TextWindowFree(textWindow);
 	end;
