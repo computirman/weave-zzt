@@ -2303,8 +2303,11 @@ procedure OopExecute(statId: integer; name: TString50);
 				BoardEnter;
 				if (( ix > 0 ) and ( iy > 0 )) and
 					((Board.Stats[0].X <> ix) or
-						(Board.Stats[0].Y <> iy)) then
-					MoveStat(0, ix, iy);
+						(Board.Stats[0].Y <> iy)) then begin
+							Board.Info.StartPlayerX := ix;
+							Board.Info.StartPlayerY := iy;
+							MoveStat(0, ix, iy);
+						end;
 				if OopSend(0, 'ALL:ENTER', false) then begin end;
 			end;
 		end;
