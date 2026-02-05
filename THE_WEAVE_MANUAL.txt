@@ -84,6 +84,10 @@ The ".13" in the above entry refers to line 13, where the counter is displayed. 
  * OBJECT FILES (*.OBJ)
     - These are textfiles containing ZZT-OOP. You can load them into objects with the #load command, replacing the existing code, or run them once with the #run command, returning the object to its original code when complete.
 
+ * THE GLOBAL OBJECT (GAME.OBJ)
+    - This object runs at all times while playing the game.
+    - For more information, see Appendix D: The Global Object.
+
  * CHARACTER SETS (GAME.CHR)
     - These are pure binary character sets that the game will load on startup.
     - Only 8x14 character sets are supported.
@@ -92,7 +96,7 @@ The ".13" in the above entry refers to line 13, where the counter is displayed. 
  * PALETTE FILES (GAME.PAL)
     - These are binary palette files that redefine ZZT's standard 16 colors.
     - These colors can also be modified in-game using the #PALETTE command.
-    - The acceptible range of values match the input restrictions for #PALETTE; see the entry for that command for details.    
+    - The acceptible range of values match the input restrictions for #PALETTE; see the entry for that command for details.
 
  * HELP FILES (GAME.HLP)
     - A custom help file for your game, that is displayed when the player hits 'H' while playing the game.
@@ -517,7 +521,7 @@ Changes the attributes of a stat found at <dir>. Below are the list of attribute
 
  * ARRAY <#>
     - Sets an object's ARRAY value.
-    - For more information about the ARRAY value and how it's used, see appendix D: ARRAY And How It's Used.
+    - For more information about the ARRAY value and how it's used, see the section marked "ARRAY And How It's Used" in Part Seven of this document.
  * CHAR <#>
     - Sets an object's character.
  * CYCLE <#>
@@ -820,6 +824,44 @@ The following counters are set per-object:
  * Array
 
 Every object, even objects whose code is shared with #BIND, have their own individual counters which can be read, compared and modified. This means objects can share the same #BIND but behave differently depending on what they have stored in their local counters.
+
+
+== ARRAY And How It's Used ==
+
+The seventh local counter, ARRAY, has a special interaction with the ^ character in the code. If ARRAY is set, then ^ will be replaced with the current value of ARRAY. Below are a few examples of this:
+
+The ^ Character can be used in a #SEND command:
+
+    #SET ARRAY 44
+    #SEND OPTION^
+    #END
+    :OPTION44
+    Welcome to Option 44.
+
+In a #WRITE command:
+
+    #SET ARRAY 44
+    #WRITE E White DkBlue The Array Value is ^.
+
+In a label or as part of bottomline text:
+
+    #SET ARRAY 44
+    #SEND OPTION44
+    #END
+    :OPTION^
+    Welcome to Option ^.
+
+Even as part of a larger number or text box:
+
+    #SET ARRAY 44
+    #SET ARRAY ^0
+    $Congratulations!
+    $Array Value x10!
+    $Array value is now: ^
+
+The same holds true for @Names, !links, and references to other counters (obj^). A couple final notes:
+ * If you set the config flag OTHER.STRICTARRAY to TRUE, then it will substitute a number every time, even if ARRAY is not set. (Default is 0).
+ * If you set the config flag OTHER.STRICTARRAY to FALSE, then an unset ARRAY call will simply be a '^' character in the code, matching the behavior in vanilla ZZT.
 
 
 == Internal Counters: Built-ins ==
@@ -1320,7 +1362,7 @@ There are some internal counters labeled "other" that don't otherwise fall into 
  * other.strictarray
    - Forces the ^ character to always represent the value of ARRAY, not just when ARRAY is nonzero.
    - Defaults to False.
-   - For more information about the ARRAY value and how it's used, see appendix D: ARRAY And How It's Used.
+   - For more information about the ARRAY value and how it's used, see the section marked "ARRAY And How It's Used" in Part Seven of this document.
 
  * other.strictlock
    - Restricts @INPUT to recognize only system keypresses (Q, T, S etc.) while the player is #lock-ed. If set to FALSE, @INPUT functions regardless.
@@ -1567,42 +1609,29 @@ Numbers and colors are interchangable everywhere a color is referenced.
 
 
 #############################
-         Appendix D:
-   ARRAY And How It's Used
+         Appendix D:         
+      The Global Object      
 #############################
 
-Every object has 6 counters it can use, OBJ1 through OBJ6, as well as a seventh, ARRAY, that has a special interaction with the ^ character in the code. If ARRAY is set, then ^ will be replaced with the current value of ARRAY. Below are a few examples of this.
+If a given GAME.ZZT file has an accompanying GAME.OBJ, this object code will be loaded into the game and executed continually during gameplay. Here's what you need to know:
+ 
+ * It is always the first code executed per tick.
+    - It is the first code to be executed when restoring a save file.
+    - It is executed before all other code on entering a board.
+ * It has no attributes (StepX, StepY, Cycle, Char, P1, P2, P3).
+    - These will default to using the player's attributes.
+ * It has no location (#IF WITHIN, /n, ThisX, ThisY)
+    - These will default to using the player's location.
+ * The OBJ1-6 and ARRAY counters are board-local.
+    - They are set per-board, similar to LOCAL1, LOCAL2 etc.
+    - Attempting to #PSET and #PGET these values from the player will pull and modify them in the global object.
+ * It has a @Name and can be addressed by other objects using #Name:label, and is targeted by calls to ALL and OTHERS.
+    - Built-in messages that target all objects such as :ENTER and :ENERGIZE work.
+    - The :SHOT, :THUD, and :TOUCH built-in messages do nothing.
+    - :labels and !links can be #zap-ped and #restore-d by other objects.
+    - Directional #SEND messages are sent relative to the player's location.
+    - Directional #SENDs cannot target the global object.
 
-The ^ Character can be used in a #SEND command:
-
-    #SET ARRAY 44
-    #SEND OPTION^
-    #END
-    :OPTION44
-    Welcome to Option 44.
-
-In a #WRITE command:
-
-    #SET ARRAY 44
-    #WRITE E White DkBlue The Array Value is ^.
-
-In a label or as part of bottomline text:
-
-    #SET ARRAY 44
-    #SEND OPTION44
-    #END
-    :OPTION^
-    Welcome to Option ^.
-
-Even as part of a larger number or text box:
-
-    #SET ARRAY 44
-    #SET ARRAY ^0
-    $Congratulations!
-    $Array Value x10!
-    $Array value is now: ^
-
-If you set the config flag OTHER.STRICTARRAY to TRUE, then it will substitute a number every time, even if ARRAY is not set.
 
 #############################
          Appendix E:

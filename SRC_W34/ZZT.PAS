@@ -72,7 +72,7 @@ procedure GameConfigure;
 		Writeln;
 		Writeln('                                <=-  Weave  -=>');
 		TextColor(Yellow);
-		Writeln('                                 Version  4.0e');
+		Writeln('                                 Version  4.0g');
 		Writeln('                         based on '#39'ZZT'#39' by Tim Sweeney');
 		GotoXY(1, 7);
 		TextColor(Blue);

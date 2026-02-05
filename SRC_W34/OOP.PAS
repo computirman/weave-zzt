@@ -870,7 +870,7 @@ function OopIterateStat(statId: integer; var iStat: integer; lookup: string): bo
 				end;
 
 				if not found then
-					iStat := iStat + 1;
+					Inc(iStat);
 			end;
 		end;
 
@@ -1409,7 +1409,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 		end;
 
 		OopSend := false;
-		iStat := 0;
+		iStat := -1;
 
 		while OopFindLabel(statId, 1, sendLabel, iStat, iDataPos, #13':') do begin
 			if ((Board.Stats[iStat].P2 = 0) or (ignoreLock)) or ((statId = iStat) and not ignoreSelfLock) then begin
@@ -1421,6 +1421,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 					Board.Stats[iStat].DataPos := 0
 				else
 					Board.Stats[iStat].DataPos := iDataPos + 1;
+				if iStat = 0 then XDat.GlobalPos := Board.Stats[iStat].DataPos;
 			end;
 		end;
 	end;
@@ -1691,7 +1692,7 @@ procedure OopExecute(statId: integer; name: TString50);
 							end else
 								ix := 1;
 							while (OopValue <> 0) do begin
-								labelStatId := 0;
+								labelStatId := -1;
 								OopWord := textLine;
 								iy := ix;
 								while OopFindLabel(Index, ix, OopWord, labelStatId, labelDataPos, #13 + labelUnzap) do begin

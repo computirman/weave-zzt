@@ -1582,7 +1582,7 @@ procedure ElementTruePlayerTick;
 						MessageOutOfAmmoNotShown := false;
 					end else begin
 						bulletCount := 0;
-						for i := 0 to Board.StatCount do
+						for i := 1 to Board.StatCount do
 							if (Board.Tiles[Board.Stats[i].X][Board.Stats[i].Y].Element = E_BULLET)
 								and (Board.Stats[i].P1 = SHOT_SOURCE_PLAYER)
 							then
@@ -1751,7 +1751,13 @@ procedure ElementTruePlayerTick;
 			end;
 
 			BoardDrawTile(X, Y);
-
+			if (XDat.GlobalLen > 0) then begin
+				DataLen := XDat.GlobalLen;
+				DataPos := XDat.GlobalPos;
+				Data := @XDat.GlobalObj[1];
+				OopExecute(0, '%%Global');
+				XDat.GlobalPos := DataPos;				
+			end;
 		end;
 	end;
 
@@ -1770,7 +1776,7 @@ procedure ElementCloneTick(statId: integer);
 				if (PlayerDirX <> 0) or (PlayerDirY <> 0) then begin
 					if (Board.Info.MaxShots <> 0) and (World.Info.Ammo > 0) then begin
 						bulletCount := 0;
-						for i := 0 to Board.StatCount do
+						for i := 1 to Board.StatCount do
 							if (Board.Tiles[Board.Stats[i].X][Board.Stats[i].Y].Element = E_BULLET)
 								and (Board.Stats[i].P1 = SHOT_SOURCE_PLAYER)
 							then
@@ -2523,6 +2529,7 @@ procedure InitElementsGame;
 			XDat.Params[i] := DefaultParamList(i);
 		CurrentBlink := true;
 		InitXDatEDefs;
+		XDat.GlobalLen := 0;
 		if (World.Info.Name <> '') then begin
 			if not FileExists(World.Info.Name + '.CFG') then exit;
 			AssignFSysText(f, World.Info.Name + '.CFG');

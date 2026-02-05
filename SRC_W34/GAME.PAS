@@ -70,6 +70,7 @@ interface
 	procedure AddStat(tx, ty: integer; txelement, txcolor: byte; tcycle: integer; template: TStat);
 	function FileLoadStatData(s: TString50; statId: integer): boolean;
 	function FileAppendStatData(s: TString50; statId: integer): boolean;
+	procedure GlobalLoadStatData;
 	procedure RemoveStat(statId: integer);
 	function GetStatIdAt(tx, ty: integer): integer;
 	procedure MoveStat(statId: integer; newX, newY: integer);
@@ -680,7 +681,7 @@ procedure BoardClose;
 	label RestartWrite;
 	begin
 		{ Bind stats early. }
-		for ix := 0 to Board.StatCount do begin
+		for ix := 1 to Board.StatCount do begin
 			with Board.Stats[ix] do begin
 				if DataLen > 0 then begin
 					for iy := 1 to (ix - 1) do begin
@@ -730,7 +731,7 @@ procedure BoardClose;
 		{ From here, do size estimation. }
 		isize := (Ofs(ptr^) - Ofs(IoTmpBuf^)) + ((Board.StatCount + 1) * TSTAT_OFFSET);
 
-		for ix := 0 to Board.StatCount do begin
+		for ix := 1 to Board.StatCount do begin
 			with Board.Stats[ix] do begin
 				if DataLen > 0 then
 					Inc(isize, DataLen);
@@ -747,7 +748,7 @@ procedure BoardClose;
 			with Board.Stats[ix] do begin
 				Move(Board.Stats[ix], ptr^, TSTAT_OFFSET);
 				AdvancePointer(ptr, TSTAT_OFFSET);
-				if DataLen > 0 then begin
+				if (DataLen > 0) and (ix > 0) then begin
 					Move(Data^, ptr^, DataLen);
 					FreeMem(Data, DataLen);
 					AdvancePointer(ptr, DataLen);
@@ -813,7 +814,7 @@ procedure BoardOpen(boardId: integer);
 				Move(ptr^, Board.Stats[ix], TSTAT_OFFSET);
 				AdvancePointer(ptr, TSTAT_OFFSET);
 				Data := nil;
-				if DataLen > 0 then begin
+				if (DataLen > 0) and (ix > 0) then begin
 {$IFDEF MSDOS}
 					if MaxAvail < DataLen then begin
 					end;
@@ -825,7 +826,7 @@ procedure BoardOpen(boardId: integer);
 				end;
 			end;
 
-		for ix := 0 to Board.StatCount do
+		for ix := 1 to Board.StatCount do
 			with Board.Stats[ix] do begin
 				if DataLen < 0 then begin
 					Data := Board.Stats[-DataLen].Data;
@@ -1355,6 +1356,7 @@ function WorldLoad(filename, extension: TString50): boolean;
 				CustomOOPLoad;
 				CustomSidebarLoad;
 				CustomCharsetLoad;
+				GlobalLoadStatData;
 
 				HighScoresLoad;
 				SidebarClearLine(5);
@@ -1583,6 +1585,48 @@ function FileLoadStatData(s: TString50; statId: integer): boolean;
 		Close(f);
 		if IOResult <> 0 then begin end;
 	end;
+
+procedure GlobalLoadStatData;
+	var
+		TmpString: string;
+		f: text;
+		i, j, k, t: integer;
+		NumRead: word;
+	begin
+		if XDat.GlobalLen <> 0 then exit;
+		XDat.GlobalLen := -1;
+		if not FileExists(World.Info.Name + '.OBJ') then exit;
+		AssignFSysText(f, World.Info.Name + '.OBJ');
+		Reset(f);
+		NumRead := 0;
+		k := 0;
+		t := 1;
+		for i := 1 to 1024 do begin
+			TmpString := '';
+			ReadLn(f, TmpString);
+			if NumRead < (GLOBAL_OBJ_LENGTH - 255) then begin
+				if TmpString <> '' then begin
+					k := 0;
+					TmpString := TmpString + KEY_ENTER;
+					NumRead := NumRead + Length(TmpString);
+					for j := 1 to Length(TmpString) do begin
+						XDat.GlobalObj[t] := TmpString[j];
+						Inc(t);
+					end;
+				end else begin
+					Inc(NumRead);
+					Inc(k);
+					XDat.GlobalObj[t] := KEY_ENTER;
+					Inc(t);
+				end;
+			end;
+		end;
+
+		XDat.GlobalLen := NumRead - k;
+		XDat.GlobalPos := 0;
+		Close(f);
+		if IOResult <> 0 then begin end;
+	end;	
 
 function FileAppendStatData(s: TString50; statId: integer): boolean;
 	var

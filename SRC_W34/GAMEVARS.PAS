@@ -32,7 +32,7 @@ unit GameVars;
 interface
 	uses ExtMem;
 	const
-		FOOTER_VERSION = 3402;
+		FOOTER_VERSION = 4007;
 		MAX_STAT = 254;
 		TSTAT_OFFSET = 33;
 		MAX_ELEMENT = 53;
@@ -54,6 +54,7 @@ interface
 		IO_BUFFER_SIZE_INCREMENT = 500;
 		{.OBJ FILES}
 		LOAD_OBJ_LENGTH = 40960;
+		GLOBAL_OBJ_LENGTH = 20480;
 		{.CFG FILE}
 		CONFIG_FILE_COUNT = 88;
 		THEME_START = 13;
@@ -196,6 +197,9 @@ interface
 			CurrentPalette: TPalette;
 			EDefs: array[0 .. MAX_ELEMENT] of TElemDef;
 			Configs: array[1 .. CONFIG_FILE_COUNT] of string[80];
+			GlobalObj: array[1 .. GLOBAL_OBJ_LENGTH] of char;
+			GlobalPos: integer;
+			GlobalLen: integer;
 		end;
 		THighScoreList = array[1 .. 30] of THighScoreEntry;
 		TCustomCounterList = array[1 .. CUSTOM_COUNTER_COUNT] of TString20;
