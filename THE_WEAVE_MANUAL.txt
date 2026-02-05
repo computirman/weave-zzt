@@ -100,7 +100,7 @@ The ".13" in the above entry refers to line 13, where the counter is displayed. 
 
  * The Weave config file (WEAVE.CFG)
     - This provides Weave with the default speed, accessibility settings, release status, and filename to load on startup for the game.
-    - For specifics on the entries that go into a WEAVE.CFG file, see Appendix D, "WEAVE.CFG".
+    - For specifics on the entries that go into a WEAVE.CFG file, see Appendix E, "WEAVE.CFG".
 
 
 #######################
@@ -517,6 +517,7 @@ Changes the attributes of a stat found at <dir>. Below are the list of attribute
 
  * ARRAY <#>
     - Sets an object's ARRAY value.
+    - For more information about the ARRAY value and how it's used, see appendix D: ARRAY And How It's Used.
  * CHAR <#>
     - Sets an object's character.
  * CYCLE <#>
@@ -1120,7 +1121,7 @@ Below is a list of the elements in the element table, and any attributes they us
     - Attributes used: fg, bg, char, P1, P3
     - P1 is the number of ticks of ENERGIZED given the player when collected. Default is 75.
     - Modify "energizer.msg.touch" to change the message displayed when an Energizer is collected.
-    - Use "energizer.snd.song1", "energizer.snd.song2", "energizer.snd.song3", "energizer.snd.song4", and "energizer.snd.end" to build the energizer song.
+    - Use "energizer.snd.start", "energizer.snd.song" and "energizer.snd.end" to build the energizer song.
     - The P3 value is the element# that energizers turn into when collected. Default is 0 (Empty).
 
  * Element 15: Star
@@ -1319,6 +1320,7 @@ There are some internal counters labeled "other" that don't otherwise fall into 
  * other.strictarray
    - Forces the ^ character to always represent the value of ARRAY, not just when ARRAY is nonzero.
    - Defaults to False.
+   - For more information about the ARRAY value and how it's used, see appendix D: ARRAY And How It's Used.
 
  * other.strictlock
    - Restricts @INPUT to recognize only system keypresses (Q, T, S etc.) while the player is #lock-ed. If set to FALSE, @INPUT functions regardless.
@@ -1566,6 +1568,44 @@ Numbers and colors are interchangable everywhere a color is referenced.
 
 #############################
          Appendix D:
+   ARRAY And How It's Used
+#############################
+
+Every object has 6 counters it can use, OBJ1 through OBJ6, as well as a seventh, ARRAY, that has a special interaction with the ^ character in the code. If ARRAY is set, then ^ will be replaced with the current value of ARRAY. Below are a few examples of this.
+
+The ^ Character can be used in a #SEND command:
+
+    #SET ARRAY 44
+    #SEND OPTION^
+    #END
+    :OPTION44
+    Welcome to Option 44.
+
+In a #WRITE command:
+
+    #SET ARRAY 44
+    #WRITE E White DkBlue The Array Value is ^.
+
+In a label or as part of bottomline text:
+
+    #SET ARRAY 44
+    #SEND OPTION44
+    #END
+    :OPTION^
+    Welcome to Option ^.
+
+Even as part of a larger number or text box:
+
+    #SET ARRAY 44
+    #SET ARRAY ^0
+    $Congratulations!
+    $Array Value x10!
+    $Array value is now: ^
+
+If you set the config flag OTHER.STRICTARRAY to TRUE, then it will substitute a number every time, even if ARRAY is not set.
+
+#############################
+         Appendix E:
           WEAVE.CFG
 #############################
 
