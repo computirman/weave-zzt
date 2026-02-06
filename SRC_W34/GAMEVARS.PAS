@@ -198,8 +198,7 @@ interface
 			EDefs: array[0 .. MAX_ELEMENT] of TElemDef;
 			Configs: array[1 .. CONFIG_FILE_COUNT] of string[80];
 			GlobalObj: array[1 .. GLOBAL_OBJ_LENGTH] of char;
-			GlobalPos: integer;
-			GlobalLen: integer;
+			GlobalStat: TStat;
 		end;
 		THighScoreList = array[1 .. 30] of THighScoreEntry;
 		TCustomCounterList = array[1 .. CUSTOM_COUNTER_COUNT] of TString20;
@@ -263,7 +262,9 @@ interface
 		GlobalWriteX: integer;
 		GlobalWriteY: integer;
 		GlobalWriteChar: byte;
+		GlobalExec: boolean;
 
+		playerTmpStat: TStat;
 		IoTmpBuf: pointer;
 		ObjTmpBuf: pointer;
 		PathTmpBuf: ^string;

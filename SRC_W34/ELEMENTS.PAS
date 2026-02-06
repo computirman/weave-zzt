@@ -403,7 +403,7 @@ procedure ElementBulletTick(statId: integer);
 				if OopSend(-iStat, 'SHOT', false) then begin end;
 				RemoveStat(statId);
 			end;
-			3: MoveStat(statid, ix, iy);
+			3: MoveStat(statId, ix, iy);
 			else RemoveStat(statId) end;
 		end;
 	end;
@@ -619,7 +619,7 @@ procedure ElementBombTick(statId: integer);
 		with Board.Stats[statId] do begin
 			if (StepX <> 0) or (StepY <> 0) then begin
 				if BulletMove(ix, iy, iElem, statId) = 3 then
-					MoveStat(statid, ix, iy)
+					MoveStat(statId, ix, iy)
 				else begin
 					StepX := 0;
 					StepY := 0;
@@ -1751,12 +1751,22 @@ procedure ElementTruePlayerTick;
 			end;
 
 			BoardDrawTile(X, Y);
-			if (XDat.GlobalLen > 0) then begin
-				DataLen := XDat.GlobalLen;
-				DataPos := XDat.GlobalPos;
-				Data := @XDat.GlobalObj[1];
+		end;
+		if (XDat.GlobalStat.DataLen > 0) then begin
+			playerTmpStat := Board.Stats[0];
+			Board.Stats[0] := XDat.GlobalStat;
+			with Board.Stats[0] do begin
+				playerTmpStat.Data := Data;
+				playerTmpStat.DataLen := DataLen;
+				StepX := playerTmpStat.StepX;
+				StepY := playerTmpStat.StepY;
+				GlobalExec := true;
 				OopExecute(0, '%%Global');
-				XDat.GlobalPos := DataPos;				
+			end;
+			if GlobalExec then begin
+				GlobalExec := false;
+				XDat.GlobalStat := Board.Stats[0];
+				Board.Stats[0] := playerTmpStat;
 			end;
 		end;
 	end;
@@ -1848,9 +1858,15 @@ procedure ElementMonitorTick(statId: integer);
 		if QuickSwap <> '' then GamePlayExitRequested := true;
 		if inputC in [#27, 'A', 'E', 'H', 'N', 'P', 'Q', 'R', 'S', 'W', '|'] then
 			GamePlayExitRequested := true;
-		if (statId = 0) and not (Board.Stats[0].P1 = 1) then begin
-			ElementCustomInput(inputC);
-			ElementCustomDir(InputShiftPressed);
+		if (statId = 0) then begin
+			if (Board.Stats[0].P1 <> 1) then begin
+				ElementCustomInput(inputC);
+				ElementCustomDir(InputShiftPressed);
+			end;
+			if playerTmpStat.DataLen > 0 then begin
+				playerTmpStat := Board.Stats[0];
+				XDat.GlobalStat := Board.Stats[0];
+			end;
 		end;
 		ElementMessageDec;
 	end;
@@ -2529,7 +2545,8 @@ procedure InitElementsGame;
 			XDat.Params[i] := DefaultParamList(i);
 		CurrentBlink := true;
 		InitXDatEDefs;
-		XDat.GlobalLen := 0;
+		XDat.GlobalStat.DataLen := 0;
+		XDat.GlobalStat.P2 := 0;
 		if (World.Info.Name <> '') then begin
 			if not FileExists(World.Info.Name + '.CFG') then exit;
 			AssignFSysText(f, World.Info.Name + '.CFG');

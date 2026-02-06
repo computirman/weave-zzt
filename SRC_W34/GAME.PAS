@@ -824,6 +824,10 @@ procedure BoardOpen(boardId: integer);
 					Move(ptr^, Data^, DataLen);
 					AdvancePointer(ptr, DataLen);
 				end;
+				if (ix = 0) and (XDat.GlobalStat.DataLen > 0) then begin
+					Data := XDat.GlobalStat.Data;
+					DataLen := XDat.GlobalStat.Datalen;
+				end;
 			end;
 
 		for ix := 1 to Board.StatCount do
@@ -842,6 +846,12 @@ procedure BoardChange(boardId: integer);
 		iy: integer;
 	begin
 		if World.Info.CurrentBoard <> boardId then begin
+			if GlobalExec then begin
+				XDat.GlobalStat := Board.Stats[0];
+				Board.Stats[0] := playerTmpStat;
+				Board.Stats[0].DataLen := 0;
+				GlobalExec := false;
+			end;
 			BoardClose;
 			BoardOpen(boardId);
 			If HasCustomSidebar and (boardId <> 0) then GameDrawCustomSidebar;
@@ -1593,8 +1603,6 @@ procedure GlobalLoadStatData;
 		i, j, k, t: integer;
 		NumRead: word;
 	begin
-		if XDat.GlobalLen <> 0 then exit;
-		XDat.GlobalLen := -1;
 		if not FileExists(World.Info.Name + '.OBJ') then exit;
 		AssignFSysText(f, World.Info.Name + '.OBJ');
 		Reset(f);
@@ -1622,11 +1630,15 @@ procedure GlobalLoadStatData;
 			end;
 		end;
 
-		XDat.GlobalLen := NumRead - k;
-		XDat.GlobalPos := 0;
+		with XDat.GlobalStat do begin
+			DataLen := NumRead - k;
+			DataPos := 0;
+			Data := @XDat.GlobalObj[1];
+		end;
+		
 		Close(f);
 		if IOResult <> 0 then begin end;
-	end;	
+	end;
 
 function FileAppendStatData(s: TString50; statId: integer): boolean;
 	var
@@ -2082,6 +2094,7 @@ procedure DisplayMessage(time: integer; message: string);
 					i := 9 + (P3 mod 7);
 					VideoWriteText(((60 + StepX) - Length(Board.Info.Message)) div 2, 24 + StepY, i, ' '+Board.Info.Message+' ');
 				end;
+				playerTmpStat.P3 := P3;
 			end;
 		end;
 	end;

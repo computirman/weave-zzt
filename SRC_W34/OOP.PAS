@@ -1412,7 +1412,11 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 		iStat := -1;
 
 		while OopFindLabel(statId, 1, sendLabel, iStat, iDataPos, #13':') do begin
-			if ((Board.Stats[iStat].P2 = 0) or (ignoreLock)) or ((statId = iStat) and not ignoreSelfLock) then begin
+			if ((iStat <> 0)
+				and (((Board.Stats[iStat].P2 = 0) or (ignoreLock))
+				or ((statId = iStat) and not ignoreSelfLock)))
+				or (XDat.GlobalStat.P2 = 0)
+			then begin
 				Board.Stats[statId].sentCheck := true;
 				if iStat = statId then
 					OopSend := true;
@@ -1421,7 +1425,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 					Board.Stats[iStat].DataPos := 0
 				else
 					Board.Stats[iStat].DataPos := iDataPos + 1;
-				if iStat = 0 then XDat.GlobalPos := Board.Stats[iStat].DataPos;
+				if iStat = 0 then XDat.GlobalStat.DataPos := Board.Stats[iStat].DataPos;
 			end;
 		end;
 	end;
@@ -1863,16 +1867,20 @@ procedure OopExecute(statId: integer; name: TString50);
 							if OopWord = 'ITEM' then
 								dieItem := true;
 						end else if OopWord = 'BIND' then begin
-							OopReadWord(Index, Stat^.DataPos);
-							bindStatId := 0;
-							if OopIterateStat(Index, bindStatId, OopWord) then begin
-								if Index <> bindStatId then begin
-									FreeMem(Stat^.Data, Stat^.DataLen);
-									Stat^.Data := Board.Stats[bindStatId].Data;
-									Stat^.DataLen := Board.Stats[bindStatId].DataLen;
+							if GlobalArg <> -31999 then
+								OopError(Index, Stat^.DataPos, '#BIND not supported in Function.')
+							else if statId > 0 then begin
+								OopReadWord(Index, Stat^.DataPos);
+								bindStatId := 0;
+								if OopIterateStat(Index, bindStatId, OopWord) then begin
+									if Index <> bindStatId then begin
+										FreeMem(Stat^.Data, Stat^.DataLen);
+										Stat^.Data := Board.Stats[bindStatId].Data;
+										Stat^.DataLen := Board.Stats[bindStatId].DataLen;
+									end;
+									Stat^.DataPos := 0;
 								end;
-								Stat^.DataPos := 0;
-							end;
+							end else OopError(Index, Stat^.DataPos, 'Cannot #BIND Global Object.');
 						end else if (OopWord = 'ELSE') then begin
 							if Stat^.elseCheck then goto ReadCommand;
 						end else if (OopWord = 'AND') then begin
@@ -1939,33 +1947,37 @@ procedure OopExecute(statId: integer; name: TString50);
 							Dec(Stat^.DataPos);
 							GlobalWriteChar := 0;
 						end else if OopWord = 'LOAD' then begin
-							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
-							if ((Stat^.X + deltaX) > 0)
-								and ((Stat^.X + deltaX) <= BOARD_WIDTH)
-								and ((Stat^.Y + deltaY) > 0)
-								and ((Stat^.Y + deltaY) <= BOARD_HEIGHT)
-							then begin
-								bindStatId := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
-								if (Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].element = E_OBJECT)
-									and (bindStatId > 0)
+							if statId = 0 then
+								OopError(Index, Stat^.DataPos, 'Cannot #LOAD to Global Object.')
+							else begin
+								OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
+								if ((Stat^.X + deltaX) > 0)
+									and ((Stat^.X + deltaX) <= BOARD_WIDTH)
+									and ((Stat^.Y + deltaY) > 0)
+									and ((Stat^.Y + deltaY) <= BOARD_HEIGHT)
 								then begin
-									ix := Stat^.DataPos;
-									OopReadWord(Index, Stat^.DataPos);
-									if OopWord <> 'APPEND' then
-										Stat^.DataPos := ix;
-									Inc(Stat^.DataPos);
-									textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
-									Dec(Stat^.DataPos);
-									if (OopWord = 'APPEND') then begin
-										if FileAppendStatData(textLine,bindStatId) then
-											goto ReadCommand
-										else
+									bindStatId := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
+									if (Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].element = E_OBJECT)
+										and (bindStatId > 0)
+									then begin
+										ix := Stat^.DataPos;
+										OopReadWord(Index, Stat^.DataPos);
+										if OopWord <> 'APPEND' then
+											Stat^.DataPos := ix;
+										Inc(Stat^.DataPos);
+										textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
+										Dec(Stat^.DataPos);
+										if (OopWord = 'APPEND') then begin
+											if FileAppendStatData(textLine,bindStatId) then
+												goto ReadCommand
+											else
+												OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
+										end else if FileLoadStatData(textLine,bindStatId) then begin
+											Board.Stats[bindStatId].DataPos := 0;
+											goto ReadCommand;
+										end else
 											OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
-									end else if FileLoadStatData(textLine,bindStatId) then begin
-										Board.Stats[bindStatId].DataPos := 0;
-										goto ReadCommand;
-									end else
-										OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
+									end;
 								end;
 							end;
 						end else if OopWord = 'WRITE' then begin
@@ -2157,16 +2169,20 @@ procedure OopExecute(statId: integer; name: TString50);
 							end else
 								OopError(Index, Stat^.DataPos, 'Bad board direction');
 						end else if OopWord = 'BOARD' then begin
-							deltaX := WorldGetBoardPosition(Index, Stat^.DataPos);
-							if (deltaX > -1) and (deltaX <= World.BoardCount) then begin
-								OopReadValue(Index, Stat^.DataPos);
-								ix := OopValue;
-								OopReadValue(Index, Stat^.DataPos);
-								iy := OopValue;
-								replaceBoard := true;
-								stopRunning := true;
-							end else
-								OopError(Index, Stat^.DataPos, 'No board label :' + OopWord);
+							if GlobalArg <> -31999 then
+								OopError(Index, Stat^.DataPos, '#BOARD not supported in Function.')
+							else begin
+								deltaX := WorldGetBoardPosition(Index, Stat^.DataPos);
+								if (deltaX > -1) and (deltaX <= World.BoardCount) then begin
+									OopReadValue(Index, Stat^.DataPos);
+									ix := OopValue;
+									OopReadValue(Index, Stat^.DataPos);
+									iy := OopValue;
+									replaceBoard := true;
+									stopRunning := true;
+								end else
+									OopError(Index, Stat^.DataPos, 'No board label :' + OopWord);
+							end;
 						end else if OopWord = 'DUPLICATE' then begin
 							OopReadDirection(Index, Stat^.DataPos, ix, iy);
 							textLine := OopNextWord(Index, Stat^.DataPos);
