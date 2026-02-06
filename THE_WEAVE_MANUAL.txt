@@ -1618,19 +1618,22 @@ If a given GAME.ZZT file has an accompanying GAME.OBJ, this object code will be 
  * It is always the first code executed per tick.
     - It is the first code to be executed when restoring a save file.
     - It is executed before all other code on entering a board.
- * It has no attributes (StepX, StepY, Cycle, Char, P1, P2, P3).
-    - These will default to using the player's attributes.
+ * It has no attributes (StepX, StepY, Cycle, Char).
+    - Attempting to manipulate these attributes may cause some visual glitching with messages, but will otherwise change nothing.
  * It has no location (#IF WITHIN, /n, ThisX, ThisY)
-    - These will default to using the player's location.
- * The OBJ1-6 and ARRAY counters are board-local.
-    - They are set per-board, similar to LOCAL1, LOCAL2 etc.
-    - Attempting to #PSET and #PGET these values from the player will pull and modify them in the global object.
+    - When called, these will default to using the player's location.
+    - Directional #SENDs cannot target the global object.
+ * It has OBJ1-6 and ARRAY counters like any other object.
+    - These carry over from board to board.
+ * You can #lock the global object.
+    - This status also carries over from board to board.
  * It has a @Name and can be addressed by other objects using #Name:label, and is targeted by calls to ALL and OTHERS.
     - Built-in messages that target all objects such as :ENTER and :ENERGIZE work.
     - The :SHOT, :THUD, and :TOUCH built-in messages do nothing.
     - :labels and !links can be #zap-ped and #restore-d by other objects.
     - Directional #SEND messages are sent relative to the player's location.
-    - Directional #SENDs cannot target the global object.
+ * You cannot #BIND the Global Object or #LOAD to it.
+    - #RUN, #RUNWITH and #IF RUN can still be used.
 
 
 #############################
