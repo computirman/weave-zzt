@@ -99,9 +99,3 @@ Weave provides tools for creating Weave and Web-playable ZZT games. They are in 
 With the exception of LOOMZZT, Weave 3 is MIT licensed. See LICENSE.TXT for details.
 
 LOOMZZT is GPL-licensed. For details about its license, see the README.MD file included in the LOOMZZT source, provided with the program.
-
-### Still have questions?
-
-If something doesn't behave as described, or if I've missed something crucial that needs to be added, head on over to the Discord of ZZT and let me know. Thanks.
-
-Discord of ZZT Link: https://museumofzzt.com/discord/
