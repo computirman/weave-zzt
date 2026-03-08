@@ -263,6 +263,8 @@ In this example, the object will check if it's blocked to the north, #shoot nort
 
 Like #PLAY, but acts like a sound effect in-game, in that multiple #BGPLAY commands are not queued (instead new ones override the old) and high-priority sounds like the energizer song or #PLAY commands take precedence.
 
+#PLAY, #BGPLAY and #FGPLAY have two options available that are absent from vanilla ZZT: 64th notes can be designated with 'y', and drum note "3" from earlier versions of Weave can be accessed with char 154 (š).
+
 == #BOARD <destination> [x] [y] ==
 
 Relocates the player to a new board as though they stepped onto a passage or board edge. Optionally can choose a specific X and Y location for the player. Board destinations can take a few different forms, listed below:
@@ -387,6 +389,8 @@ Test the above code for yourself to see how it works.
 == #FGPLAY <notes> ==
 
 Like #PLAY, but checks that the queue is empty, or will soon be empty, before adding <notes> to the sound queue. If the queue is too full, it will try again on its next tick, similar to how /movement works.  Useful for playing long songs without having to calculate how many /i commands are needed to keep the buffer from overrunning.
+
+#PLAY, #BGPLAY and #FGPLAY have two options available that are absent from vanilla ZZT: 64th notes can be designated with 'y', and drum note "3" from earlier versions of Weave can be accessed with char 154 (š).
 
 == #GIVE <counter> ==
 
