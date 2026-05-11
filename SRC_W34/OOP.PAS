@@ -1782,7 +1782,7 @@ procedure OopExecute(statId: integer; name: TString50);
 										ElementPushablePush(Stat^.X + deltaX, Stat^.Y + deltaY, deltaX, deltaY);
 									replaceTile.Element := argTile.Element;
 									replaceTile.Color := argTile.Color;
-									if (argTile.setFG = true) or (argTile.setBG = true) then
+									if (argTile.setFG = true) or (argTile.setBG = true) or (argTile.Element >= E_TEXT_MIN) then
 										OopForceTile(Stat^.X + deltaX, Stat^.Y + deltaY, replaceTile)
 									else
 										OopPlaceTile(Stat^.X + deltaX, Stat^.Y + deltaY, replaceTile);
