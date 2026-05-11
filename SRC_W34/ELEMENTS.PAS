@@ -1760,6 +1760,8 @@ procedure ElementTruePlayerTick;
 				playerTmpStat.DataLen := DataLen;
 				StepX := playerTmpStat.StepX;
 				StepY := playerTmpStat.StepY;
+				X := playerTmpStat.X;
+				Y := playerTmpStat.Y;
 				GlobalExec := true;
 				OopExecute(0, '%%Global');
 			end;

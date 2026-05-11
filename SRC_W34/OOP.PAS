@@ -1415,7 +1415,7 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 			if ((iStat <> 0)
 				and (((Board.Stats[iStat].P2 = 0) or (ignoreLock))
 				or ((statId = iStat) and not ignoreSelfLock)))
-				or (XDat.GlobalStat.P2 = 0)
+				or (GlobalExec and (XDat.GlobalStat.P2 = 0))
 			then begin
 				Board.Stats[statId].sentCheck := true;
 				if iStat = statId then
@@ -1947,10 +1947,10 @@ procedure OopExecute(statId: integer; name: TString50);
 							Dec(Stat^.DataPos);
 							GlobalWriteChar := 0;
 						end else if OopWord = 'LOAD' then begin
-							if statId = 0 then
+							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
+							if (statId = 0) and (deltax = 0) and (deltaY = 0) then
 								OopError(Index, Stat^.DataPos, 'Cannot #LOAD to Global Object.')
 							else begin
-								OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
 								if ((Stat^.X + deltaX) > 0)
 									and ((Stat^.X + deltaX) <= BOARD_WIDTH)
 									and ((Stat^.Y + deltaY) > 0)
