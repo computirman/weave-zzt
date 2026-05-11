@@ -29,7 +29,7 @@ interface
 	type
 		TDrumData = record
 			Len: integer;
-			Data: array[1 .. 255] of word;
+			Data: array[1 .. 48] of word;
 		end;
 	var
 		SoundEnabled: boolean;
@@ -41,7 +41,7 @@ interface
 		SoundBuffer: string;
 		SoundBufferPos: integer;
 		SoundIsPlaying: boolean;
-		SoundDrumTable: array[0 .. 9] of TDrumData;
+		SoundDrumTable: array[0 .. 10] of TDrumData;
 		TopMsg: string[50];
 		TopTimer: integer;
 	procedure SoundQueue(priority: integer; pattern: string);

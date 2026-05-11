@@ -203,6 +203,8 @@ procedure SoundTimerHandler;
 	end;
 
 procedure TimerSysInstall;
+	var
+		regs: Registers;
 	begin
 		{ Set x2 PIT speed }
 		Port[$40] := $FF;
