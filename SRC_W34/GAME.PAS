@@ -46,6 +46,7 @@ interface
 {$ELSE}
 	procedure AdvancePointer(var address: pointer; count: integer);
 {$ENDIF}
+	procedure CustomSideBarEntry(s: string; ln: integer);
 	procedure BoardClose;
 	procedure BoardOpen(boardId: integer);
 	procedure BoardChange(boardId: integer);
@@ -381,9 +382,9 @@ procedure CustomOOPLoad;
 			CustomFlagList[104 + i] := 'HIDELINE' + s;
 		end;
 		for i := 3 to 24 do begin
-			CustomSidebar[i].Disp := '';
-			CustomSidebar[i].Ident := -8;
-			CustomSidebar[i].Elmt := -1;
+			XDat.CustomSidebar[i].Disp := '';
+			XDat.CustomSidebar[i].Ident := -8;
+			XDat.CustomSidebar[i].Elmt := -1;
 		end;
 		if (World.Info.Name <> '')
 			and FileExists(World.Info.Name + '.CFG')
@@ -441,17 +442,67 @@ procedure CustomOOPLoad;
 		end;
 	end;
 
+procedure CustomSideBarEntry(s: string; ln: integer);
+	var
+		i: integer;
+		r, t: string;
+		c: char;
+	begin
+		t := '';
+		while (Length(s) > 0)
+			and ((s[1] = ' ')
+			or (s[1] = '[')
+			or (s[1] = '='))
+		do Delete(s, 1, 1);
+		while (Length(s) > 0)
+			and (s[1] <> ',')
+		do begin
+			t := t + s[1];
+			Delete(s, 1, 1);
+		end;
+		while (Length(s) > 0)
+			and (s[1] <> #34)
+		do Delete(s, 1, 1);
+		if t <> '' then Val(t, XDat.CustomSidebar[ln].Elmt, i);
+		if Length(s) = 0 then exit;
+		Delete(s, 1, 1);
+		t := '';
+		r := '';
+		i := 1;
+		while (s[i] <> #34) and (i <= Length(s)) do begin
+			r := r + s[i];
+			c := UpCase(s[i]);
+			if ((c >= 'A') and (c <= 'Z'))
+				or ((c >= '0') and (c <= '9'))
+			then
+				t := t + c;
+			inc(i);
+		end;
+		Dec(i);
+		if (Length(r) = 0) or (Length(r) > 20) then exit;
+		XDat.HasCustomSidebar := true;
+		XDat.CustomSidebar[ln].Disp := r;
+		XDat.CustomSidebar[ln].Ident := 127;
+		if Length(r) <= 8 then begin
+			for i := 1 to 7 do
+				if Locals(i) = t then
+					XDat.CustomSidebar[ln].Ident := -i;
+			for i := 1 to CUSTOM_COUNTER_COUNT do
+				if CustomCounterList[i] = t then
+					XDat.CustomSidebar[ln].Ident := i;
+		end;
+	end;
+
 procedure CustomSidebarLoad;
 	var
 		s: string;
-		l, t: string[20];
-		c: char;
+		t: string[20];
 		f: text;
-		h, i, j, k: integer;
+		j, k, code: integer;
 	begin
-		HasCustomSidebar := false;
+		XDat.HasCustomSidebar := false;
 		k := 0;
-		AssignFSysText(f, World.Info.Name + '.CFG');
+		Assign(f, World.Info.Name + '.CFG');
 		Reset(f);
 		if (IOResult = 0) then begin
 			while k <= 64 do begin
@@ -460,58 +511,20 @@ procedure CustomSidebarLoad;
 				if s = '' then
 					Inc(k);
 				if length(s) > 20 then begin
-					t := '       ';
-					for i := 1 to 7 do
-						t[i] := s[i];
+					t := s;
+					t[0] := #7;
 					if (t = 'SIDEBAR') or (t = 'sidebar') then begin
-						j := Ord(s[9]) - 48;
-						if s[10] <> '.' then begin
-							j := j * 10;
-							inc(j, Ord(s[10]) - 48);
+						Delete(s, 1, 8);
+						if s[2] <> '.' then begin
+							t := s[1] + s[2];
+							Delete(s, 1, 10);
+						end else begin
+							t := s[1];
+							Delete(s, 1, 9);
 						end;
-						if (j > 2) and (j < 25) then begin
-							i := 11;
-							h := -2;
-							while (s[i] <> #34) and (i <= Length(s)) do begin
-								if h <> -1 then
-									if s[i] = '-' then
-										h := -1
-									else if (s[i] >= '0') and (s[i] <= '9') then begin
-										if h = -2 then Inc(h,2);
-										h := h * 10;
-										h := h + Ord(s[i]) - 48;
-									end;
-								Inc(i);
-							end;
-							CustomSidebar[j].Elmt := h;
-							Inc(i);
-							l := '';
-							t := '';
-							while (s[i] <> #34) and (i <= Length(s)) do begin
-								l := l + s[i];
-								c := UpCase(s[i]);
-								if ((c >= 'A') and (c <= 'Z'))
-									or ((c >= '0') and (c <= '9'))
-								then
-									t := t + c;
-								Inc(i);
-							end;
-							if length(l) <= 8 then begin
-								CustomSidebar[j].Disp := l;
-								for i := 1 to 7 do
-									if Locals(i) = t then
-										CustomSidebar[j].Ident := -i;
-								for i := 1 to CUSTOM_COUNTER_COUNT do
-									if CustomCounterList[i] = t then
-										CustomSidebar[j].Ident := i;
-								if CustomSidebar[j].Ident > -8 then
-									HasCustomSidebar := true;
-							end else if length(l) <= 20 then begin
-								CustomSidebar[j].Disp := l;
-								CustomSidebar[j].Ident := 127;
-								HasCustomSidebar := true;
-							end;
-						end;
+						Val(t, j, code);
+						if (j > 2) and (j < 25) then
+							CustomSideBarEntry(s, j);
 					end;
 				end;
 			end;
@@ -854,7 +867,7 @@ procedure BoardChange(boardId: integer);
 			end;
 			BoardClose;
 			BoardOpen(boardId);
-			If HasCustomSidebar and (boardId <> 0) then GameDrawCustomSidebar;
+			If XDat.HasCustomSidebar and (boardId <> 0) then GameDrawCustomSidebar;
 		end;
 	end;
 
@@ -920,6 +933,9 @@ procedure WorldCreate;
 		World.BoardLen[0] := 0;
 		ResetMessageNotShownFlags;
 		BoardCreate;
+		scheduledUpdates.UpdateBoard := false;
+		scheduledUpdates.UpdateSidebar := false;
+		scheduledUpdates.UpdateTheme := false;
 		World.Info.IsSave := 0;
 		World.Info.CurrentBoard := 0;
 		World.Info.Ammo := 0;
@@ -974,6 +990,7 @@ procedure BoardDrawTile(x, y: integer);
 			with Board.Tiles[x][y] do begin
 				e := Enum(Element);
 				if ((Board.Info.IsDark < 1) or XDat.EDefs[e].SeeDark)
+					or ((Board.Stats[GetStatIdAt(x, y)].Checks and $04) = 4)
 					or (
 						(World.Info.TorchTicks <> 0)
 						and (
@@ -991,7 +1008,7 @@ procedure BoardDrawTile(x, y: integer);
 					end else if Element < E_TEXT_MIN then
 						VideoWriteText(x - 1, y - 1, Color, XDat.EDefs[e].Character)
 					else if Element > 127 then
-						VideoWriteText(x - 1, y - 1, Element - 128, Chr(Board.Tiles[x][y].Color))
+						VideoWriteText(x - 1, y - 1, Element and $7F, Chr(Board.Tiles[x][y].Color))
 					else
 						VideoWriteText(x - 1, y - 1, XDat.EDefs[e].Color, Chr(Board.Tiles[x][y].Color));
 				end else begin
@@ -2299,33 +2316,50 @@ procedure CalcDirectionRnd(var deltaX, deltaY: integer);
 			deltaY := 0;
 	end;
 
+
 procedure CalcDirectionSearch(x, y, srcx, srcy, destx, desty: shortint);
+	var
+		i: integer;
 	begin
 		SearchArea[x][y] := 98;
 		if ((srcx + x > 0) and (srcx + x <= BOARD_WIDTH)) and ((srcy + y > 0) and (srcy + y <= BOARD_HEIGHT)) then begin
 			if (XDat.EDefs[Enum(Board.Tiles[x + srcx][y + srcy].Element)].Walkable) or ((x = 0) and (y = 0)) then begin
+				i := 4;
 				if (x <> 0) or (y <> 0) then begin
 					if x + srcx > destx then SearchArea[x][y] := (x + srcx) - destx
-						else SearchArea[x][y] := destx - (x + srcx);
+					else begin
+						Inc(i,2);
+						SearchArea[x][y] := destx - (x + srcx);
+					end;
 					if y + srcy > desty then Inc(SearchArea[x][y],(y + srcy) - desty)
-						else Inc(SearchArea[x][y],desty - (y + srcy));
+					else begin
+						Inc(i,2);
+						Inc(SearchArea[x][y],desty - (y + srcy));
+					end;
+					if random(3) < 1 then Inc(i);
 				end;
-				if (Sqr(x) + Sqr(y) < 49) and (SearchArea[0][0] > 0) then begin
-					if (x <= 0)	and (SearchArea[x - 1][y] = 99) then begin
-						CalcDirectionSearch(x - 1, y, srcx, srcy, destx, desty);
-						if SearchArea[x - 1][y] < SearchArea[x][y] then SearchArea[x][y] := SearchArea[x - 1][y];
-					end;
-					if (x >= 0)	and (SearchArea[x + 1][y] = 99)	then begin
-						CalcDirectionSearch(x + 1, y, srcx, srcy, destx, desty);
-						if SearchArea[x + 1][y] < SearchArea[x][y] then	SearchArea[x][y] := SearchArea[x + 1][y];
-					end;
-					if (y <= 0) and (SearchArea[x][y - 1] = 99) then begin
-						CalcDirectionSearch(x, y - 1, srcx, srcy, destx, desty);
-						if SearchArea[x][y - 1] < SearchArea[x][y] then	SearchArea[x][y] := SearchArea[x][y - 1];
-					end;
-					if (y >= 0) and (SearchArea[x][y + 1] = 99)	then begin
-						CalcDirectionSearch(x, y + 1, srcx, srcy, destx, desty);
-						if SearchArea[x][y + 1] < SearchArea[x][y] then	SearchArea[x][y] := SearchArea[x][y + 1];
+				if (Sqr(x) + Sqr(y) < 121) and (SearchArea[0][0] > 0) then begin
+					while i > 0 do begin
+						if ((i < 5) and (i > 0)) and ((x <= 0) and (SearchArea[x - 1][y] = 99)) then begin
+							CalcDirectionSearch(x - 1, y, srcx, srcy, destx, desty);
+							if SearchArea[x - 1][y] < SearchArea[x][y] then SearchArea[x][y] := SearchArea[x - 1][y];
+						end;
+						Dec(i);
+						if ((i < 5) and (i > 0)) and ((y <= 0) and (SearchArea[x][y - 1] = 99)) then begin
+							CalcDirectionSearch(x, y - 1, srcx, srcy, destx, desty);
+							if SearchArea[x][y - 1] < SearchArea[x][y] then	SearchArea[x][y] := SearchArea[x][y - 1];
+						end;
+						Dec(i);
+						if ((i < 5) and (i > 0)) and ((x >= 0) and (SearchArea[x + 1][y] = 99)) then begin
+							CalcDirectionSearch(x + 1, y, srcx, srcy, destx, desty);
+							if SearchArea[x + 1][y] < SearchArea[x][y] then	SearchArea[x][y] := SearchArea[x + 1][y];
+						end;
+						Dec(i);
+						if ((i < 5) and (i > 0)) and ((y >= 0) and (SearchArea[x][y + 1] = 99)) then begin
+							CalcDirectionSearch(x, y + 1, srcx, srcy, destx, desty);
+							if SearchArea[x][y + 1] < SearchArea[x][y] then	SearchArea[x][y] := SearchArea[x][y + 1];
+						end;
+						Dec(i);
 					end;
 				end;
 			end;
@@ -2337,10 +2371,10 @@ procedure CalcDirectionFind(x, y: integer; var deltaX, deltaY: integer);
 		ix, iy: shortint;
 	begin
 		if Random(9) < 1 then
-			CalcDirectionRnd(deltaX,deltaY)
+			CalcDirectionToward(x, y, deltaX, deltaY)
 		else begin
-			for ix := -8 to 8 do
-				for iy := -8 to 8 do
+			for ix := -11 to 11 do
+				for iy := -11 to 11 do
 					SearchArea[ix][iy] := 99;
 			ix := deltaX;
 			iy := deltaY;
@@ -2362,7 +2396,7 @@ procedure CalcDirectionFind(x, y: integer; var deltaX, deltaY: integer);
 			if SearchArea[0][1] <= SearchArea[0][0] then
 				deltaY := 1;
 			if (deltaX <> 0) and (deltaY <> 0) then
-				if Random(Abs(x - Board.Stats[0].X) + Abs(y - Board.Stats[0].Y)) > Abs(x - Board.Stats[0].X) then
+				if Abs(x - ix) < Abs(y - iy) then
 					deltaX := 0
 				else
 					deltaY := 0;
@@ -2786,7 +2820,7 @@ procedure GameDrawCustomSidebar;
 			end;
 			{ Custom Sidebar Counters }
 			for i := 3 to 24 do
-				with CustomSidebar[i] do begin
+				with XDat.CustomSidebar[i] do begin
 					if Ident > -8 then begin
 						if ((CFlagPos[i + 8] and World.Info.CustomFlags[3]) = 0) then begin
 							if length(Disp) > 8 then
@@ -2911,6 +2945,7 @@ procedure GamePlayLoop(boardChanged: boolean);
 	var
 		f: file;
 		pauseBlink: boolean;
+		statId: integer;
 	begin
 		GameDrawTheme;
 		GameUpdateSidebar;
@@ -3002,16 +3037,25 @@ procedure GamePlayLoop(boardChanged: boolean);
 
 				if NoClip then begin
 					if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
-						with Board.Stats[0] do begin
-							if Board.Tiles[X][Y].Element = E_PLAYER then
-								Board.Tiles[X][Y] := Under;
-							if (X + InputDeltaX > 0) and (X + InputDeltaX <= BOARD_WIDTH) then
-								X := X + InputDeltaX;
-							if (Y + InputDeltaY > 0) and (Y + InputDeltaY <= BOARD_HEIGHT) then
-								Y := Y + InputDeltaY;
-							BoardDrawTile(X, Y);
-							BoardDrawTile(X - InputDeltaX, Y - InputDeltaY);
-						end;
+						with Board.Stats[0] do
+							if (X + InputDeltaX > 0)
+								and (X + InputDeltaX <= BOARD_WIDTH)
+								and (Y + InputDeltaY > 0)
+								and (Y + InputDeltaY <= BOARD_HEIGHT)
+							then begin
+								if (Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element = E_OBJECT) and InspectNext then begin
+									statId := GetStatIdAt(X + InputDeltaX, Y + InputDeltaY);
+									if not statId = -1 then InspectObjectCode(statId, Board.Stats[statId].DataPos, '');
+									InspectNext := false;
+								end else begin
+									if Board.Tiles[X][Y].Element = E_PLAYER then
+										Board.Tiles[X][Y] := Under;
+									X := X + InputDeltaX;
+									Y := Y + InputDeltaY;
+									BoardDrawTile(X, Y);
+									BoardDrawTile(X - InputDeltaX, Y - InputDeltaY);
+								end;
+							end;
 					end;
 				end else begin
 					if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
@@ -3067,7 +3111,7 @@ procedure GamePlayLoop(boardChanged: boolean);
 						Board.Info.BoardTicks := 1;
 					end;
 					CurrentStatTicked := 0;
-
+					ScheduledUpdatesApply;
 					InputUpdate;
 				end else begin
 					TimerSysIdle(IMUntilPit);

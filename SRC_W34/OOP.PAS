@@ -278,16 +278,15 @@ function StringMsg(i: integer): boolean;
 
 function OopRunFunc(statId: integer; var position: integer): integer;
 	var
-		ix, iy: integer;
+		ix, iy, tmpcond: integer;
 		labelPtr: pointer;
-		tmpcond: boolean;
 	begin
 		if GlobalArg = -31999 then
 			GlobalArg := -31998;
 		OopReadWord(statId, position);
 		OopFuncReturn := -1;
 		with TrackPushStat(statId)^ do begin
-			tmpcond := Stat^.elseCheck;
+			tmpcond := Stat^.Checks and $01;
 			ix := Stat^.DataPos;
 			if OopWord[1] = ':' then begin
 				Delete(OopWord, 1, 1);
@@ -306,7 +305,7 @@ function OopRunFunc(statId: integer; var position: integer): integer;
 				Stat^.Data := labelPtr;
 				Stat^.DataLen := iy;
 			end;
-			Stat^.elseCheck := tmpcond;
+			Stat^.Checks := (Stat^.Checks and $FE) + tmpcond;
 			Stat^.DataPos := ix;
 		end;
 		TrackPopStat;
@@ -419,7 +418,6 @@ function OopParseTile(var statId, position: integer; var tile: TMatchTile): bool
 function OopParseDirection(statId: integer; var position: integer; var dx, dy: integer): boolean;
 	var
 		ix, iy: integer;
-		q: string;
 		argTile: TMatchTile;
 	begin
 		SelUnder := false;
@@ -627,7 +625,8 @@ function OopPget(statId: integer; var position: integer): integer;
 					'S': elemAttr := XDat.EDefs[Enum(argTile.Element)].CanShoot;
 					'H': elemAttr := XDat.EDefs[Enum(argTile.Element)].Pushable;
 					'P': elemAttr := XDat.EDefs[Enum(argTile.Element)].CanPut;
-					'D': elemAttr := XDat.EDefs[Enum(argTile.Element)].SeeDark;
+					'D': elemAttr := XDat.EDefs[Enum(argTile.Element)].SeeDark
+						or ((bindStatId > -1) and ((Board.Stats[bindStatId].Checks and $04) = 4));
 				end;
 				if elemAttr then
 					OopPget := 1
@@ -661,27 +660,15 @@ procedure OopReadValue(statId: integer; var position: integer);
 		wordPos: byte;
 		t: string;
 		ix, iy, iz, code: integer;
-		isNumeric, isDiv: boolean;
+		isNumeric: boolean;
 		counter: TCounter;
-		tmpCond: boolean;
 		tile: TMatchTile;
 	begin
 		wordPos := 0;
 		iz := 1;
-		isDiv := false;
 		repeat
 			OopReadChar(statId, position)
 		until OopChar <> ' ';
-		while (OopChar > #170) and (OopChar < #174) do begin
-			isDiv := true;
-			if OopChar = #171 then
-				iz := iz * 2
-			else if OopChar = #172 then
-				iz := iz * 3
-			else
-				iz := iz * 10;
-			OopReadChar(statId, position);
-		end;
 
 		OopChar := UpCase(OopChar);
 		isNumeric := true;
@@ -770,7 +757,6 @@ procedure OopReadValue(statId: integer; var position: integer);
 				OopValue := counter.Value;
 			end else OopValue := ColorNumber(s, -1);
 		end;
-		if isDiv and (OopValue > -32000) then OopValue := OopValue div iz;
 	end;
 
 procedure OopSkipLine(statId: integer; var position: integer);
@@ -1070,6 +1056,44 @@ procedure WorldClearFlag(name: TString20);
 		end;
 	end;
 
+function OopCompareValue(eval, statId: integer; var position: integer): boolean;
+	var
+		code: integer;
+	begin
+		code := position;
+		OopReadWord(statId, position);
+		if (OopWord = 'ABOVE') or ((OopWord = 'BELOW') or (OopWord = 'IS')) then begin
+			OopReadValue(statId, position);
+			if OopValue = -32767 then
+				OopError(statId,position, 'Could not read ' + OopWord + ' value');
+		end;
+		if (OopWord = 'ABOVE') then
+			OopCompareValue := (eval > OopValue)
+		else if (OopWord = 'BELOW') then
+			OopCompareValue := (eval < OopValue)
+		else if (OopWord = 'IS') then
+			OopCompareValue := (eval = OopValue)
+		else begin
+			position := code;
+			OopCompareValue := (eval > 0);
+		end;
+	end;
+
+function OopCheckValue(statId: integer; var position: integer; var cond: boolean): boolean;
+	var
+		code: integer;
+	begin
+		code := position;
+		OopReadValue(statId, position);
+		if OopValue = -32767 then begin
+			position := code;
+			OopCheckValue := false;
+			exit;
+		end;
+		OopCheckValue := true;
+		cond := OopCompareValue(OopValue, statId, position);
+	end;
+
 function OopCheckCondition(statId: integer; var position: integer): boolean;
 	var
 		deltaX, deltaY: integer;
@@ -1080,15 +1104,16 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 		counter: TCounter;
 	begin
 		with Board.Stats[statId] do begin
-			if OopWord = 'NOT' then begin
-				OopReadWord(statId, position);
-				OopCheckCondition := not OopCheckCondition(statId, position);
-			end else if (OopWord = 'ALLIGNED') or (OopWord = 'ALIGNED') then
+			ix := position;
+			OopReadWord(statId, position);
+			if OopWord = 'NOT' then
+				OopCheckCondition := not OopCheckCondition(statId, position)
+			else if (OopWord = 'ALLIGNED') or (OopWord = 'ALIGNED') then
 				OopCheckCondition := (X = Board.Stats[0].X) or (Y = Board.Stats[0].Y)
 			else if OopWord = 'CONTACT' then
 				OopCheckCondition := (Sqr(X - Board.Stats[0].X) + Sqr(Y - Board.Stats[0].Y)) = 1
 			else if OopWord = 'SENT' then
-				OopCheckCondition := sentCheck
+				OopCheckCondition := ((Checks and $02) = 2)
 			else if (OopWord = 'BLOCKED')
 				or (OopWord = 'CANSHOOT') or (OopWord = 'PUSHABLE')
 				or (OopWord = 'CANPUT') or (OopWord = 'SEEDARK')				
@@ -1105,7 +1130,9 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 						'S': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].CanShoot;
 						'H': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].Pushable;
 						'P': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].CanPut;
-						'D': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].SeeDark;
+						'D': OopCheckCondition := XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].SeeDark
+							or ((GetStatIdAt(X + deltaX,Y + deltaY) > -1)
+							and ((Board.Stats[GetStatIdAt(X + deltaX,Y + deltaY)].Checks and $04) = 4));
 					end;
 				end else if (elemAttr = 'C') then
 					OopCheckCondition := true
@@ -1195,33 +1222,28 @@ function OopCheckCondition(statId: integer; var position: integer): boolean;
 				end else
 					OopError(statId,position, 'Attempted to nest function ' + OopWord);
 			end else if OopWord = 'WITHIN' then begin
+				code := position;
+				OopReadWord(statId, position);
+				if not OopParseDirection(statId, position, ix, iy) then begin
+					position := code;
+					ix := Board.Stats[0].X - x;
+					iy := Board.Stats[0].Y - y;
+				end;
 				OopReadValue(statId, position);
-				OopCheckCondition := ((Sqr(Board.Stats[0].X - x) + Sqr(Board.Stats[0].Y - y) * 7 / 4) <= (Sqr(OopValue)));
+				OopCheckCondition := ((Sqr(ix) + Sqr(iy) * 7 / 4) <= (Sqr(OopValue)));
 			end else if CounterFromWord(counter, statId, OopWord) then begin
 				CounterReadValue(counter);
-				iy := counter.Value;
-				ix := position;
-				OopReadWord(statId, position);
-				if (OopWord = 'ABOVE') or ((OopWord = 'BELOW') or (OopWord = 'IS')) then begin
-					code := position;
-					OopReadValue(statId, position);
-					if OopValue = -32767 then
-						OopError(statId,position, 'Could not read ' + OopWord + ' value');
-				end;
-				if (OopWord = 'ABOVE') then
-					OopCheckCondition := (iy > OopValue)
-				else if (OopWord = 'BELOW') then
-					OopCheckCondition := (iy < OopValue)
-				else if (OopWord = 'IS') then
-					OopCheckCondition := (iy = OopValue)
-				else begin
-					position := ix;
-					OopCheckCondition := (iy > 0);
-				end;
+				OopCheckCondition := OopCompareValue(counter.Value, statId, position);
 			end else if GetCustomFlag(OopWord) then
 				OopCheckCondition := true
-			else
-				OopCheckCondition := WorldGetFlagPosition(OopWord) > 0;
+			else begin
+				position := ix; 
+				if not OopCheckValue(statId, position, isCounter) then begin
+					OopReadWord(statId, position);
+					OopCheckCondition := WorldGetFlagPosition(OopWord) > 0;
+				end else
+					OopCheckCondition := isCounter;
+			end;
 		end;
 	end;
 
@@ -1358,8 +1380,9 @@ procedure InspectObjectCode(statId, PointPos: integer; ErrMsg: string);
 				TextWindowAppend(textWindow, Locals(13) + ': ' + s);
 				Str(ObjArray,s);
 				TextWindowAppend(textWindow, 'Array: ' + s);
-				if elseCheck then TextWindowAppend(textWindow, 'elseCheck is present');
-				if sentCheck then TextWindowAppend(textWindow, 'sentCheck is present');
+				if ((Checks and $01) = 1) then TextWindowAppend(textWindow, 'elseCheck is present');
+				if ((Checks and $02) = 2) then TextWindowAppend(textWindow, 'sentCheck is present');
+				if ((Checks and $04) = 4) then TextWindowAppend(textWindow, 'seeDark is present');
 				s := '';
 				TextWindowAppend(textWindow, '$** Object Data: **');
 			end;
@@ -1417,7 +1440,6 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 				or ((statId = iStat) and not ignoreSelfLock)))
 				or (GlobalExec and (XDat.GlobalStat.P2 = 0))
 			then begin
-				Board.Stats[statId].sentCheck := true;
 				if iStat = statId then
 					OopSend := true;
 
@@ -1450,7 +1472,6 @@ procedure OopExecute(statId: integer; name: TString50);
 		labelStatId: integer;
 		labelZap, labelUnzap, tmpchar: char;
 		counter: TCounter;
-		scheduledUpdates: TScheduledUpdates;
 		counterSubtract: boolean;
 		bindStatId: integer;
 		insCount: integer;
@@ -1463,7 +1484,6 @@ procedure OopExecute(statId: integer; name: TString50);
 	label StopExecution;
 	label OrCondition;
 	begin
-		ScheduledUpdatesClear(scheduledUpdates);
 
 		with TrackPushStat(statId)^ do begin
 		StartParsing:
@@ -1560,8 +1580,12 @@ procedure OopExecute(statId: integer; name: TString50);
 										Inc(Stat^.DataPos);
 									textLine := OopReadLineToEnd(Index, Stat^.DataPos, StringMsg(counter.Value));
 									if textLine <> '' then begin
-										XDat.Configs[counter.Value] := textLine;
-										Dec(Stat^.DataPos);
+										if counter.Entry = 'SIDEBAR' then
+											CustomSideBarEntry(textLine, counter.Value - 100)
+										else begin
+											XDat.Configs[counter.Value] := textLine;
+											Dec(Stat^.DataPos);
+										end;
 									end;
 									scheduledUpdates.UpdateTheme := true;
 								end else begin
@@ -1570,14 +1594,14 @@ procedure OopExecute(statId: integer; name: TString50);
 										counter.Value := 1
 									else
 										counter.Value := OopValue;
-									if CounterWriteValue(counter, scheduledUpdates) then begin end;
+									if CounterWriteValue(counter) then begin end;
 								end;
 								scheduledUpdates.UpdateSidebar := true;
 							end else if OopNextWord(Index, Stat^.DataPos) = '' then begin
 								WorldSetFlag(OopWord);
 							end else
 								OopError(Index, Stat^.DataPos, 'Unknown counter ' + OopWord);
-							If HasCustomSidebar then GameDrawCustomSidebar;
+							If XDat.HasCustomSidebar then GameDrawCustomSidebar;
 						end else if OopWord = 'CLEAR' then begin
 							OopReadWord(Index, Stat^.DataPos);
 							if CounterFromWord(counter, Index, OopWord) then begin
@@ -1587,23 +1611,22 @@ procedure OopExecute(statId: integer; name: TString50);
 									scheduledUpdates.UpdateTheme := true;
 								end else begin
 									counter.Value := 0;
-									if CounterWriteValue(counter, scheduledUpdates) then begin end;
+									if CounterWriteValue(counter) then begin end;
 								end;
 								scheduledUpdates.UpdateSidebar := true;
 							end else
 								WorldClearFlag(OopWord);
-							If HasCustomSidebar then GameDrawCustomSidebar;
+							If XDat.HasCustomSidebar then GameDrawCustomSidebar;
 						end else if OopWord = 'IF' then begin
 			OrCondition:
-							Stat^.elseCheck := false;
-							OopReadWord(Index, Stat^.DataPos);
+							Stat^.Checks := Stat^.Checks and $FE;
 							if OopCheckCondition(Index, Stat^.DataPos) then begin
 								OopReadChar(Index, Stat^.DataPos);
 								Dec(Stat^.DataPos);
 								if (OopChar <> #13) then
 									goto ReadCommand;
 							end else begin
-								Stat^.elseCheck := true;
+								Stat^.Checks := (Stat^.Checks and $FE) + 1;
 								if (OopChar <> #13) then begin
 									OopReadWord(Index, Stat^.DataPos);
 									if (OopWord = 'OR') then goto OrCondition;
@@ -1630,10 +1653,10 @@ procedure OopExecute(statId: integer; name: TString50);
 
 							if CounterFromWord(counter, Index, OopWord) then begin
 								CounterReadValue(counter);
-								code := Stat^.DataPos;
+								ix := Stat^.DataPos;
 								OopReadValue(Index, Stat^.DataPos);
 								if OopValue = -32767 then begin
-									Stat^.DataPos := code;
+									Stat^.DataPos := ix;
 									OopValue := 1;
 								end;
 								if counterSubtract then
@@ -1644,11 +1667,9 @@ procedure OopExecute(statId: integer; name: TString50);
 									Dec(Stat^.DataPos);
 									if (OopChar <> #13) then
 										goto ReadCommand;
-								end else if CounterWriteValue(counter, scheduledUpdates) then begin end;
+								end else if CounterWriteValue(counter) then scheduledUpdates.UpdateSidebar := true;
 							end else
 								OopError(Index, Stat^.DataPos, 'Unknown counter ' + OopWord);
-							scheduledUpdates.UpdateSidebar := true;
-							If HasCustomSidebar then GameDrawCustomSidebar;
 						end else if OopWord = 'END' then begin {#END Returns Functions.}
 							OopReadValue(Index, Stat^.DataPos);
 							OopFuncReturn := OopValue;
@@ -1666,10 +1687,19 @@ procedure OopExecute(statId: integer; name: TString50);
 							Stat^.DataPos := 0;
 							lineFinished := false;
 						end else if (OopWord = 'ZAP') or (OopWord = 'RESTORE') then begin
+							code := -1;
 							textLine := OopWord;
 							repeat
 								OopReadChar(Index, Stat^.DataPos);
 							until OopChar <> ' ';
+							if OopChar = '/' then begin
+								OopReadWord(Index, Stat^.DataPos);
+								if OopParseDirection(Index, Stat^.DataPos, deltaX, deltaY) then
+									code := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
+								repeat
+									OopReadChar(Index, Stat^.DataPos);
+								until OopChar <> ' ';
+							end;
 							if OopChar = '!' then begin
 								labelZap := '@';
 								labelUnzap := '!';
@@ -1699,12 +1729,22 @@ procedure OopExecute(statId: integer; name: TString50);
 								labelStatId := -1;
 								OopWord := textLine;
 								iy := ix;
-								while OopFindLabel(Index, ix, OopWord, labelStatId, labelDataPos, #13 + labelUnzap) do begin
-									iy := OopValue;
-									labelPtr := Board.Stats[labelStatId].Data;
-									AdvancePointer(labelPtr, labelDataPos + 1);
-									Char(labelPtr^) := labelZap;
+								if code < 1 then begin
+									while OopFindLabel(Index, ix, OopWord, labelStatId, labelDataPos, #13 + labelUnzap) do begin
+										iy := OopValue;
+										labelPtr := Board.Stats[labelStatId].Data;
+										AdvancePointer(labelPtr, labelDataPos + 1);
+										Char(labelPtr^) := labelZap;
+									end;
+								end else begin
+									while OopFindLabel(code, ix, OopWord, labelStatId, labelDataPos, #13 + labelUnzap) do begin
+										iy := OopValue;
+										labelPtr := Board.Stats[labelStatId].Data;
+										AdvancePointer(labelPtr, labelDataPos + 1);
+										Char(labelPtr^) := labelZap;
+									end;
 								end;
+
 								OopValue := iy;
 								Dec(OopValue, ix);
 							end;
@@ -1722,7 +1762,7 @@ procedure OopExecute(statId: integer; name: TString50);
 									Board.Stats[ix].P2 := iy;
 							end;
 						end else if OopWord = 'SEND' then begin
-							Stat^.sentCheck := false;
+							Stat^.Checks := Stat^.Checks and $FD;
 							repeat
 								OopReadChar(Index, Stat^.DataPos);
 							until OopChar <> ' ';
@@ -1732,12 +1772,18 @@ procedure OopExecute(statId: integer; name: TString50);
 									OopReadWord(Index, Stat^.DataPos);
 									ix := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
 									if ix > 0 then
-										if OopSend(-ix, OopWord, false) then lineFinished := false;
+										if OopSend(-ix, OopWord, false) then begin
+											Stat^.Checks := (Stat^.Checks and $FD) + 2;
+											lineFinished := false;
+										end;
 								end;
 							end else begin
 								Dec(Stat^.DataPos);
 								OopReadWord(Index, Stat^.DataPos);
-								if OopSend(Index, OopWord, false) then lineFinished := false;
+								if OopSend(Index, OopWord, false) then begin
+									Stat^.Checks := (Stat^.Checks and $FD) + 2;
+									lineFinished := false;
+								end;
 							end;
 						end else if OopWord = 'BECOME' then begin
 							if OopParseTile(Index, Stat^.DataPos, argTile) then begin
@@ -1759,33 +1805,37 @@ procedure OopExecute(statId: integer; name: TString50);
 								and ((Stat^.Y + deltaY) <= BOARD_HEIGHT) then
 							begin
 								ix := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
-								if SelUnder and (ix > -1) then begin
-									Board.Stats[ix].Under.Element := argTile.Element;
-									if argTile.Color and $F0 > 0 then
-										argTile.setBG := true;
-									if argTile.Color and $0F > 0 then
-										argTile.setFG := true;
-									if (argTile.setBG = true)
-										or (argTile.Element >= E_TEXT_MIN)
-									then
-										Board.Stats[ix].Under.Color := argTile.Color
-									else if argtile.setFG = true then
-										Board.Stats[ix].Under.Color := argTile.Color and $0F
-									else if (XDat.EDefs[Enum(argTile.Element)].Color > 15) or (argTile.Element >= E_TEXT_MIN) then
-										Board.Stats[ix].Under.Color := XDat.EDefs[Enum(argTile.Element)].Color
-									else if XDat.EDefs[Enum(argTile.Element)].Color > 0 then
-										Board.Stats[ix].Under.Color := AsColor(XDat.EDefs[Enum(argTile.Element)].Color,
-											Board.Stats[ix].Under.Color and $F0);
+								if argTile.Color and $F0 > 0 then
+									argTile.setBG := true;
+								if argTile.Color and $0F > 0 then
+									argTile.setFG := true;
+								replaceTile.Element := argTile.Element;
+								if (argTile.Element >= E_TEXT_MIN) then begin
+									if argtile.Color <> 0 then
+										replaceTile.Color := argTile.Color
+									else
+										replaceTile.Color := Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Color;
+								end else if (argTile.setBG = true) then
+									replaceTile.Color := argTile.Color
+								else if argtile.setFG = true then
+									replaceTile.color := argTile.Color and $0F
+								else if (XDat.EDefs[Enum(argTile.Element)].Color > 15) then
+									replaceTile.color := XDat.EDefs[Enum(argTile.Element)].Color
+								else if (XDat.EDefs[Enum(argTile.Element)].Color > 0) then begin
+									if SelUnder and (ix > -1) then
+										replaceTile.Color := AsColor(XDat.EDefs[Enum(argTile.Element)].Color,
+											Board.Stats[ix].Under.Color and $F0)
+									else
+										replaceTile.Color := AsColor(XDat.EDefs[Enum(argTile.Element)].Color,
+											Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Color and $F0);
+								end;
 
-								end else if ((deltaX <> 0) or (deltaY <> 0)) then begin
+								if SelUnder and (ix > -1) then
+									Board.Stats[ix].Under := replaceTile
+								else if ((deltaX <> 0) or (deltaY <> 0)) then begin
 									if not XDat.EDefs[Enum(Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Element)].Walkable then
 										ElementPushablePush(Stat^.X + deltaX, Stat^.Y + deltaY, deltaX, deltaY);
-									replaceTile.Element := argTile.Element;
-									replaceTile.Color := argTile.Color;
-									if (argTile.setFG = true) or (argTile.setBG = true) or (argTile.Element >= E_TEXT_MIN) then
-										OopForceTile(Stat^.X + deltaX, Stat^.Y + deltaY, replaceTile)
-									else
-										OopPlaceTile(Stat^.X + deltaX, Stat^.Y + deltaY, replaceTile);
+									OopForceTile(Stat^.X + deltaX, Stat^.Y + deltaY, replaceTile);
 								end;
 							end;
 						end else if OopWord = 'CHANGE' then begin
@@ -1882,12 +1932,11 @@ procedure OopExecute(statId: integer; name: TString50);
 								end;
 							end else OopError(Index, Stat^.DataPos, 'Cannot #BIND Global Object.');
 						end else if (OopWord = 'ELSE') then begin
-							if Stat^.elseCheck then goto ReadCommand;
+							if ((Stat^.Checks and $01) = 1) then goto ReadCommand;
 						end else if (OopWord = 'AND') then begin
-							if not Stat^.elseCheck then goto ReadCommand;
+							if ((Stat^.Checks and $01) = 0) then goto ReadCommand;
 						end else if (OopWord = 'OR') then begin
-							OopReadWord(Index, Stat^.DataPos);
-							if not OopCheckCondition(Index, Stat^.DataPos) then Stat^.elseCheck := false;
+							if not OopCheckCondition(Index, Stat^.DataPos) then Stat^.Checks := Stat^.Checks and $FE;
 							goto ReadCommand;
 						end else if (OopWord = 'RETRY') then begin
 							Stat^.DataPos := lastPosition;
@@ -1985,9 +2034,15 @@ procedure OopExecute(statId: integer; name: TString50);
 							Inc(deltaX, Stat^.X);
 							Inc(deltaY, Stat^.Y);
 
-							ix := OopGetColor(Index, Stat^.DataPos, argTile);
-							if ix < 0 then OopError(Index, Stat^.DataPos, 'Invalid WRITE color.');
-							argTile.Element := 128 + (ix mod 128);
+							OopReadValue(Index, Stat^.DataPos);
+							if OopValue < 0 then OopError(Index, Stat^.DataPos, 'Invalid WRITE color.');
+							argTile.Element := (OopValue mod 128) + 128;
+							OopReadValue(Index, Stat^.DataPos);
+							if (OopValue >= 0)
+								and (OopValue <= 15)
+								and (argTile.Element <= 143)
+							then
+								Inc(argTile.Element,OopValue * 16);
 
 							Inc(Stat^.DataPos);
 							textLine := OopReadLineToEnd(Index, Stat^.DataPos, false);
@@ -2135,6 +2190,10 @@ procedure OopExecute(statId: integer; name: TString50);
 								end else if OopWord = 'DESTINATION' then begin
 									iy := WorldGetBoardPosition(Index, Stat^.DataPos);
 									Board.Stats[bindStatId].P3 := iy;
+								end else if OopWord = 'SEEDARK' then begin
+									Board.Stats[bindStatId].Checks := Board.Stats[bindStatId].Checks and $FB;
+									if (iy <> 0) then Inc(Board.Stats[bindStatId].Checks, 4);
+									scheduledUpdates.UpdateBoard := true;
 								end else begin
 									OopReadValue(Index, Stat^.DataPos);
 									iy := OopValue;
@@ -2148,7 +2207,7 @@ procedure OopExecute(statId: integer; name: TString50);
 										Board.Stats[bindStatId].Cycle := iy										
 									else if CounterFromWord(counter, bindStatId, OopWord) then begin
 										counter.Value := iy;
-										if CounterWriteValue(counter, scheduledUpdates) then begin end;
+										if CounterWriteValue(counter) then scheduledUpdates.UpdateSidebar := true;
 									end;
 								end;
 							end;
@@ -2227,7 +2286,7 @@ procedure OopExecute(statId: integer; name: TString50);
 								ix := OopValue;
 								OopReadValue(Index, Stat^.DataPos);
 								iy := OopValue;
-								if ( iy < 1 ) or ( iy > 15 ) then
+								if (iy < 1) or (iy > 15) or (ix > 15) then
 									iy := 0;
 								if ((ix + (iy * 16)) > -1) and ((ix + (iy * 16)) < 256) then begin
 									if SelUnder and (GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY) > -1) then
@@ -2246,9 +2305,10 @@ procedure OopExecute(statId: integer; name: TString50);
 							lineFinished := false;
 						end else begin
 							textLine := OopWord;
-							if OopSend(Index, OopWord, false) then
-								lineFinished := false
-							else if Pos(':', textLine) <= 0 then
+							if OopSend(Index, OopWord, false) then begin
+								Stat^.Checks := (Stat^.Checks and $FD) + 2;
+								lineFinished := false;
+							end else if Pos(':', textLine) <= 0 then
 								OopError(Index, Stat^.DataPos, 'Bad command ' + textLine);
 						end;
 					end;
@@ -2269,8 +2329,6 @@ procedure OopExecute(statId: integer; name: TString50);
 				end;
 
 			until endOfProgram or stopRunning or repeatInsNextTick or replaceStat or (insCount > XDat.Params[10]);
-
-			ScheduledUpdatesApply(scheduledUpdates);
 
 			if repeatInsNextTick then
 				Stat^.DataPos := lastPosition;

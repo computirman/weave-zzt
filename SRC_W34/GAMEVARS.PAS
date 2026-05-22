@@ -121,8 +121,8 @@ interface
 			Leader: integer;
 			Under: TTile;
 			ObjArray: integer;
-			elseCheck: boolean;
-			sentCheck: boolean;
+			Checks: byte;
+			ObjFlags: byte;
 			DataPos: integer;
 			DataLen: integer;
 			ObjLocal: array[1 .. 4] of integer;
@@ -190,6 +190,11 @@ interface
 			Name: TString50;
 			Score: integer;
 		end;
+		TSidebar = record
+			Disp: TString20;
+			Ident: shortint;
+			Elmt: shortint;
+		end;
 		TExtendedData = record
 			Version: integer;
 			Flags: array[MAX_FLAG + 1 .. MAX_EXTENDEDFLAG] of TString20;
@@ -199,17 +204,19 @@ interface
 			Configs: array[1 .. CONFIG_FILE_COUNT] of string[80];
 			GlobalObj: array[1 .. GLOBAL_OBJ_LENGTH] of char;
 			GlobalStat: TStat;
+			CustomSidebar: array[3..24] of TSidebar;
+			HasCustomSidebar: boolean;
+		end;
+		TScheduledUpdates = record
+			UpdateBoard: boolean;
+			UpdateSidebar: boolean;
+			UpdateTheme: boolean;
 		end;
 		THighScoreList = array[1 .. 30] of THighScoreEntry;
 		TCustomCounterList = array[1 .. CUSTOM_COUNTER_COUNT] of TString20;
 		TCustomFlagList = array[1 .. CUSTOM_FLAG_COUNT] of TString20;
 		TCustomKeyList = array[0 .. CUSTOM_KEY_COUNT - 1] of TString20;
-		TSearchArea = array[-7 .. 7] of array[-7 .. 7] of shortint;
-		TSidebar = record
-			Disp: TString20;
-			Ident: shortint;
-			Elmt: shortint;
-		end;
+		TSearchArea = array[-11 .. 11] of array[-11 .. 11] of shortint;
 		TBoardNames = array[0 .. MAX_BOARD] of TString50;
 	var
 		PlayerDirX: integer;
@@ -241,7 +248,6 @@ interface
 		IsSpeedForced: boolean;
 		GameMove: boolean;
 		CurrentBlink: boolean;
-		HasCustomSidebar: boolean;
 		SelUnder: boolean;
 		QuickStart: boolean;
 		QuickQuit: boolean;
@@ -304,10 +310,10 @@ interface
 		JustStarted: boolean;
 		ConfigWorldFile: TString50;
 		Accessibility: array[1..8] of TString50;
+		scheduledUpdates: TScheduledUpdates;
 		XDat: TExtendedData;
 
 		BoardNames: ^TBoardNames;
-		CustomSidebar: array[3..24] of TSidebar;
 	const
 		E_EMPTY = 0;
 		E_BOARD_EDGE = 1;

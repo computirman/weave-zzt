@@ -38,11 +38,6 @@ interface
 			UpdateBoard: boolean;
 			UpdateTheme: boolean;
 		end;
-		TScheduledUpdates = record
-			UpdateBoard: boolean;
-			UpdateSidebar: boolean;
-			UpdateTheme: boolean;
-		end;
 		cInteger = ^integer;
 		cShortint = ^shortint;
 		cByte = ^byte;
@@ -51,9 +46,8 @@ interface
 	{ Reads value to c.Value }
 	procedure CounterReadValue(var c: TCounter);
 	{ Writes value from c.Value }
-	function CounterWriteValue(var c: TCounter; var u: TScheduledUpdates): boolean;
-	procedure ScheduledUpdatesClear(var u: TScheduledUpdates);
-	procedure ScheduledUpdatesApply(var u: TScheduledUpdates);
+	function CounterWriteValue(var c: TCounter): boolean;
+	procedure ScheduledUpdatesApply;
 
 implementation
 uses GameVars, Elements, Game;
@@ -77,7 +71,7 @@ function ElementRead(var c: TCounter): integer;
 				ElementRead := ElementGet(i,u);
 	end;
 
-procedure ElementWrite(var c: TCounter; var uu: TScheduledUpdates);
+procedure ElementWrite(var c: TCounter);
 	var
 		i, j: integer;
 		t, u, v: string[20];
@@ -94,10 +88,21 @@ procedure ElementWrite(var c: TCounter; var uu: TScheduledUpdates);
 		for i := 1 to MAX_ELEMENT do
 			if XDat.EDefs[i].Name = t then begin
 				ElementMod(i, u, v, -1);
-				uu.UpdateTheme := true;
-				uu.UpdateBoard := true;
+				scheduledUpdates.UpdateTheme := true;
+				scheduledUpdates.UpdateBoard := true;
 				exit;
 			end;
+	end;
+
+function SideBarEntry(i: integer; s: string): boolean;
+	var
+		t: string[20];
+	begin
+		Str(i,t);
+		if s = 'SIDEBAR.' + t + '.COUNTER' then
+			SideBarEntry := true
+		else
+			SideBarEntry := false;
 	end;
 
 function CounterFromWord(var c: TCounter; statId: integer; s: string): boolean;
@@ -245,6 +250,13 @@ function CounterFromWord(var c: TCounter; statId: integer; s: string): boolean;
 					c.Value := i;
 					exit;
 				end;
+			for i := 3 to 24 do
+				if SideBarEntry(i, s) then begin
+					c.CType := TCConfig;
+					c.Entry := 'SIDEBAR';
+					c.Value := 100 + i;
+					exit;
+				end;
 			for i := 4 to 12 do
 				if (i <= Length(s)) and (s[i] = '.') then begin
 					c.CType := TCElement;
@@ -270,13 +282,13 @@ procedure CounterReadValue(var c: TCounter);
 			c.Value := TickSpeed + 1;
 	end;
 
-function CounterWriteValue(var c: TCounter; var u: TScheduledUpdates): boolean;
+function CounterWriteValue(var c: TCounter): boolean;
 	begin
 		CounterWriteValue := true;
 
 		{ Copy counter update requests to scheduled updates }
-		u.UpdateBoard := u.UpdateBoard or c.UpdateBoard;
-		u.UpdateTheme := u.UpdateTheme or c.UpdateTheme;
+		scheduledUpdates.UpdateBoard := scheduledUpdates.UpdateBoard or c.UpdateBoard;
+		scheduledUpdates.UpdateTheme := scheduledUpdates.UpdateTheme or c.UpdateTheme;
 
 		if c.CType = TCByte then
 			cByte(c.Pointer)^ := c.Value
@@ -285,7 +297,7 @@ function CounterWriteValue(var c: TCounter; var u: TScheduledUpdates): boolean;
 		else if c.CType = TCInteger then
 			cInteger(c.Pointer)^ := c.Value
 		else if c.CType = TCElement then
-			ElementWrite(c, u)
+			ElementWrite(c)
 		else if c.CType = TCTickSpeed then begin
 			if c.Value <= 0 then
 				TickSpeed := 0
@@ -299,23 +311,19 @@ function CounterWriteValue(var c: TCounter; var u: TScheduledUpdates): boolean;
 			CounterWriteValue := false;
 	end;
 
-procedure ScheduledUpdatesClear(var u: TScheduledUpdates);
+procedure ScheduledUpdatesApply;
 	begin
-		u.UpdateTheme := false;
-		u.UpdateSidebar := false;
-		u.UpdateBoard := false;
-	end;
-
-procedure ScheduledUpdatesApply(var u: TScheduledUpdates);
-	begin
-		if u.UpdateTheme then begin
+		if scheduledUpdates.UpdateTheme then
 			GameDrawTheme;
+		if scheduledUpdates.UpdateTheme or scheduledUpdates.UpdateSidebar then begin
 			GameUpdateSidebar;
-		end else if u.UpdateSidebar then
-			GameUpdateSidebar;
-		if u.UpdateBoard then
+			if XDat.HasCustomSidebar then GameDrawCustomSidebar;
+		end;
+		if scheduledUpdates.UpdateBoard then
 			TransitionDrawToBoard;
-		ScheduledUpdatesClear(u);
+		scheduledUpdates.UpdateTheme := false;
+		scheduledUpdates.UpdateSidebar := false;
+		scheduledUpdates.UpdateBoard := false;
 	end;
 
 end.
