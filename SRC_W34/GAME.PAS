@@ -1922,7 +1922,7 @@ procedure MoveStat(statId: integer; newX, newY: integer);
 				and (Board.Info.IsDark > 0)
 				and (World.Info.TorchTicks <> 0)
 			then
-				TransitionDrawToBoard;
+				scheduledUpdates.UpdateBoard := true;
 
 		end;
 	end;
@@ -2074,11 +2074,11 @@ procedure GameUpdateSidebar;
 				if ExtMemEmsActive then begin
 					Str(ExtMemEmsAvailPages, numstr);
 					VideoWriteText(62, 1, $1E, 'e' + numStr + 'p ');
-				end;
-				if ExtMemXmsActive then begin
+				end else if ExtMemXmsActive then begin
 					Str(ExtMemXmsAvail, numStr);
-					VideoWriteText(62, 2, $1E, 'x' + numStr + ' ');
+					VideoWriteText(62, 1, $1E, 'x' + numStr + ' ');
 				end;
+				VideoWriteText(62, 2, $5D, 'v' + ZZT_VERSION);
 			end;
 {$ENDIF}
 		end;

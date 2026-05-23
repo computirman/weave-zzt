@@ -32,7 +32,8 @@ unit GameVars;
 interface
 	uses ExtMem;
 	const
-		FOOTER_VERSION = 4007;
+		ZZT_VERSION = '4.0j';
+		FOOTER_VERSION = 4010;
 		MAX_STAT = 254;
 		TSTAT_OFFSET = 33;
 		MAX_ELEMENT = 53;

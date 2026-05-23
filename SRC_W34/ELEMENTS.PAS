@@ -1504,7 +1504,10 @@ procedure ElementCustomDir(shiftPressed: boolean);
 			ix := PlayerDirX;
 			iy := PlayerDirY;
 		end else begin
-			shiftMod := '';
+			if InputShiftPressed then
+				shiftMod := 'SHIFT'
+			else
+				shiftMod := '';
 			ix := InputDeltaX;
 			iy := InputDeltaY;
 		end;
@@ -1532,7 +1535,7 @@ procedure ElementTruePlayerTick;
 		with Board.Stats[0] do begin
 
 			if XDat.Params[23] = 0 then
-				ElementCustomDir(InputShiftPressed or (InputKeyPressed = ' '));
+				ElementCustomDir(InputKeyPressed = ' ');
 
 			if P2 = 1 then begin
 				InputDeltaX := 0;

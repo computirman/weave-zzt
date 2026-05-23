@@ -2037,12 +2037,15 @@ procedure OopExecute(statId: integer; name: TString50);
 							OopReadValue(Index, Stat^.DataPos);
 							if OopValue < 0 then OopError(Index, Stat^.DataPos, 'Invalid WRITE color.');
 							argTile.Element := (OopValue mod 128) + 128;
+							ix := Stat^.DataPos;
 							OopReadValue(Index, Stat^.DataPos);
 							if (OopValue >= 0)
 								and (OopValue <= 15)
 								and (argTile.Element <= 143)
 							then
-								Inc(argTile.Element,OopValue * 16);
+								Inc(argTile.Element,(OopValue mod 8) * 16)
+							else
+								Stat^.DataPos := ix;
 
 							Inc(Stat^.DataPos);
 							textLine := OopReadLineToEnd(Index, Stat^.DataPos, false);
@@ -2178,8 +2181,8 @@ procedure OopExecute(statId: integer; name: TString50);
 						end else if OopWord = 'PSET' then begin
 							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
 							bindStatId := GetStatIdAt( Stat^.X + deltaX, Stat^.Y + deltaY );
+							OopReadWord(Index, Stat^.DataPos);
 							if bindStatId > -1 then begin
-								OopReadWord(Index, Stat^.DataPos);
 								if (OopWord = 'STEP') or (OopWord = 'ORIGIN') then begin
 									textLine := OopNextWord(Index, Stat^.DataPos);
 									Inc(deltaX, Stat^.X);
@@ -2190,14 +2193,14 @@ procedure OopExecute(statId: integer; name: TString50);
 								end else if OopWord = 'DESTINATION' then begin
 									iy := WorldGetBoardPosition(Index, Stat^.DataPos);
 									Board.Stats[bindStatId].P3 := iy;
-								end else if OopWord = 'SEEDARK' then begin
-									Board.Stats[bindStatId].Checks := Board.Stats[bindStatId].Checks and $FB;
-									if (iy <> 0) then Inc(Board.Stats[bindStatId].Checks, 4);
-									scheduledUpdates.UpdateBoard := true;
 								end else begin
 									OopReadValue(Index, Stat^.DataPos);
 									iy := OopValue;
-									if ((OopWord = 'P1') or (OopWord = 'CHAR')) or ((OopWord = 'INTEL') or (OopWord = 'INTELLIGENCE')) then
+									if OopWord = 'SEEDARK' then begin
+										Board.Stats[bindStatId].Checks := Board.Stats[bindStatId].Checks and $FB;
+										if (iy <> 0) then Inc(Board.Stats[bindStatId].Checks, 4);
+										scheduledUpdates.UpdateBoard := true;
+									end else if ((OopWord = 'P1') or (OopWord = 'CHAR')) or ((OopWord = 'INTEL') or (OopWord = 'INTELLIGENCE')) then
 										Board.Stats[bindStatId].P1 := iy
 									else if (OopWord = 'P2') or (OopWord = 'RATE') or (OopWord = 'SPEED') then
 										Board.Stats[bindStatId].P2 := iy
@@ -2210,6 +2213,12 @@ procedure OopExecute(statId: integer; name: TString50);
 										if CounterWriteValue(counter) then scheduledUpdates.UpdateSidebar := true;
 									end;
 								end;
+							end else if (OopWord = 'CHAR') and
+								(Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Element >= 128)
+							then begin
+								OopReadValue(Index, Stat^.DataPos);
+								if (OopValue > 0) and (OopValue < 256) then
+									Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Color := OopValue;
 							end;
 						end else if OopWord = 'EDGE' then begin
 							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
@@ -2289,10 +2298,16 @@ procedure OopExecute(statId: integer; name: TString50);
 								if (iy < 1) or (iy > 15) or (ix > 15) then
 									iy := 0;
 								if ((ix + (iy * 16)) > -1) and ((ix + (iy * 16)) < 256) then begin
-									if SelUnder and (GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY) > -1) then
-										Board.Stats[GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY)].Under.Color := AsColor(ix, iy)
-									else begin
-										Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Color := AsColor(ix, iy);
+									if SelUnder and (GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY) > -1) then begin
+										if Board.Stats[GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY)].Under.Element >= 128 then
+											Board.Stats[GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY)].Under.Element := (AsColor(ix, iy) mod 128) + 128
+										else
+											Board.Stats[GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY)].Under.Color := AsColor(ix, iy);
+									end else begin
+										if Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Element >= 128 then
+											Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Element := (AsColor(ix, iy) mod 128) + 128
+										else
+											Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].Color := AsColor(ix, iy);
 										BoardDrawTile(Stat^.X + deltaX, Stat^.Y + deltaY);
 									end;
 								end else

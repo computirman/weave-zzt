@@ -1,3 +1,46 @@
+5/23/2026: Weave 4.0j
+ * Added: #SET SIDEBAR.<ROW>.COUNTER
+    - This modifies the configuration of the sidebar in real time.
+ * Added: #pset <dir> SEEDARK TRUE
+    - This allows invidual stats to be visible in darkness.
+ * Improved: /find <direction> now searches more broadly and moves more intelligently.
+ * Fixed: :SHIFT<dir> message sends wrong <dir> when other.strictlock is FALSE.
+ * Improved: ?+DEBUG now displays the Weave version.
+ * Improved: #WRITE now handles either one or two color arguments.
+ * Added: #IF WITHIN [dir] <range> 
+    - Objects can now check proximity to locations other than the player.
+ * Added: #ZAP/RESTORE [/<dir>] <label>
+    - Objects can now #zap and #restore on behalf of other objects.
+ * Improved: #IF <counter> now works with any numeric counter, including PGET and RANDOM.
+ * Fixed: #IF SENT regression
+ * Breaking Change: #COLOR <dir> <fg> [bg] now changes the color of customtext rather than the character.
+ * Added: #PSET <dir> CHAR <#> now changes the character of any customtext found at <dir>.
+
+
+5/11/2026: Weave 4.0i
+ * Fixed: #LOCK regression
+ * Fixed: #LOAD AT <X> <Y> <FILENAME> fails from the global object.
+ * Fixed: Flickering problems with torches in dark rooms when the global object was modifying the element table.
+ * Fixed: The global object was unable to read the player's X and Y coordinate.
+ * Fixed: #PUT <char> TEXT <fg> [bg] was not working for chars under 0-15 when placing them over certain elements.
+
+2/6/2026: Weave 4.0h
+ * Obj1-6 and Array are no longer local for the global object.
+ * #load and #bind on the global object now (correctly) throw an error.
+ * Offloaded the complete stat data for the global object into the external definitions section of the save file.
+    - This addresses concerns with #LOCK, #UNLOCK, #AND, #ELSE, and #IF SENT.
+ * Fixed a visual glitch where bottom-row messages produced by the global object immediately vanished on creation.
+
+2/5/2026: Weave 4.0g
+ * Fixed the zeta binary for emulated linux.
+ * Updated all ZLOOM2K links to the full package version.
+ * Replaced ZLOOM2 with ZLOOM2K in all releases.
+ * Updated Zeta to the latest web version in WEBWEAVE.
+ * Updated the Weave manual.
+ * Added: The Global Object
+    - GAME.OBJ is now included in the files that are checked for and loaded when GAME.ZZT is loaded.
+    - This loads a global object that runs continuously while the game is playing.
+
 10/31/2025: Weave 4.0e
  * Fixed typographical errors in both OOP-QR and THE WEAVE MANUAL.
  * Added condition "#IF SENT" that is TRUE if the last message sent with "#send /dir label" or "#send obj:label" had at least one recipient.
