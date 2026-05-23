@@ -1,3 +1,6 @@
+5/23/2026: Weave 4.0k
+ * Fixed: Changing the sidebar in-game skips the object's next line of code.
+
 5/23/2026: Weave 4.0j
  * Added: #SET SIDEBAR.<ROW>.COUNTER
     - This modifies the configuration of the sidebar in real time.
