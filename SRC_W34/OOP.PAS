@@ -1582,10 +1582,9 @@ procedure OopExecute(statId: integer; name: TString50);
 									if textLine <> '' then begin
 										if counter.Entry = 'SIDEBAR' then
 											CustomSideBarEntry(textLine, counter.Value - 100)
-										else begin
+										else
 											XDat.Configs[counter.Value] := textLine;
-											Dec(Stat^.DataPos);
-										end;
+										Dec(Stat^.DataPos);
 									end;
 									scheduledUpdates.UpdateTheme := true;
 								end else begin
