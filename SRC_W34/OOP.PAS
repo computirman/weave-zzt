@@ -839,7 +839,7 @@ function OopIterateStat(statId: integer; var iStat: integer; lookup: string): bo
 				end;
 			end;
 		end else if lookup = 'SELF' then begin
-			if (statId > 0) and (iStat <= statId) then begin
+			if (statId >= 0) and (iStat <= statId) then begin
 				iStat := statId;
 				found := true;
 			end;
@@ -1435,10 +1435,9 @@ function OopSend(statId: integer; sendLabel: string; ignoreLock: boolean): boole
 		iStat := -1;
 
 		while OopFindLabel(statId, 1, sendLabel, iStat, iDataPos, #13':') do begin
-			if ((iStat <> 0)
-				and (((Board.Stats[iStat].P2 = 0) or (ignoreLock))
-				or ((statId = iStat) and not ignoreSelfLock)))
-				or (GlobalExec and (XDat.GlobalStat.P2 = 0))
+			if ((iStat = 0) and (XDat.GlobalStat.P2 = 0))
+				or (((Board.Stats[iStat].P2 = 0) or (ignoreLock))
+				or ((statId = iStat) and not ignoreSelfLock))
 			then begin
 				if iStat = statId then
 					OopSend := true;

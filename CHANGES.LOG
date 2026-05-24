@@ -1,3 +1,6 @@
+5/23/2026: Weave 4.0l
+ * Fixed: The Global Object was not responding to incoming messages, including messages if the global object is named @INPUT.
+
 5/23/2026: Weave 4.0k
  * Fixed: Changing the sidebar in-game skips the object's next line of code.
 
