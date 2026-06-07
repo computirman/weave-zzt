@@ -10,6 +10,7 @@
         - PAL
             - This loads the values from "<FILENAME>.PAL" into the current palette.
  * Fixed: Visual artifacts when global object sets CFG values in dark rooms.
+ * Updated: Now displays version in sidebar at all times.
 
 
 5/23/2026: Weave 4.0l
