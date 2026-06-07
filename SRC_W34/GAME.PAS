@@ -2894,8 +2894,8 @@ procedure GameDrawTheme;
 			XDat.Params[THEME_START + 4]), '      ZZT      ');
 		VideoWriteText(62, 1, AsColor(XDat.Params[THEME_START + 5],
 			XDat.Params[THEME_START + 4]), ' Weave');
-		VideoWriteText(74, 1, AsColor(XDat.Params[THEME_START + 5],
-			XDat.Params[THEME_START + 4]), '4.0');
+		VideoWriteText(77 - length(ZZT_VERSION), 1, AsColor(XDat.Params[THEME_START + 5],
+			XDat.Params[THEME_START + 4]), ZZT_VERSION);
 		VideoWriteText(61, 2, AsColor(XDat.Params[THEME_START + 1],
 			XDat.Params[THEME_START]), '    - - - - -      ');
 		if GameStateElement = E_PLAYER then begin
