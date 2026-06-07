@@ -1994,36 +1994,50 @@ procedure OopExecute(statId: integer; name: TString50);
 							Dec(Stat^.DataPos);
 							GlobalWriteChar := 0;
 						end else if OopWord = 'LOAD' then begin
-							OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
-							if (statId = 0) and (deltax = 0) and (deltaY = 0) then
-								OopError(Index, Stat^.DataPos, 'Cannot #LOAD to Global Object.')
-							else begin
-								if ((Stat^.X + deltaX) > 0)
-									and ((Stat^.X + deltaX) <= BOARD_WIDTH)
-									and ((Stat^.Y + deltaY) > 0)
-									and ((Stat^.Y + deltaY) <= BOARD_HEIGHT)
-								then begin
-									bindStatId := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
-									if (Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].element = E_OBJECT)
-										and (bindStatId > 0)
+							ix := Stat^.DataPos;
+							OopReadWord(Index, Stat^.DataPos);
+							if (OopWord = 'CHR') or (OopWord = 'PAL') or (OopWord = 'GLOBAL') then begin
+								Inc(Stat^.DataPos);
+								textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
+								if (OopWord = 'CHR') then
+									LoadChrFile(textline);
+								if (OopWord = 'PAL') then
+									LoadPalette(textline);
+								if (OopWord = 'GLOBAL') then
+									GlobalLoadStatData(textline);
+							end else begin
+								Stat^.DataPos := ix;
+								OopReadDirection(Index, Stat^.DataPos, deltaX, deltaY);
+								if (statId = 0) and (deltax = 0) and (deltaY = 0) then
+									OopError(Index, Stat^.DataPos, 'Cannot #LOAD to Global Object.')
+								else begin
+									if ((Stat^.X + deltaX) > 0)
+										and ((Stat^.X + deltaX) <= BOARD_WIDTH)
+										and ((Stat^.Y + deltaY) > 0)
+										and ((Stat^.Y + deltaY) <= BOARD_HEIGHT)
 									then begin
-										ix := Stat^.DataPos;
-										OopReadWord(Index, Stat^.DataPos);
-										if OopWord <> 'APPEND' then
-											Stat^.DataPos := ix;
-										Inc(Stat^.DataPos);
-										textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
-										Dec(Stat^.DataPos);
-										if (OopWord = 'APPEND') then begin
-											if FileAppendStatData(textLine,bindStatId) then
-												goto ReadCommand
-											else
+										bindStatId := GetStatIdAt(Stat^.X + deltaX, Stat^.Y + deltaY);
+										if (Board.Tiles[Stat^.X + deltaX][Stat^.Y + deltaY].element = E_OBJECT)
+											and (bindStatId > 0)
+										then begin
+											ix := Stat^.DataPos;
+											OopReadWord(Index, Stat^.DataPos);
+											if OopWord <> 'APPEND' then
+												Stat^.DataPos := ix;
+											Inc(Stat^.DataPos);
+											textLine := OopReadLineToEnd(Index, Stat^.DataPos, true);
+											Dec(Stat^.DataPos);
+											if (OopWord = 'APPEND') then begin
+												if FileAppendStatData(textLine,bindStatId) then
+													goto ReadCommand
+												else
+													OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
+											end else if FileLoadStatData(textLine,bindStatId) then begin
+												Board.Stats[bindStatId].DataPos := 0;
+												goto ReadCommand;
+											end else
 												OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
-										end else if FileLoadStatData(textLine,bindStatId) then begin
-											Board.Stats[bindStatId].DataPos := 0;
-											goto ReadCommand;
-										end else
-											OopError(Index, Stat^.DataPos, 'Unable to load ' + textLine + '.OBJ');
+										end;												
 									end;
 								end;
 							end;
@@ -2269,16 +2283,18 @@ procedure OopExecute(statId: integer; name: TString50);
 								ElementPushablePush(ix, iy, deltaX, deltaY);
 								if (argTile.Element = Board.Tiles[ix][iy].Element) then begin
 									ElementPushablePush(ix + deltaX, iy + deltaY, deltaX, deltaY);
-									if GetStatIdAt(ix + deltaX, iy + deltaY) < 0 then begin
-										bindStatId := GetStatIdAt(ix,iy);
-										if (bindStatId > -1) then
-											MoveStat(bindStatId, ix + deltaX, iy + deltaY)
-										else begin
-											Board.Tiles[ix + deltaX][iy + deltaY] := Board.Tiles[ix][iy];
-											Board.Tiles[ix][iy].Element := E_EMPTY;
+									if (XDat.Params[26] < 1) or XDat.EDefs[Enum(Board.Tiles[ix + deltaX][iy + deltaY].Element)].Walkable then begin
+										if GetStatIdAt(ix + deltaX, iy + deltaY) < 0 then begin
+											bindStatId := GetStatIdAt(ix,iy);
+											if (bindStatId > -1) then
+												MoveStat(bindStatId, ix + deltaX, iy + deltaY)
+											else begin
+												Board.Tiles[ix + deltaX][iy + deltaY] := Board.Tiles[ix][iy];
+												Board.Tiles[ix][iy].Element := E_EMPTY;
+											end;
+											BoardDrawTile(ix, iy);
+											BoardDrawTile(ix + deltaX, iy + deltaY);
 										end;
-										BoardDrawTile(ix, iy);
-										BoardDrawTile(ix + deltaX, iy + deltaY);
 									end;
 								end;
 							end;

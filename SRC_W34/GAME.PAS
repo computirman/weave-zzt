@@ -46,6 +46,8 @@ interface
 {$ELSE}
 	procedure AdvancePointer(var address: pointer; count: integer);
 {$ENDIF}
+	procedure LoadChrFile(chrfile: string);
+	procedure LoadPalette(palfile: string);
 	procedure CustomSideBarEntry(s: string; ln: integer);
 	procedure BoardClose;
 	procedure BoardOpen(boardId: integer);
@@ -71,7 +73,7 @@ interface
 	procedure AddStat(tx, ty: integer; txelement, txcolor: byte; tcycle: integer; template: TStat);
 	function FileLoadStatData(s: TString50; statId: integer): boolean;
 	function FileAppendStatData(s: TString50; statId: integer): boolean;
-	procedure GlobalLoadStatData;
+	procedure GlobalLoadStatData(objfile: string);
 	procedure RemoveStat(statId: integer);
 	function GetStatIdAt(tx, ty: integer): integer;
 	procedure MoveStat(statId: integer; newX, newY: integer);
@@ -201,6 +203,7 @@ function ParamConfigs(i: integer): string;
 			23: ParamConfigs := 'OTHER.STRICTLOCK';
 			24: ParamConfigs := 'OTHER.TEXTWINDOW';
 			25: ParamConfigs := 'OTHER.STRICTARRAY';
+			26: ParamConfigs := 'OTHER.SOFTSHOVE';
 		else ParamConfigs := '_nil' end;
 	end;
 
@@ -246,14 +249,17 @@ procedure SetPalette(sourcePal: boolean);
 		end;
 	end;
 
-procedure LoadPalette;
+procedure LoadPalette(palfile: string);
 	var
+		t: string;
 		f: file;
 		c: integer;
 		TempPalette: array[0..47] of byte;
 	begin
-		if FileExists(World.Info.Name + '.PAL') then begin
-			AssignFSys(f, World.Info.Name + '.PAL');
+		t := palfile;
+		if not FileExists(t + '.PAL') then t := World.Info.Name;
+		if FileExists(t + '.PAL') then begin
+			AssignFSys(f, t + '.PAL');
 			Reset(f, 1);
 			if IOResult = 0 then begin
 				BlockRead(f, TempPalette, 48);
@@ -279,7 +285,7 @@ function DefaultParamList(i: integer): integer;
 				29,31,34,35,36,39,41,42,43,45,46,47: DefaultParamList := 63;
 			else DefaultParamList := -32767 end;
 		end else case i of
-				1,9,11,16,25: DefaultParamList := 0;
+				1,9,11,16,25,26: DefaultParamList := 0;
 				2: DefaultParamList := 10;
 				3,6,12,13,20,23,24: DefaultParamList := 1;
 				4,7: DefaultParamList := 2;
@@ -327,13 +333,19 @@ function OopConfigs (i: integer): string;
 		else OopConfigs := '_nil' end;
 	end;
 
-procedure CustomCharsetLoad;
+procedure LoadChrFile(chrfile: string);
 	var
+		t: string;
 		f: file;
 		ch: TCharsetData;
 	begin
-		if FileExists(World.Info.Name + '.CHR') then begin
-			AssignFSys(f, World.Info.Name + '.CHR');
+		t := chrfile;
+		if not FileExists(t + '.CHR') then begin
+			t := World.Info.Name;
+		end;
+		if FileExists(t + '.CHR') then begin
+			XDat.Chrfile := t;
+			AssignFSys(f, t + '.CHR');
 			Reset(f, 1);
 			if IOResult = 0 then begin
 				BlockRead(f, ch, 3584);
@@ -1366,8 +1378,10 @@ function WorldLoad(filename, extension: TString50): boolean;
 						goto OnError;
 					end;
 					GameDrawTheme;
-				end else
+				end else begin
 					InitElementsGame;
+					GlobalLoadStatData(World.Info.Name);
+				end;
 
 				SetPalette(false);
 				CurrentBlink := (XDat.Params[THEME_BLINK] = 0);
@@ -1382,8 +1396,7 @@ function WorldLoad(filename, extension: TString50): boolean;
 
 				CustomOOPLoad;
 				CustomSidebarLoad;
-				CustomCharsetLoad;
-				GlobalLoadStatData;
+				LoadChrFile(XDat.Chrfile);
 
 				HighScoresLoad;
 				SidebarClearLine(5);
@@ -1492,7 +1505,11 @@ function GameWorldLoad(extension: TString50): boolean;
 		if Length(entryName) > 0 then begin
 			if WorldLoad(entryName, extension) then begin
 				GameWorldLoad := true;
-				if extension = '.ZZT' then LoadPalette;
+				if extension = '.ZZT' then begin
+					LoadPalette(World.Info.Name);
+					LoadChrFile(World.Info.Name);
+					GlobalLoadStatData(World.Info.Name);
+				end;
 			end else begin
 				WorldCreate;
 				PauseOnError;
@@ -1613,15 +1630,17 @@ function FileLoadStatData(s: TString50; statId: integer): boolean;
 		if IOResult <> 0 then begin end;
 	end;
 
-procedure GlobalLoadStatData;
+procedure GlobalLoadStatData(objfile: string);
 	var
 		TmpString: string;
 		f: text;
 		i, j, k, t: integer;
 		NumRead: word;
 	begin
-		if not FileExists(World.Info.Name + '.OBJ') then exit;
-		AssignFSysText(f, World.Info.Name + '.OBJ');
+		TmpString := objfile;
+		if not FileExists(TmpString + '.OBJ') then TmpString := World.Info.Name;
+		if not FileExists(TmpString + '.OBJ') then exit;
+		AssignFSysText(f, TmpString + '.OBJ');
 		Reset(f);
 		NumRead := 0;
 		k := 0;
@@ -1651,6 +1670,8 @@ procedure GlobalLoadStatData;
 			DataLen := NumRead - k;
 			DataPos := 0;
 			Data := @XDat.GlobalObj[1];
+			X := Board.Stats[0].X;
+			Y := Board.Stats[0].Y;
 		end;
 		
 		Close(f);
@@ -2960,7 +2981,9 @@ procedure GamePlayLoop(boardChanged: boolean);
 					or (FileExists(StartupWorldFileName)
 					and WorldLoad(StartupWorldFileName,''))
 				then begin
-					LoadPalette;
+					LoadPalette(World.Info.Name);
+					LoadChrfile(World.Info.Name);
+					GlobalLoadStatData(World.Info.Name);
 					GameDrawTheme;
 					GameUpdateSidebar;
 					VideoWriteText(69, 8, AsColor(XDat.Params[THEME_START + 1],
@@ -3127,7 +3150,9 @@ procedure GamePlayLoop(boardChanged: boolean);
 				HighScoresAdd(World.Info.Score);
 			end;
 			if (not DebugEnabled) then if WorldLoad(World.Info.Name, '.ZZT') then begin
-				LoadPalette;
+				LoadPalette(World.Info.Name);
+				LoadChrfile(World.Info.Name);
+				GlobalLoadStatData(World.Info.Name);
 			end;
 		end else if GameStateElement = E_MONITOR then
 			SidebarClearLine(5);
@@ -3192,7 +3217,9 @@ procedure GameTitleLoop;
 					'P': begin
 						if not DebugEnabled then begin
 							startPlay := WorldLoad(World.Info.Name, '.ZZT');
-							LoadPalette;
+							LoadPalette(World.Info.Name);
+							LoadChrfile(World.Info.Name);
+							GlobalLoadStatData(World.Info.Name);
 							ReturnBoardId := World.Info.CurrentBoard;
 						end else begin
 							startPlay := true;

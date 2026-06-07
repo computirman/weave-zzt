@@ -32,8 +32,8 @@ unit GameVars;
 interface
 	uses ExtMem;
 	const
-		ZZT_VERSION = '4.0l';
-		FOOTER_VERSION = 4010;
+		ZZT_VERSION = '4.1.0';
+		FOOTER_VERSION = 4100;
 		MAX_STAT = 254;
 		TSTAT_OFFSET = 33;
 		MAX_ELEMENT = 53;
@@ -60,7 +60,7 @@ interface
 		CONFIG_FILE_COUNT = 88;
 		THEME_START = 13;
 		THEME_BLINK = 20;
-		PALETTE_START = 26;
+		PALETTE_START = 27;
 		PARAM_FILE_COUNT = PALETTE_START + 47;
 		CUSTOM_KEY_COUNT = 24;
 		CUSTOM_COUNTER_OFFSET = CUSTOM_KEY_COUNT + 1;
@@ -201,6 +201,7 @@ interface
 			Flags: array[MAX_FLAG + 1 .. MAX_EXTENDEDFLAG] of TString20;
 			Params: array[1 .. PARAM_FILE_COUNT] of integer;
 			CurrentPalette: TPalette;
+			ChrFile: string[80];
 			EDefs: array[0 .. MAX_ELEMENT] of TElemDef;
 			Configs: array[1 .. CONFIG_FILE_COUNT] of string[80];
 			GlobalObj: array[1 .. GLOBAL_OBJ_LENGTH] of char;

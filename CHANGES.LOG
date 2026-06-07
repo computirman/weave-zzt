@@ -1,3 +1,17 @@
+6/6/2026: Weave 4.1.0
+ * Added: EXAMPLES\STRIPPED.CFG
+ * Added: OTHER.SOFTSHOVE
+    - When True: #shove works only if the destination is walkable.
+    - Defaults to FALSE.
+ * Added: #LOAD <DIR> [EXT] <FILENAME>
+    - EXT can be:
+        - GLOBAL
+            - This replaces the global object with the contents of "<FILENAME>.OBJ"
+        - PAL
+            - This loads the values from "<FILENAME>.PAL" into the current palette.
+ * Fixed: Visual artifacts when global object sets CFG values in dark rooms.
+
+
 5/23/2026: Weave 4.0l
  * Fixed: The Global Object was not responding to incoming messages, including messages if the global object is named @INPUT.
 

@@ -1770,6 +1770,8 @@ procedure ElementTruePlayerTick;
 			end;
 			if GlobalExec then begin
 				GlobalExec := false;
+				playerTmpStat.X := Board.Stats[0].X;
+				playerTmpStat.Y := Board.Stats[0].Y;
 				XDat.GlobalStat := Board.Stats[0];
 				Board.Stats[0] := playerTmpStat;
 			end;
