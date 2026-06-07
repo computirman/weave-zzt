@@ -1665,3 +1665,32 @@ All additional lines will be one of the following:
     - If there is a 'SPEED' defined in WEAVE.CFG, the option to change the game's 'S'peed on the title screen is disabled.
     - In addition to the above, WEBRELEASE disables the option to 'Q'uit from the title screen, as for a web-playable Weave game, you simply navigate away from the page.
  * NEUROMOTORASSIST, VISUALSOUND, KEYSHAPES - these force the different accessibility modes used by Weave to improve the accessibility of legacy ZZT games.
+
+#############################
+        Appendix F:
+        STRIPPED.CFG
+#############################
+
+STRIPPED.CFG is a separate download for those that want a minified ZZT-esque setup from which to begin development. This includes some things that may need explaining:
+
+ * Modify Before Release
+    - These are options you may want to consider with your final release. Also, they're ones that, for various reasons, you may want to re-enable quickly, should development resume. Hence, straight at the top.
+ * Optional Removals
+    - Some defaults you don't want to mess with... until you do. These are some common ones, like changing the nature of torchlight, changing and removing the default elements ofthe sidebar, and changing the way the player (and death) are handled.
+ * Standard removals
+    - Unavoidable messages and sounds, as well counter tracking in the sidebar. Not everyone will want to remove these every time, so they're relatively near the top in cae you want to quickly comment one or more of them out. Note: the duplictor sound is not included because #duplicate exists.
+ * Sacrifices
+    - These commented-out element definitions are pre-configured to render the element inert, so it can be used as custom wall.
+        - Or floor, if you add "element.walkable = true" to your game CFG.
+        - Note that some elements have code that interacts with other elements by name and not by element attribute:
+            - ?BULLET has special interaction with ?RICOCHET.
+            - TRANSPORTER has special interaction when items are pushed onto it.
+    - You will still need to remove the stats on any you place in LOOMZZT, which will always assume you want the stat for normally statted elements.
+ * Text, Theme, Keybinds, Flags, Counters, Sidebar
+    - ?All unchanged from the standard TEMPLATE.CFG.
+
+?Available as a separate download on the Weave 4 page:
+
+https://meangirls.itch.io/weave-4#download
+
+As well as in this repository in the EXAMPLES folder. Cheers!
