@@ -64,7 +64,9 @@ interface
 	procedure VideoSetSDLScalingMode(value: TSDLScalingMode);
 	function VideoGetSDLWindowed: boolean;
 	procedure VideoSetSDLWindowed(value: boolean);
-	{ }
+	function VideoGetSDLFullscreenDesktop: boolean;
+	procedure VideoSetSDLFullscreenDesktop(value: boolean);
+	procedure VideoToggleSDLFullscreenDesktop;
 	procedure VideoWriteText(x, y, color: byte; text: TVideoLine);
 {$IFDEF WIDECHAR}
 	procedure VideoWriteTextWide(x, y, color: byte; text: TVideoLine);
@@ -146,6 +148,7 @@ var
 	blinkMode: TVideoBlinkMode;
 	scalingMode: TSDLScalingMode;
 	windowed: boolean;
+	fullscreenDesktop: boolean;
 	installed: boolean;
 	usingCustomCharset: boolean;
 	usingCustomPalette: boolean;
@@ -390,6 +393,43 @@ procedure VideoSetSDLWindowed(value: boolean);
 		end;
 		SDL_UnlockMutex(mainThreadSdlChangesMutex);
 	end;
+
+function VideoGetSDLFullscreenDesktop: boolean;
+begin
+  VideoGetSDLFullscreenDesktop := fullscreenDesktop;
+end;
+
+procedure VideoSetSDLFullscreenDesktop(value: boolean);
+begin
+  SDL_LockMutex(mainThreadSdlChangesMutex);
+  if fullscreenDesktop <> value then begin
+    if value then begin
+      { Entering fake fullscreen: remember windowed size so we can restore it. }
+      if windowed then
+        SDL_GetWindowSize(window, @windowedLastWidth, @windowedLastHeight);
+      SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+      AfterSetWindowSize;
+      windowed := false;
+      fullscreenDesktop := true;
+    end else begin
+      SDL_SetWindowFullscreen(window, 0);
+      AfterSetWindowSize;
+      SDL_SetWindowSize(window, windowedLastWidth, windowedLastHeight);
+      AfterSetWindowSize;
+      SDLResizeWindow(0, true, false);
+      AfterSetWindowSize;
+      windowed := true;
+      fullscreenDesktop := false;
+    end;
+  end;
+  SDL_UnlockMutex(mainThreadSdlChangesMutex);
+  VideoForcePlayfieldRedraw;
+end;
+
+procedure VideoToggleSDLFullscreenDesktop;
+begin
+  VideoSetSDLFullscreenDesktop(not fullscreenDesktop);
+end;
 
 { Charset management }
 

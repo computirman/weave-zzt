@@ -32,8 +32,8 @@ unit GameVars;
 interface
 	uses ExtMem;
 	const
-		ZZT_VERSION = '4.1.0';
-		FOOTER_VERSION = 4100;
+		ZZT_VERSION = '4.1.1';
+		FOOTER_VERSION = 4101;
 		MAX_STAT = 254;
 		TSTAT_OFFSET = 33;
 		MAX_ELEMENT = 53;
@@ -253,6 +253,7 @@ interface
 		SelUnder: boolean;
 		QuickStart: boolean;
 		QuickQuit: boolean;
+		ForceQuit: boolean;
 		QStartBoard: integer;
 		QuickSwap: TString50;
 		IoTmpBufSize: word;
@@ -306,6 +307,8 @@ interface
 
 		CustomCounterList: TCustomCounterList;
 		CustomFlagList: TCustomFlagList;
+		CustomCounterIndexCount: byte;
+		CustomCounterIndex: array[1..CUSTOM_COUNTER_COUNT] of byte;
 		KeyList: TCustomKeyList;
 		SearchArea: TSearchArea;
 		HighScoreList: THighScoreList;
@@ -317,6 +320,7 @@ interface
 
 		BoardNames: ^TBoardNames;
 	const
+	
 		E_EMPTY = 0;
 		E_BOARD_EDGE = 1;
 		E_DARKNESS = 2;

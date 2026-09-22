@@ -40,7 +40,7 @@ interface
 	procedure ElementMod(e: integer; par: string; op: string; statId: integer);
 	function ElementGet(e: integer; par: string): integer;
 	function StringConfigs(i: integer): string;
-	function Enum(elem: integer): integer;
+	function Enm(elem: integer): integer;
 	function ElemDefColor(elem: integer): byte;
 
 implementation
@@ -74,7 +74,7 @@ function BulletMove(var ix, iy: integer; var iElem: byte; statId: integer): inte
 				end;
 				iElem := Board.Tiles[ix][iy].Element;
 
-				if XDat.EDefs[Enum(iElem)].Walkable or XDat.EDefs[Enum(iElem)].CanPut then begin
+				if XDat.EDefs[Enm(iElem)].Walkable or XDat.EDefs[Enm(iElem)].CanPut then begin
 					BulletMove := 3;
 					exit;
 				end;
@@ -88,7 +88,7 @@ function BulletMove(var ix, iy: integer; var iElem: byte; statId: integer): inte
 				end;
 
 				if (iElem = E_BREAKABLE)
-					or (XDat.EDefs[Enum(iElem)].CanShoot and ((iElem = E_PLAYER) or (P1 = 0)))
+					or (XDat.EDefs[Enm(iElem)].CanShoot and ((iElem = E_PLAYER) or (P1 = 0)))
 				then begin
 					BulletMove := 1;
 					exit;
@@ -153,7 +153,7 @@ procedure ElementLionTick(statId: integer);
 			else
 				CalcDirectionSeek(X, Y, deltaX, deltaY);
 
-			if XDat.EDefs[Enum(Board.Tiles[X + deltaX][Y + deltaY].Element)].Walkable then begin
+			if XDat.EDefs[Enm(Board.Tiles[X + deltaX][Y + deltaY].Element)].Walkable then begin
 				MoveStat(statId, X + deltaX, Y + deltaY);
 			end else if Board.Tiles[X + deltaX][Y + deltaY].Element = E_PLAYER then begin
 				BoardAttack(statId, X + deltaX, Y + deltaY)
@@ -207,7 +207,7 @@ procedure ElementRuffianTick(statId: integer);
 				with Board.Tiles[X + StepX][Y + StepY] do begin
 					if Element = E_PLAYER then begin
 						BoardAttack(statId, X + StepX, Y + StepY)
-					end else if XDat.EDefs[Enum(Element)].Walkable then begin
+					end else if XDat.EDefs[Enm(Element)].Walkable then begin
 						MoveStat(statId, X + StepX, Y + StepY);
 						if (P2 + 8) <= Random(17) then begin
 							StepX := 0;
@@ -246,7 +246,7 @@ procedure ElementBearTick(statId: integer);
 
 		Movement:
 			with Board.Tiles[X + deltaX][Y + deltaY] do begin
-				if XDat.EDefs[Enum(Element)].Walkable then begin
+				if XDat.EDefs[Enm(Element)].Walkable then begin
 					MoveStat(statId, X + deltaX, Y + deltaY);
 				end else if (Element = E_PLAYER) or (Element = E_BREAKABLE) then begin
 					BoardAttack(statId, X + deltaX, Y + deltaY)
@@ -273,7 +273,7 @@ procedure ElementCentipedeHeadTick(statId: integer);
 				CalcDirectionRnd(StepX, StepY);
 			end;
 
-			if not XDat.EDefs[Enum(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable
+			if not XDat.EDefs[Enm(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable
 				and (Board.Tiles[X + StepX][Y + StepY].Element <> E_PLAYER) then
 			begin
 				ix := StepX;
@@ -281,15 +281,15 @@ procedure ElementCentipedeHeadTick(statId: integer);
 				tmp := ((Random(2) * 2) - 1) * StepY;
 				StepY := ((Random(2) * 2) - 1) * StepX;
 				StepX := tmp;
-				if not XDat.EDefs[Enum(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable
+				if not XDat.EDefs[Enm(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable
 					and (Board.Tiles[X + StepX][Y + StepY].Element <> E_PLAYER) then
 				begin
 					StepX := -StepX;
 					StepY := -StepY;
-					if not XDat.EDefs[Enum(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable
+					if not XDat.EDefs[Enm(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable
 						and (Board.Tiles[X + StepX][Y + StepY].Element <> E_PLAYER) then
 					begin
-						if XDat.EDefs[Enum(Board.Tiles[X - ix][Y - iy].Element)].Walkable
+						if XDat.EDefs[Enm(Board.Tiles[X - ix][Y - iy].Element)].Walkable
 							or (Board.Tiles[X - ix][Y - iy].Element = E_PLAYER) then
 						begin
 							StepX := -ix;
@@ -392,8 +392,8 @@ procedure ElementBulletTick(statId: integer);
 
 			case outcome of
 			1: begin
-				if XDat.EDefs[Enum(iElem)].ScoreValue <> 0 then begin
-					Inc(World.Info.Score, XDat.EDefs[Enum(iElem)].ScoreValue);
+				if XDat.EDefs[Enm(iElem)].ScoreValue <> 0 then begin
+					Inc(World.Info.Score, XDat.EDefs[Enm(iElem)].ScoreValue);
 					GameUpdateSidebar;
 				end;
 				BoardAttack(statId, ix, iy);
@@ -520,7 +520,7 @@ procedure ElementConveyorTick(x, y: integer; direction: integer);
 			with tiles[i] do begin
 				if Element = E_EMPTY then
 					canMove := true
-				else if not XDat.EDefs[Enum(Element)].Pushable then
+				else if not XDat.EDefs[Enm(Element)].Pushable then
 					canMove := false;
 				{ FIX: In some cases, a movement could cause two stats to briefly overlap each other. }
 				{ Pre-find stat IDs to prevent such a scenario from occuring. }
@@ -533,7 +533,7 @@ procedure ElementConveyorTick(x, y: integer; direction: integer);
 		repeat
 			with tiles[i] do begin
 				if canMove then begin
-					if XDat.EDefs[Enum(Element)].Pushable or (Element = E_EMPTY) then begin
+					if XDat.EDefs[Enm(Element)].Pushable or (Element = E_EMPTY) then begin
 						ix := x + DiagonalDeltaX[(i - direction) and 7];
 						iy := y + DiagonalDeltaY[(i - direction) and 7];
 						tx := x + DiagonalDeltaX[i];
@@ -552,7 +552,7 @@ procedure ElementConveyorTick(x, y: integer; direction: integer);
 							Board.Tiles[ix][iy] := tiles[i];
 							BoardDrawTile(ix, iy);
 						end;
-						if not (XDat.EDefs[Enum(tiles[(i + direction) and 7].Element)].Pushable
+						if not (XDat.EDefs[Enm(tiles[(i + direction) and 7].Element)].Pushable
 							or (tiles[(i + direction) and 7].Element = E_EMPTY))
 						then begin
 							Board.Tiles[tx][ty].Element := E_EMPTY;
@@ -563,7 +563,7 @@ procedure ElementConveyorTick(x, y: integer; direction: integer);
 					end;
 				end else if Element = E_EMPTY then
 					canMove := true
-				else if not (XDat.EDefs[Enum(Element)].Pushable or (Element = E_EMPTY)) then
+				else if not (XDat.EDefs[Enm(Element)].Pushable or (Element = E_EMPTY)) then
 					canMove := false;
 			end;
 			Inc(i, direction);
@@ -693,10 +693,10 @@ procedure ElementTransporterMove(x, y, deltaX, deltaY: integer);
 						else if isValidDest then begin
 							isValidDest := false;
 
-							if not XDat.EDefs[Enum(Element)].Walkable then
+							if not XDat.EDefs[Enm(Element)].Walkable then
 								ElementPushablePush(ix, iy, deltaX, deltaY);
 
-							if XDat.EDefs[Enum(Element)].Walkable then begin
+							if XDat.EDefs[Enm(Element)].Walkable then begin
 								finishSearch := true;
 								newX := ix;
 								newY := iy;
@@ -794,10 +794,10 @@ procedure ElementStarTick(statId: integer);
 						if (Element = E_PLAYER) or (Element = E_BREAKABLE) then begin
 							BoardAttack(statId, X + StepX, Y + StepY);
 						end else begin
-							if not XDat.EDefs[Enum(Element)].Walkable then
+							if not XDat.EDefs[Enm(Element)].Walkable then
 								ElementPushablePush(X + StepX, Y + StepY, StepX, StepY);
 
-							if XDat.EDefs[Enum(Element)].Walkable or (Element = E_WATER) then
+							if XDat.EDefs[Enm(Element)].Walkable or (Element = E_WATER) then
 								MoveStat(statId, X + StepX, Y + StepY);
 						end;
 					end;
@@ -828,7 +828,7 @@ procedure ElementEnergizerTouch(x, y: integer; sourceStatId: integer; var deltaX
 		end;
 
 		if OopSend(0, 'ALL:ENERGIZE', false) then begin end;
-		if not XDat.EDefs[Enum(XDat.EDefs[E_ENERGIZER].P3)].Walkable then
+		if not XDat.EDefs[Enm(XDat.EDefs[E_ENERGIZER].P3)].Walkable then
 			MoveStat(0, x, y);
 	end;
 
@@ -849,7 +849,7 @@ procedure ElementSlimeTick(statId: integer);
 				changedTiles := 0;
 
 				for dir := 0 to 3 do begin
-					if XDat.EDefs[Enum(Board.Tiles[startX + NeighborDeltaX[dir]][startY + NeighborDeltaY[dir]].Element)].Walkable then begin
+					if XDat.EDefs[Enm(Board.Tiles[startX + NeighborDeltaX[dir]][startY + NeighborDeltaY[dir]].Element)].Walkable then begin
 						if changedTiles = 0 then begin
 							MoveStat(statId, startX + NeighborDeltaX[dir], startY + NeighborDeltaY[dir]);
 							Board.Tiles[startX][startY].Color := color;
@@ -935,7 +935,7 @@ procedure ElementBlinkWallTick(statId: integer);
 				if ((X + StepX) = ix) and ((Y + StepY) = iy) then begin
 					hitBoundary := false;
 					repeat
-						if (Board.Tiles[ix][iy].Element <> E_EMPTY) and (XDat.EDefs[Enum(Board.Tiles[ix][iy].Element)].CanShoot) then
+						if (Board.Tiles[ix][iy].Element <> E_EMPTY) and (XDat.EDefs[Enm(Board.Tiles[ix][iy].Element)].CanShoot) then
 							BoardDamageTile(ix, iy);
 
 						if Board.Tiles[ix][iy].Element = E_PLAYER then begin
@@ -1005,21 +1005,21 @@ procedure ElementPushablePush(x, y: integer; deltaX, deltaY: integer);
 		if (deltaX <> 0) or (deltaY <> 0) then begin
 			with Board.Tiles[x][y] do begin
 				if ((Element = E_SLIDER_NS) and (deltaX = 0)) or ((Element = E_SLIDER_EW) and (deltaY = 0))
-					or XDat.EDefs[Enum(Element)].Pushable then
+					or XDat.EDefs[Enm(Element)].Pushable then
 				begin
 					if Board.Tiles[x + deltaX][y + deltaY].Element = E_TRANSPORTER then
 						ElementTransporterMove(x, y, deltaX, deltaY)
 					else if Board.Tiles[x + deltaX][y + deltaY].Element <> E_EMPTY then
 						ElementPushablePush(x + deltaX, y + deltaY, deltaX, deltaY);
 
-					if not XDat.EDefs[Enum(Board.Tiles[x + deltaX][y + deltaY].Element)].Walkable
-						and XDat.EDefs[Enum(Board.Tiles[x + deltaX][y + deltaY].Element)].CanShoot
+					if not XDat.EDefs[Enm(Board.Tiles[x + deltaX][y + deltaY].Element)].Walkable
+						and XDat.EDefs[Enm(Board.Tiles[x + deltaX][y + deltaY].Element)].CanShoot
 						and (Board.Tiles[x + deltaX][y + deltaY].Element <> E_PLAYER) then
 					begin
 						BoardDamageTile(x + deltaX, y + deltaY);
 					end;
 
-					if XDat.EDefs[Enum(Board.Tiles[x + deltaX][y + deltaY].Element)].Walkable then
+					if XDat.EDefs[Enm(Board.Tiles[x + deltaX][y + deltaY].Element)].Walkable then
 						ElementMove(x, y, x + deltaX, y + deltaY);
 				end;
 			end;
@@ -1047,7 +1047,7 @@ procedure ElementObjectTick(statId: integer);
 				OopExecute(Index, XDat.Configs[84]);
 
 			if (Stat^.StepX <> 0) or (Stat^.StepY <> 0) then begin
-				if XDat.EDefs[Enum(Board.Tiles[Stat^.X + Stat^.StepX][Stat^.Y + Stat^.StepY].Element)].Walkable then
+				if XDat.EDefs[Enm(Board.Tiles[Stat^.X + Stat^.StepX][Stat^.Y + Stat^.StepY].Element)].Walkable then
 					MoveStat(Index, Stat^.X + Stat^.StepX, Stat^.Y + Stat^.StepY)
 				else if (Index > 0) then
 					retVal := OopSend(-Index, 'THUD', false);
@@ -1084,7 +1084,7 @@ function ElementDuplicate(srcX, srcY, dstX, dstY, statId: integer): boolean;
 		with Board.Stats[statId] do begin
 			with Board.Tiles[X + dstX][Y + dstY] do begin
 				if Element = E_PLAYER then begin
-					XDat.EDefs[ENum(Board.Tiles[X + srcX][Y + srcY].Element)]
+					XDat.EDefs[Enm(Board.Tiles[X + srcX][Y + srcY].Element)]
 						.TouchProc(X + srcX, Y + srcY, 0, InputDeltaX, InputDeltaY);
 					BoardDrawTile(X + srcX, Y + srcY);
 				end else begin
@@ -1092,7 +1092,7 @@ function ElementDuplicate(srcX, srcY, dstX, dstY, statId: integer): boolean;
 						ElementPushablePush(X + dstX, Y + dstY, dstX, dstY);
 
 					if (Element = E_EMPTY)
-						or (XDat.EDefs[ENum(Element)].CanPut = true)
+						or (XDat.EDefs[Enm(Element)].CanPut = true)
 					then begin
 						sourceStatId := GetStatIdAt(X + srcX, Y + srcY);
 						if sourceStatId > 0 then begin
@@ -1183,7 +1183,7 @@ procedure ElementKeyTouch(x, y: integer; sourceStatId: integer; var deltaX, delt
 			GameUpdateSidebar;
 			DisplayMessage(200, XDat.Configs[12]+ColorNames[key]+XDat.Configs[13]); {You got the key}
 			SoundQueue(2, SoundParse(XDat.Configs[14]));
-			if not XDat.EDefs[Enum(XDat.EDefs[E_KEY].P3)].Walkable then
+			if not XDat.EDefs[Enm(XDat.EDefs[E_KEY].P3)].Walkable then
 				MoveStat(0, x, y);
 		end;
 	end;
@@ -1200,7 +1200,7 @@ procedure ElementAmmoTouch(x, y: integer; sourceStatId: integer; var deltaX, del
 			MessageAmmoNotShown := false;
 			DisplayMessage(200, XDat.Configs[24]); {"Ammunition - 5 shots per container"}
 		end;
-		if not XDat.EDefs[Enum(XDat.EDefs[E_AMMO].P3)].Walkable then
+		if not XDat.EDefs[Enm(XDat.EDefs[E_AMMO].P3)].Walkable then
 			MoveStat(0, x, y);
 	end;
 
@@ -1218,7 +1218,7 @@ procedure ElementGemTouch(x, y: integer; sourceStatId: integer; var deltaX, delt
 			MessageGemNotShown := false;
 			DisplayMessage(200, XDat.Configs[26]); {"Gems give you Health!"}
 		end;
-		if not XDat.EDefs[Enum(XDat.EDefs[E_GEM].P3)].Walkable then
+		if not XDat.EDefs[Enm(XDat.EDefs[E_GEM].P3)].Walkable then
 			MoveStat(0, x, y);
 	end;
 
@@ -1245,7 +1245,7 @@ procedure ElementDoorTouch(x, y: integer; sourceStatId: integer; var deltaX, del
 
 			DisplayMessage(200, XDat.Configs[18]+ColorNames[key]+XDat.Configs[19]); {You opened the door}
 			SoundQueue(3, SoundParse(XDat.Configs[20]));
-			if not XDat.EDefs[Enum(XDat.EDefs[E_DOOR].P3)].Walkable then
+			if not XDat.EDefs[Enm(XDat.EDefs[E_DOOR].P3)].Walkable then
 				MoveStat(0, x, y);
 		end else begin
 			DisplayMessage(200, XDat.Configs[21]+ColorNames[key]+XDat.Configs[22]); {The door is locked}
@@ -1281,14 +1281,14 @@ procedure ElementPusherTick(statId: integer);
 			startX := X;
 			startY := Y;
 
-			if not XDat.EDefs[Enum(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable then begin
+			if not XDat.EDefs[Enm(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable then begin
 				ElementPushablePush(X + StepX, Y + StepY, StepX, StepY);
 			end;
 		end;
 
 		statId := GetStatIdAt(startX, startY);
 		with Board.Stats[statId] do begin
-			if XDat.EDefs[Enum(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable then begin
+			if XDat.EDefs[Enm(Board.Tiles[X + StepX][Y + StepY].Element)].Walkable then begin
 				MoveStat(statId, X + StepX, Y + StepY);
 				SoundQueue(2, SoundParse(XDat.Configs[52])); {Pusher push sound}
 
@@ -1315,7 +1315,7 @@ procedure ElementTorchTouch(x, y: integer; sourceStatId: integer; var deltaX, de
 		MessageTorchNotShown := false;
 
 		SoundQueue(3, SoundParse(XDat.Configs[29])); {Torch sound}
-		if not XDat.EDefs[Enum(XDat.EDefs[E_TORCH].P3)].Walkable then
+		if not XDat.EDefs[Enm(XDat.EDefs[E_TORCH].P3)].Walkable then
 			MoveStat(0, x, y);
 	end;
 
@@ -1341,7 +1341,7 @@ procedure ElementForestTouch(x, y: integer; sourceStatId: integer; var deltaX, d
 			DisplayMessage(200, XDat.Configs[33]); {"A path is cleared through the forest."}
 		end;
 		MessageForestNotShown := false;
-		if not XDat.EDefs[Enum(XDat.EDefs[E_FOREST].P3)].Walkable then
+		if not XDat.EDefs[Enm(XDat.EDefs[E_FOREST].P3)].Walkable then
 			MoveStat(0, x, y);
 	end;
 
@@ -1379,11 +1379,11 @@ procedure ElementBoardEdgeTouch(x, y: integer; sourceStatId: integer; var deltaX
 			boardId := World.Info.CurrentBoard;
 			BoardChange(Board.Info.NeighborBoards[neighborId]);
 			if Board.Tiles[entryX][entryY].Element <> E_PLAYER then begin
-				XDat.EDefs[Enum(Board.Tiles[entryX][entryY].Element)].TouchProc(
+				XDat.EDefs[Enm(Board.Tiles[entryX][entryY].Element)].TouchProc(
 					entryX, entryY, sourceStatId, InputDeltaX, InputDeltaY);
 			end;
 
-			if XDat.EDefs[Enum(Board.Tiles[entryX][entryY].Element)].Walkable
+			if XDat.EDefs[Enm(Board.Tiles[entryX][entryY].Element)].Walkable
 				or (Board.Tiles[entryX][entryY].Element = E_PLAYER) then
 			begin
 				if Board.Tiles[entryX][entryY].Element <> E_PLAYER then
@@ -1422,7 +1422,7 @@ procedure DrawBombSurroundings(x, y: integer; bombPhase: integer);
 								if istat > 0 then
 									result := OopSend(-istat, 'BOMBED', false);
 							end;
-							if XDat.EDefs[Enum(Element)].CanShoot or (Element = E_STAR) then
+							if XDat.EDefs[Enm(Element)].CanShoot or (Element = E_STAR) then
 								BoardDamageTile(ix, iy);
 							if (Element = E_EMPTY) or (Element = E_BREAKABLE) then begin
 								Element := E_BREAKABLE;
@@ -1610,7 +1610,7 @@ procedure ElementTruePlayerTick;
 				PlayerDirX := InputDeltaX;
 				PlayerDirY := InputDeltaY;
 
-				XDat.EDefs[Enum(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].TouchProc(
+				XDat.EDefs[Enm(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].TouchProc(
 					X + InputDeltaX, Y + InputDeltaY, 0, InputDeltaX, InputDeltaY);
 				if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
 					if SoundEnabled and not SoundIsPlaying and not (XDat.Params[1] = 0) then
@@ -1619,7 +1619,7 @@ procedure ElementTruePlayerTick;
 {$ELSE}
 						Sound(110);
 {$ENDIF}
-					if XDat.EDefs[Enum(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].Walkable then begin
+					if XDat.EDefs[Enm(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].Walkable then begin
 {$IFNDEF SDL2}
 						if SoundEnabled and not SoundIsPlaying then
 							NoSound;
@@ -1816,10 +1816,10 @@ procedure ElementCloneTick(statId: integer);
 				PlayerDirX := InputDeltaX;
 				PlayerDirY := InputDeltaY;
 
-				XDat.EDefs[Enum(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].TouchProc(
+				XDat.EDefs[Enm(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].TouchProc(
 					X + InputDeltaX, Y + InputDeltaY, 0, InputDeltaX, InputDeltaY);
 				if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
-					if XDat.EDefs[Enum(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].Walkable then
+					if XDat.EDefs[Enm(Board.Tiles[X + InputDeltaX][Y + InputDeltaY].Element)].Walkable then
 						MoveStat(0, X + InputDeltaX, Y + InputDeltaY);
 				end;
 			end;
@@ -1897,12 +1897,12 @@ procedure ResetMessageNotShownFlags;
 		PMouseButR := false;
 	end;
 
-function Enum(elem: integer): integer;
+function Enm(elem: integer): integer;
 	begin
 		if elem > MAX_ELEMENT then
-			Enum := E_CUSTOMTEXT
+			Enm := E_CUSTOMTEXT
 		else
-			Enum := elem;
+			Enm := elem;
 	end;
 
 function ElemDefColor(elem: integer): byte;

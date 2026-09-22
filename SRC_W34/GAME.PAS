@@ -405,7 +405,7 @@ procedure CustomOOPLoad;
 			Reset(f);
 			if IOResult = 0 then begin
 				j := 0;
-				v := 1;
+				CustomCounterIndexCount := 0;
 				m := 1;
 				n := 1;
 				while j <= 64 do begin
@@ -440,8 +440,15 @@ procedure CustomOOPLoad;
 									KeyLimit := (i div 3) + 1;
 							end;
 						if (OopConfigs(CUSTOM_COUNTER_OFFSET) = k) and (l <> '') then begin
-							CustomCounterList[v] := UpcaseString(l, false);
-							Inc(v);
+							Inc(CustomCounterIndexCount);
+							CustomCounterList[CustomCounterIndexCount] := UpcaseString(l, false);
+							CustomCounterIndex[CustomCounterIndexCount] := CustomCounterIndexCount;
+							for i := CustomCounterIndexCount downto 2 do
+								if CustomCounterList[CustomCounterIndex[i]] < CustomCounterList[CustomCounterIndex[i-1]] then begin
+									v := CustomCounterIndex[i];
+									CustomCounterIndex[i] := CustomCounterIndex[i-1];
+									CustomCounterIndex[i-1] := v;
+								end;
 						end;
 						if (OopConfigs(CUSTOM_FLAG_OFFSET) = k) and (l <> '') then begin
 							CustomFlagList[m] := UpcaseString(l, false);
@@ -1000,7 +1007,7 @@ procedure BoardDrawTile(x, y: integer);
 		then begin
 			if (x < 1) or (x > BOARD_WIDTH) or (y < 1) or (y > BOARD_HEIGHT) then exit;
 			with Board.Tiles[x][y] do begin
-				e := Enum(Element);
+				e := Enm(Element);
 				if ((Board.Info.IsDark < 1) or XDat.EDefs[e].SeeDark)
 					or ((Board.Stats[GetStatIdAt(x, y)].Checks and $04) = 4)
 					or (
@@ -1530,9 +1537,9 @@ procedure AddStat(tx, ty: integer; txelement, txcolor: byte; tcycle: integer; te
 				Y := ty;
 				Cycle := tcycle;
 				if template.Cycle = 255 then begin
-					P1 := XDat.EDefs[Enum(txelement)].P1;
-					P2 := XDat.EDefs[Enum(txelement)].P2;
-					P3 := XDat.EDefs[Enum(txelement)].P3;
+					P1 := XDat.EDefs[Enm(txelement)].P1;
+					P2 := XDat.EDefs[Enm(txelement)].P2;
+					P3 := XDat.EDefs[Enm(txelement)].P3;
 				end else begin
 					P1 := template.P1;
 					P2 := template.P2;
@@ -1880,7 +1887,7 @@ function BoardPrepareTileForPlacement(x, y: integer): boolean;
 			RemoveStat(statId);
 			result := true;
 		end else if statId < 0 then begin
-			if not XDat.EDefs[Enum(Board.Tiles[x][y].Element)].CanPut then
+			if not XDat.EDefs[Enm(Board.Tiles[x][y].Element)].CanPut then
 				Board.Tiles[x][y].Element := E_EMPTY;
 			result := true;
 		end else result := false;
@@ -2190,7 +2197,7 @@ procedure BoardDamageTile(x, y: integer);
 		statId := GetStatIdAt(x, y);
 		if statId <> -1 then begin
 			DamageStat(statId);
-		end else if not XDat.EDefs[Enum(Board.Tiles[x][y].Element)].CanPut then begin
+		end else if not XDat.EDefs[Enm(Board.Tiles[x][y].Element)].CanPut then begin
 			Board.Tiles[x][y].Element := E_EMPTY;
 			BoardDrawTile(x, y);
 		end;
@@ -2199,7 +2206,7 @@ procedure BoardDamageTile(x, y: integer);
 procedure BoardAttack(attackerStatId: integer; x, y: integer);
 	begin
 		if (attackerStatId = 0) and (World.Info.EnergizerTicks > 0) then begin
-			Inc(World.Info.Score, XDat.EDefs[Enum(Board.Tiles[x][y].Element)].ScoreValue);
+			Inc(World.Info.Score, XDat.EDefs[Enm(Board.Tiles[x][y].Element)].ScoreValue);
 			GameUpdateSidebar;
 		end else begin
 			DamageStat(attackerStatId);
@@ -2210,7 +2217,7 @@ procedure BoardAttack(attackerStatId: integer; x, y: integer);
 
 		if (Board.Tiles[x][y].Element = E_PLAYER) and (World.Info.EnergizerTicks > 0) then begin
 			Inc(World.Info.Score, XDat.EDefs[
-				Enum(Board.Tiles[Board.Stats[attackerStatId].X][Board.Stats[attackerStatId].Y].Element)].ScoreValue);
+				Enm(Board.Tiles[Board.Stats[attackerStatId].X][Board.Stats[attackerStatId].Y].Element)].ScoreValue);
 			GameUpdateSidebar;
 		end else begin
 			BoardDamageTile(x, y);
@@ -2225,9 +2232,9 @@ procedure OopForceTile(x, y: integer; tile: TTile);
 					Color := tile.Color
 				else begin
 					BoardDamageTile(x, y);
-					if XDat.EDefs[Enum(tile.Element)].Cycle >= 0 then
+					if XDat.EDefs[Enm(tile.Element)].Cycle >= 0 then
 						AddStat(x, y, tile.Element, tile.Color,
-							XDat.EDefs[Enum(tile.Element)].Cycle, StatTemplateDefault)
+							XDat.EDefs[Enm(tile.Element)].Cycle, StatTemplateDefault)
 					else begin
 						Element := tile.Element;
 						Color := tile.Color;
@@ -2274,9 +2281,9 @@ procedure OopPlaceTile(x, y: integer; var tile: TTile);
 					Color := txcolor
 				else begin
 					BoardDamageTile(x, y);
-					if XDat.EDefs[Enum(tile.Element)].Cycle >= 0 then
+					if XDat.EDefs[Enm(tile.Element)].Cycle >= 0 then
 						AddStat(x, y, tile.Element, txcolor,
-							XDat.EDefs[Enum(tile.Element)].Cycle, StatTemplateDefault)
+							XDat.EDefs[Enm(tile.Element)].Cycle, StatTemplateDefault)
 					else begin
 						Element := tile.Element;
 						Color := txcolor;
@@ -2297,7 +2304,7 @@ function BoardShoot(txelement: byte; tx, ty, deltaX, deltaY: integer; source: in
 			and ((ty + deltaY) <= BOARD_HEIGHT)
 		then begin
 			with Board.Tiles[tx + deltaX][ty + deltaY] do begin
-				if XDat.EDefs[Enum(Element)].CanPut then begin
+				if XDat.EDefs[Enm(Element)].CanPut then begin
 					tile.Element := txelement;
 					tile.Color := ElemDefColor(txelement);
 					OopPlaceTile(tx + deltaX, ty + deltaY, tile);
@@ -2305,15 +2312,15 @@ function BoardShoot(txelement: byte; tx, ty, deltaX, deltaY: integer; source: in
 						P1 := source;
 						StepX := deltaX;
 						StepY := deltaY;
-						P2 := XDat.EDefs[Enum(txelement)].P2; {Projectile Health}
+						P2 := XDat.EDefs[Enm(txelement)].P2; {Projectile Health}
 					end;
 					BoardShoot := true;
 				end else if (
 						(Element = E_BREAKABLE)
 						or ((Element >= E_TEXT_MIN)
-						and (XDat.EDefs[Enum(Element)].CanShoot))
+						and (XDat.EDefs[Enm(Element)].CanShoot))
 					) or (
-						XDat.EDefs[Enum(Element)].CanShoot
+						XDat.EDefs[Enm(Element)].CanShoot
 						and ((Element = E_PLAYER) = Boolean(source))
 						and (World.Info.EnergizerTicks <= 0)
 					) then
@@ -2344,7 +2351,7 @@ procedure CalcDirectionSearch(x, y, srcx, srcy, destx, desty: shortint);
 	begin
 		SearchArea[x][y] := 98;
 		if ((srcx + x > 0) and (srcx + x <= BOARD_WIDTH)) and ((srcy + y > 0) and (srcy + y <= BOARD_HEIGHT)) then begin
-			if (XDat.EDefs[Enum(Board.Tiles[x + srcx][y + srcy].Element)].Walkable) or ((x = 0) and (y = 0)) then begin
+			if (XDat.EDefs[Enm(Board.Tiles[x + srcx][y + srcy].Element)].Walkable) or ((x = 0) and (y = 0)) then begin
 				i := 4;
 				if (x <> 0) or (y <> 0) then begin
 					if x + srcx > destx then SearchArea[x][y] := (x + srcx) - destx
@@ -2857,20 +2864,20 @@ procedure GameDrawCustomSidebar;
 								VideoWriteText(72, i, AsColor(XDat.Params[THEME_START + 2],
 									XDat.Params[THEME_START]), numStr + ' ');
 								if Elmt > -1 then {Sidebar Element}
-									if XDat.EDefs[Enum(Elmt)].Color = 0 then
+									if XDat.EDefs[Enm(Elmt)].Color = 0 then
 										VideoWriteText(62, i,
 											AsColor(XDat.Params[THEME_START + 6],
 											XDat.Params[THEME_START]),
-											XDat.EDefs[Enum(Elmt)].Character)
-									else if XDat.EDefs[Enum(Elmt)].Color and $F0 = 0 then
+											XDat.EDefs[Enm(Elmt)].Character)
+									else if XDat.EDefs[Enm(Elmt)].Color and $F0 = 0 then
 										VideoWriteText(62, i,
-											AsColor(XDat.EDefs[Enum(Elmt)].Color and $0F,
+											AsColor(XDat.EDefs[Enm(Elmt)].Color and $0F,
 											XDat.Params[THEME_START]),
-											XDat.EDefs[Enum(Elmt)].Character)
+											XDat.EDefs[Enm(Elmt)].Character)
 									else
 										VideoWriteText(62, i,
-											XDat.EDefs[Enum(Elmt)].Color,
-											XDat.EDefs[Enum(Elmt)].Character);
+											XDat.EDefs[Enm(Elmt)].Color,
+											XDat.EDefs[Enm(Elmt)].Character);
 							end;
 						end else SideBarClearLine(i);
 					end;
@@ -3082,12 +3089,12 @@ procedure GamePlayLoop(boardChanged: boolean);
 					end;
 				end else begin
 					if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
-						XDat.EDefs[Enum(Board.Tiles[Board.Stats[0].X + InputDeltaX][Board.Stats[0].Y + InputDeltaY].Element)].TouchProc(
+						XDat.EDefs[Enm(Board.Tiles[Board.Stats[0].X + InputDeltaX][Board.Stats[0].Y + InputDeltaY].Element)].TouchProc(
 							Board.Stats[0].X + InputDeltaX, Board.Stats[0].Y + InputDeltaY, 0, InputDeltaX, InputDeltaY);
 					end;
 
 					if ((InputDeltaX <> 0) or (InputDeltaY <> 0))
-						and XDat.EDefs[Enum(Board.Tiles[Board.Stats[0].X + InputDeltaX][Board.Stats[0].Y + InputDeltaY].Element)].Walkable
+						and XDat.EDefs[Enm(Board.Tiles[Board.Stats[0].X + InputDeltaX][Board.Stats[0].Y + InputDeltaY].Element)].Walkable
 					then begin
 						{ Move player }
 						if Board.Tiles[Board.Stats[0].X][Board.Stats[0].Y].Element = E_PLAYER then
@@ -3195,6 +3202,7 @@ procedure GameTitleLoop;
 					QuickQuit := false;
 				end else
 					boardChanged := false;
+				if InputKeyPressed = #254 then ForceQuit := true;
 				inputC := UpCase(InputKeyPressed);
 				if inputC = 'W' then inputC := WorldMenuChar;
 				if inputC = 'S' then inputC := SpeedMenuChar;
@@ -3260,8 +3268,8 @@ procedure GameTitleLoop;
 					GamePlayLoop(true);
 					boardChanged := true;
 				end;
-			until boardChanged or GameTitleExitRequested;
-		until GameTitleExitRequested;
+			until boardChanged or GameTitleExitRequested or ForceQuit;
+		until GameTitleExitRequested or ForceQuit;
 	end;
 
 procedure ResetCachedLinePos;

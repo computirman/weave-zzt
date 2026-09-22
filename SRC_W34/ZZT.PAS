@@ -72,7 +72,7 @@ procedure GameConfigure;
 		Writeln;
 		Writeln('                                <=-  Weave  -=>');
 		TextColor(Yellow);
-		Writeln('                                 Version  ' + ZZT_VERSION);
+		Writeln('                                Version  ' + ZZT_VERSION);
 		Writeln('                         based on '#39'ZZT'#39' by Tim Sweeney');
 		GotoXY(1, 7);
 		TextColor(Blue);
@@ -157,6 +157,7 @@ begin
 	IoTmpBufSize := IO_BUFFER_DEFAULT_SIZE;
 
 	GameTitleExitRequested := false;
+	ForceQuit := false;
 	GameConfigure;
 	JustStarted := true;
 	QuickStart := false;
@@ -169,7 +170,7 @@ begin
 
 	if VideoInstall(VIDEO_MODE_80X25, nil, 0, 1) then begin end;
 
-	if not GameTitleExitRequested then begin
+	if not GameTitleExitRequested or ForceQuit then begin
 		TextWindowInit;
 		GetMem(IoTmpBuf, IoTmpBufSize);
 		GetMem(ObjTmpBuf, LOAD_OBJ_LENGTH);

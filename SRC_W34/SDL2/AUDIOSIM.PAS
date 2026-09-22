@@ -305,7 +305,7 @@ procedure AudioSimulate(stream: TAudioSampleArray; len: Int32);
 begin
 	CurrentNote := -1;
 	AudioSimulationAllowed := false;
-	AudioSetVolume(48);
+	AudioSetVolume(24);
 	AudioSimInitBandlimit;
 	AudioSetHighQuality(true);
 end.

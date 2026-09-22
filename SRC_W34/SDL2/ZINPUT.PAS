@@ -362,6 +362,9 @@ procedure InputUpdate;
 		SDL_LockMutex(eventMutex);
 		while SDL_PollEvent(@event) <> 0 do begin
 			case event.type_ of
+				SDL_QUITEV: begin
+					k := 'Q';
+				end;
 				SDL_WINDOWEVENT: begin
 					if event.window.event = SDL_WINDOWEVENT_SIZE_CHANGED then begin
 						sizeChanged := true;
@@ -390,7 +393,13 @@ procedure InputUpdate;
 					InputUpdateKeymod(event.key.keysym._mod);
 					scode := Uint32(event.key.keysym.scancode);
 					kcode := Uint32(event.key.keysym.sym);
-					if KeysAltHeld and (Char(kcode) = 'p') then begin
+    				if (scode = SDL_SCANCODE_F11)
+						or (KeysAltHeld and (Char(kcode) = #13))
+					then begin
+				        if (event.type_ = SDL_KEYDOWN) and (event.key._repeat = 0) then
+				            VideoToggleSDLFullscreenDesktop;
+				        k := #0;
+					end else if KeysAltHeld and (Char(kcode) = 'p') then begin
 						k := KEY_ALT_P;
 					end else if KeysCtrlHeld and (Char(kcode) = 'c') then begin
 						k := KEY_CTRL_C;
