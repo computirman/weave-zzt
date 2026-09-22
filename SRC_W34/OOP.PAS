@@ -778,7 +778,11 @@ begin
                 s[wordPos] := OopChar;
             end;
             if (position >= 0) and (position < DataLen) then begin
-                OopChar := Data^[position];
+{$IFDEF FPC}
+				OopChar := Data[position];
+{$ELSE}
+				OopChar := Data^[position];
+{$ENDIF}
                 Inc(position);
             end else
                 OopChar := #0;
@@ -872,7 +876,12 @@ function OopFindString(statId, searchDir: integer; s: string): integer;
 			revPos := -1;
 			maxPos := DataLen - Length(s);
 			while pos <= maxPos do begin
+{$IFDEF FPC}
+				if (Data[pos] <> #13) or (Data[pos+1] <> s[2]) then goto NoMatch;
+{$ELSE}
 				if (Data^[pos] <> #13) or (Data^[pos+1] <> s[2]) then goto NoMatch;
+{$ENDIF}
+
 				wordPos := 3;
 				cmpPos := pos + 2;
 				repeat
@@ -1162,11 +1171,21 @@ begin
     code := position;
 
     with Board.Stats[statId] do begin
+
+{$IFDEF FPC}
+        while (code < DataLen) and (Data[code] = ' ') do
+{$ELSE}
         while (code < DataLen) and (Data^[code] = ' ') do
+{$ENDIF}
             Inc(code);
 
         if code < DataLen then begin
+{$IFDEF FPC}
+            ch := Data[code];
+{$ELSE}
             ch := Data^[code];
+{$ENDIF}
+
             if (ch > '`') then Dec(ch, $20);
 
             if (ch <> 'A') and (ch <> 'B') and (ch <> 'I') then begin
